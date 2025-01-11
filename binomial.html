@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binomial Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .plot-container {
+            margin-top: 30px;
+        }
+        a {
+            text-decoration: none;
+            color: #4CAF50;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Binomial Distribution</h1>
+    </header>
+    <main>
+        <p>The Binomial Distribution models the number of successes in \(n\) independent Bernoulli trials, each with a probability of success \(p\).</p>
+        <p>Below is an interactive visualization of the Binomial distribution. Adjust the number of trials (\(n\)) and the probability of success (\(p\)) to see how they affect the probability mass function (PMF).</p>
+
+        <!-- Inputs for number of trials and probability of success -->
+        <label for="trials">Number of Trials (\(n\)):</label>
+        <input type="number" id="trials" min="1" max="50" step="1" value="10" />
+
+        <label for="probability">Probability of Success (\(p\)):</label>
+        <input type="number" id="probability" min="0" max="1" step="0.01" value="0.5" />
+
+        <!-- Plotly container -->
+        <div id="binomial-plot" class="plot-container"></div>
+
+        <p><a href="index.html">&larr; Back to Main Page</a></p>
+    </main>
+
+    <script>
+        // Function to calculate binomial PMF
+        const calculateBinomialPMF = (n, p) => {
+            const factorial = (num) => (num <= 1 ? 1 : num * factorial(num - 1));
+            const comb = (n, k) => factorial(n) / (factorial(k) * factorial(n - k));
+            const pmf = Array.from({ length: n + 1 }, (_, k) => comb(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k));
+            return pmf;
+        };
+
+        // Initial plot rendering
+        const plotBinomial = (n, p) => {
+            const x = Array.from({ length: n + 1 }, (_, i) => i); // Possible successes (0 to n)
+            const y = calculateBinomialPMF(n, p); // PMF values
+
+            const data = [{
+                x: x,
+                y: y,
+                type: 'bar',
+                marker: { color: 'skyblue' },
+                text: y.map(val => val.toFixed(4)),
+                textposition: 'auto',
+            }];
+
+            const layout = {
+                title: `Binomial Distribution (n = ${n}, p = ${p})`,
+                xaxis: { title: 'Number of Successes (k)' },
+                yaxis: { title: 'Probability', range: [0, 1] },
+                template: 'plotly_white',
+            };
+
+            Plotly.newPlot('binomial-plot', data, layout);
+        };
+
+        // Initial plot with default values
+        plotBinomial(10, 0.5);
+
+        // Update the plot when inputs change
+        document.getElementById('trials').addEventListener('input', (event) => {
+            const n = parseInt(event.target.value, 10);
+            const p = parseFloat(document.getElementById('probability').value);
+            if (n >= 1 && p >= 0 && p <= 1) {
+                plotBinomial(n, p);
+            }
+        });
+
+        document.getElementById('probability').addEventListener('input', (event) => {
+            const p = parseFloat(event.target.value);
+            const n = parseInt(document.getElementById('trials').value, 10);
+            if (n >= 1 && p >= 0 && p <= 1) {
+                plotBinomial(n, p);
+            }
+        });
+    </script>
+</body>
+</html>

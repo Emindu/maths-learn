@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bernoulli Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .plot-container {
+            margin-top: 30px;
+        }
+        a {
+            text-decoration: none;
+            color: #4CAF50;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bernoulli Distribution</h1>
+    </header>
+    <main>
+        <p>The Bernoulli distribution is a discrete probability distribution that models a single experiment with only two possible outcomes: success (1) and failure (0). The probability of success is denoted as \(p\), and the probability of failure is \(1-p\).</p>
+        <p>Below is an interactive visualization of the Bernoulli distribution. Adjust the probability of success (\(p\)) to see how it affects the probability mass function (PMF).</p>
+
+        <!-- Input for probability of success -->
+        <label for="probability">Probability of Success (\(p\)):</label>
+        <input type="number" id="probability" min="0" max="1" step="0.01" value="0.5" />
+
+        <!-- Plotly container -->
+        <div id="bernoulli-plot" class="plot-container"></div>
+
+        <p><a href="index.html">&larr; Back to Main Page</a></p>
+    </main>
+
+    <script>
+        // Initial plot rendering
+        const plotBernoulli = (p) => {
+            // Data for the Bernoulli PMF
+            const x = [0, 1]; // Outcomes: 0 (failure), 1 (success)
+            const y = [1 - p, p]; // Probabilities for each outcome
+
+            const data = [{
+                x: x,
+                y: y,
+                type: 'bar',
+                marker: { color: ['#FF5733', '#33FF57'] },
+                text: ['P(X=0)', 'P(X=1)'],
+                textposition: 'auto',
+            }];
+
+            const layout = {
+                title: `Bernoulli Distribution (p = ${p})`,
+                xaxis: { title: 'Outcome (X)' },
+                yaxis: { title: 'Probability', range: [0, 1] },
+                template: 'plotly_white',
+            };
+
+            Plotly.newPlot('bernoulli-plot', data, layout);
+        };
+
+        // Initial plot with p = 0.5
+        plotBernoulli(0.5);
+
+        // Update the plot when the probability input changes
+        document.getElementById('probability').addEventListener('input', (event) => {
+            const p = parseFloat(event.target.value);
+            if (p >= 0 && p <= 1) {
+                plotBernoulli(p);
+            }
+        });
+    </script>
+</body>
+</html>
