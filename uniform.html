@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniform Distribution</title>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Optional: For Styling -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #a-slider, #b-slider {
+            width: 100%;
+            margin: 20px 0;
+        }
+        #uniform-distribution-graph {
+            width: 100%;
+            height: 70vh;
+        }
+        #uniform-example-output {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Uniform Distribution</h1>
+    
+    <p>The Uniform Distribution models a situation where all outcomes are equally likely within a specific range.</p>
+
+    <!-- A and B Sliders -->
+    <div>
+        <label for="a-slider">Lower Bound (a):</label>
+        <input type="range" id="a-slider" min="0" max="10" step="1" value="0">
+        <span id="a-value">a = 0</span>
+    </div>
+    
+    <div>
+        <label for="b-slider">Upper Bound (b):</label>
+        <input type="range" id="b-slider" min="1" max="15" step="1" value="5">
+        <span id="b-value">b = 5</span>
+    </div>
+    
+    <!-- Uniform Distribution Graph -->
+    <div id="uniform-distribution-graph"></div>
+
+    <!-- Example Output -->
+    <div id="uniform-example-output"></div>
+
+    <!-- Notation, Parameters, and Formulas Section -->
+    <section>
+        <h2>Notation</h2>
+        <p><strong>a</strong> – The lower bound of the distribution (start of the interval).</p>
+        <p><strong>b</strong> – The upper bound of the distribution (end of the interval).</p>
+        <p><strong>x</strong> – A point within the interval [a, b] for which we want to calculate the probability density.</p>
+
+        <h2>Parameters</h2>
+        <p>The key parameters of the Uniform distribution are:</p>
+        <ul>
+            <li><strong>a</strong>: The minimum value (lower bound).</li>
+            <li><strong>b</strong>: The maximum value (upper bound).</li>
+        </ul>
+
+        <h2>PMF (Probability Density Function)</h2>
+        <p>The probability density function (PDF) for a Uniform distribution is given by the formula:</p>
+        <pre>
+            f(x; a, b) = 1 / (b - a) for a ≤ x ≤ b
+            f(x; a, b) = 0 otherwise
+        </pre>
+        <p>Where:</p>
+        <ul>
+            <li><strong>a</strong> is the lower bound.</li>
+            <li><strong>b</strong> is the upper bound.</li>
+            <li><strong>x</strong> is a point within the interval [a, b].</li>
+        </ul>
+
+        <h2>Mean and Variance of Uniform Distribution</h2>
+        <p>The mean and variance of a Uniform distribution are as follows:</p>
+        <p><strong>Mean:</strong> <em>μ = (a + b) / 2</em></p>
+        <p><strong>Variance:</strong> <em>σ² = (b - a)² / 12</em></p>
+
+        <h2>Example Calculation of Probability</h2>
+        <p>For the Uniform distribution with a = 0 and b = 5, let's calculate the probability density at x = 3:</p>
+        <pre>
+            f(3; 0, 5) = 1 / (5 - 0) = 1 / 5 = 0.2
+        </pre>
+        <p>So, the probability density at x = 3 is 0.2.</p>
+    </section>
+
+    <script>
+        // Initialize a and b values
+        const aSlider = document.getElementById('a-slider');
+        const bSlider = document.getElementById('b-slider');
+        const aValueDisplay = document.getElementById('a-value');
+        const bValueDisplay = document.getElementById('b-value');
+
+        // Function to calculate Uniform distribution PDF
+        function uniformPDF(x, a, b) {
+            return (x >= a && x <= b) ? 1 / (b - a) : 0;
+        }
+
+        // Function to update the graph and output based on a and b
+        function updateGraph(a, b) {
+            const xValues = Array.from({ length: 100 }, (_, i) => a + (b - a) * i / 99); // x = [a, b]
+            const probabilities = xValues.map(x => uniformPDF(x, a, b));
+
+            // Create the graph using Plotly.js
+            const trace = {
+                x: xValues,
+                y: probabilities,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'skyblue' }
+            };
+
+            const layout = {
+                title: `Uniform Distribution (a = ${a}, b = ${b})`,
+                xaxis: { title: 'Value (x)' },
+                yaxis: { title: 'Probability Density' }
+            };
+
+            Plotly.newPlot('uniform-distribution-graph', [trace], layout);
+
+            // Example Calculation for x = 3
+            const exampleX = 3;
+            const exampleProbability = uniformPDF(exampleX, a, b);
+            document.getElementById('uniform-example-output').innerText = 
+                `For a = ${a} and b = ${b}, the probability density at x = ${exampleX} is ${exampleProbability}.`;
+        }
+
+        // Update graph on slider change
+        aSlider.addEventListener('input', function() {
+            const a = parseFloat(aSlider.value);
+            const b = parseFloat(bSlider.value);
+            aValueDisplay.innerText = `a = ${a}`;
+            updateGraph(a, b);
+        });
+
+        bSlider.addEventListener('input', function() {
+            const a = parseFloat(aSlider.value);
+            const b = parseFloat(bSlider.value);
+            bValueDisplay.innerText = `b = ${b}`;
+            updateGraph(a, b);
+        });
+
+        // Initialize graph with default a and b values
+        updateGraph(parseFloat(aSlider.value), parseFloat(bSlider.value));
+    </script>
+</body>
+</html>

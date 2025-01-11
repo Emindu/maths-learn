@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bernoulli Distribution</title>
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,6 +44,12 @@
         a:hover {
             text-decoration: underline;
         }
+        .example-section {
+            margin-top: 30px;
+        }
+        .example-section h2 {
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -59,6 +66,31 @@
 
         <!-- Plotly container -->
         <div id="bernoulli-plot" class="plot-container"></div>
+
+        <div class="example-section">
+            <h2>Example</h2>
+            <p>Consider a Bernoulli distribution with a probability of success (\(p\)) equal to 0.5. The probability mass function (PMF) for this distribution is given by:</p>
+            <p><b>PMF:</b> \( P(X = x) = p^x(1 - p)^{1 - x} \), where \( x \in \{0, 1\} \)</p>
+            
+            <h3>Notation:</h3>
+            <ul>
+                <li><b>X:</b> Random variable representing the outcome (either 0 or 1).</li>
+                <li><b>p:</b> Probability of success (1).</li>
+                <li><b>1 - p:</b> Probability of failure (0).</li>
+            </ul>
+            
+            <h3>Parameters:</h3>
+            <ul>
+                <li><b>p:</b> Probability of success (0 ≤ p ≤ 1).</li>
+            </ul>
+
+            <h3>Mean of Bernoulli Distribution:</h3>
+            <p>The mean (\( \mu \)) of a Bernoulli distribution is the probability of success (\( p \)):</p>
+            <p><b>Mean:</b> \( \mu = p \)</p>
+
+            <h3>Variance:</h3>
+            <p>The variance (\( \sigma^2 \)) of a Bernoulli distribution is given by:</p>
+            <p><b>Variance:</b> \( \sigma^2 = p(1 - p) \)</p>
 
         <p><a href="index.html">&larr; Back to Main Page</a></p>
     </main>

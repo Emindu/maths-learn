@@ -28,30 +28,73 @@
 </head>
 <body>
     <h1>Poisson Distribution for Emails per Hour</h1>
-    
+
+    <p>The Poisson distribution models the probability of a given number of events occurring within a fixed interval, such as receiving emails per hour.</p>
+
     <!-- Lambda Slider -->
     <div>
         <label for="lambda-slider">Average Emails per Hour (λ):</label>
         <input type="range" id="lambda-slider" min="1" max="15" step="1" value="5">
         <span id="lambda-value">λ = 5</span>
     </div>
-    
+
     <!-- Poisson Distribution Graph -->
     <div id="poisson-email-graph"></div>
-    
-    <!-- Output Text -->
+
+    <!-- Example Output -->
     <div id="email-example-output"></div>
+
+    <!-- Notation, Parameters, and Formulas Section -->
+    <section>
+        <h2>Notation</h2>
+        <p><strong>λ (lambda)</strong> – The average number of events (emails per hour).</p>
+        <p><strong>k</strong> – The actual number of events (emails) observed during the given time period.</p>
+
+        <h2>Parameters</h2>
+        <p>The key parameters of the Poisson distribution are:</p>
+        <ul>
+            <li><strong>λ (lambda)</strong>: The rate of occurrence, i.e., the average number of events in the given interval.</li>
+            <li><strong>k</strong>: The number of occurrences (emails) for which we want to calculate the probability.</li>
+        </ul>
+
+        <h2>PMF (Probability Mass Function)</h2>
+        <p>The PMF of the Poisson distribution is given by the formula:</p>
+        <pre>
+            P(k, λ) = (λ^k * e^(-λ)) / k!
+        </pre>
+        <p>Where:</p>
+        <ul>
+            <li><strong>λ</strong> is the average rate of occurrence.</li>
+            <li><strong>k</strong> is the number of occurrences (emails).</li>
+            <li><strong>e</strong> is Euler's number (approximately 2.71828).</li>
+            <li><strong>k!</strong> is the factorial of <strong>k</strong>.</li>
+        </ul>
+
+        <h2>Mean and Variance of Poisson Distribution</h2>
+        <p>The mean and variance of a Poisson distribution are both equal to λ.</p>
+        <p><strong>Mean:</strong> <em>μ = λ</em></p>
+        <p><strong>Variance:</strong> <em>σ² = λ</em></p>
+
+        <h2>Example Calculation of Probability</h2>
+        <p>For λ = 5 (average of 5 emails per hour), let's calculate the probability of receiving exactly 3 emails (k = 3) within one hour:</p>
+        <pre>
+            P(k=3, λ=5) = (5^3 * e^(-5)) / 3!
+                         = (125 * e^(-5)) / 6
+                         ≈ 0.1404
+        </pre>
+        <p>So, the probability of receiving exactly 3 emails in one hour is approximately 0.1404.</p>
+    </section>
 
     <script>
         // Initialize Lambda value
         const lambdaSlider = document.getElementById('lambda-slider');
         const lambdaValueDisplay = document.getElementById('lambda-value');
-        
+
         // Function to calculate Poisson distribution PMF
         function poissonPMF(k, lambda) {
             return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
         }
-        
+
         // Factorial function
         function factorial(n) {
             if (n === 0 || n === 1) return 1;
@@ -61,7 +104,7 @@
             }
             return f;
         }
-        
+
         // Function to update the graph and output based on λ
         function updateGraph(lambda) {
             const kValues = Array.from({ length: 20 }, (_, i) => i); // k = 0 to 19
@@ -74,13 +117,13 @@
                 type: 'bar',
                 marker: { color: 'skyblue' }
             };
-            
+
             const layout = {
                 title: `Poisson Distribution of Emails per Hour (λ = ${lambda})`,
                 xaxis: { title: 'Number of Emails (k)' },
                 yaxis: { title: 'Probability' }
             };
-            
+
             Plotly.newPlot('poisson-email-graph', [trace], layout);
 
             // Example Calculation for k = 3
@@ -89,7 +132,7 @@
             document.getElementById('email-example-output').innerText = 
                 `For λ = ${lambda}, the probability of receiving exactly ${exampleK} emails (P(k=3)) is approximately ${exampleProbability.toFixed(4)}.`;
         }
-        
+
         // Update graph on slider change
         lambdaSlider.addEventListener('input', function() {
             const lambda = parseFloat(lambdaSlider.value);

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normal Gaussian Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .controls label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .controls input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        #chart {
+            width: 100%;
+            height: 70vh;
+        }
+        .example-section {
+            margin-top: 30px;
+        }
+        .example-section h2 {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Normal Gaussian Distribution</h1>
+    <p>The Normal Distribution, also known as the Gaussian Distribution, is a continuous probability distribution defined by its mean (\( \mu \)) and standard deviation (\( \sigma \)).</p>
+    <p>Adjust the mean (\( \mu \)) and standard deviation (\( \sigma \)) to see how the distribution changes.</p>
+
+    <div class="controls">
+        <label for="mean">Mean (\( \mu \)):</label>
+        <input type="number" id="mean" value="0" step="0.1">
+
+        <label for="std-dev">Standard Deviation (\( \sigma \)):</label>
+        <input type="number" id="std-dev" value="1" step="0.1">
+    </div>
+
+    <div id="chart"></div>
+
+    <div class="example-section">
+        <h2>Example</h2>
+        <p>Consider a normal distribution with a mean (\( \mu \)) of 0 and a standard deviation (\( \sigma \)) of 1. The probability density function (PDF) for this distribution is given by:</p>
+        <p><b>PDF:</b> \( f(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{(x - \mu)^2}{2\sigma^2}} \)</p>
+        <p>In this case, \( \mu = 0 \) and \( \sigma = 1 \), and the PDF simplifies to:</p>
+        <p><b>PDF:</b> \( f(x) = \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} \)</p>
+        <h3>Mean of Normal Distribution:</h3>
+        <p>The mean (\( \mu \)) is the central value of the distribution, where the curve is symmetric. For a standard normal distribution, \( \mu = 0 \).</p>
+
+        <h3>Variance:</h3>
+        <p>The variance is the square of the standard deviation (\( \sigma^2 \)). For a standard normal distribution, the variance is 1.</p>
+
+        <h3>Empirical Rule:</h3>
+        <p>The empirical rule states that for a normal distribution:</p>
+        <ul>
+            <li>Approximately 68% of the data falls within 1 standard deviation of the mean.</li>
+            <li>Approximately 95% of the data falls within 2 standard deviations of the mean.</li>
+            <li>Approximately 99.7% of the data falls within 3 standard deviations of the mean.</li>
+        </ul>
+    </div>
+
+    <script>
+        // Function to calculate Normal Distribution (PDF)
+        function normalPDF(x, mean, stdDev) {
+            const coefficient = 1 / (stdDev * Math.sqrt(2 * Math.PI));
+            const exponent = Math.exp(-Math.pow(x - mean, 2) / (2 * Math.pow(stdDev, 2)));
+            return coefficient * exponent;
+        }
+
+        // Function to generate data points
+        function generateData(mean, stdDev) {
+            const x = [];
+            const y = [];
+            for (let i = -10; i <= 10; i += 0.1) {
+                x.push(i);
+                y.push(normalPDF(i, mean, stdDev));
+            }
+            return { x, y };
+        }
+
+        // Function to plot the Normal Distribution
+        function plotNormalDistribution(mean, stdDev) {
+            const data = generateData(mean, stdDev);
+
+            const trace = {
+                x: data.x,
+                y: data.y,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'blue' },
+                name: 'Normal Distribution'
+            };
+
+            const layout = {
+                title: `Normal Gaussian Distribution (μ = ${mean}, σ = ${stdDev})`,
+                xaxis: { title: 'x', range: [-10, 10] },
+                yaxis: { title: 'Probability Density', range: [0, 0.5] },
+                template: 'plotly_white'
+            };
+
+            Plotly.newPlot('chart', [trace], layout);
+        }
+
+        // Initial plot
+        let meanInput = document.getElementById('mean');
+        let stdDevInput = document.getElementById('std-dev');
+        plotNormalDistribution(Number(meanInput.value), Number(stdDevInput.value));
+
+        // Update plot when inputs change
+        meanInput.addEventListener('input', () => {
+            plotNormalDistribution(Number(meanInput.value), Number(stdDevInput.value));
+        });
+
+        stdDevInput.addEventListener('input', () => {
+            plotNormalDistribution(Number(meanInput.value), Number(stdDevInput.value));
+        });
+    </script>
+</body>
+</html>

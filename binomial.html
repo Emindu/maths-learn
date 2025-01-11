@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binomial Distribution</title>
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,6 +44,12 @@
         a:hover {
             text-decoration: underline;
         }
+        .example-section {
+            margin-top: 30px;
+        }
+        .example-section h2 {
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -50,8 +57,7 @@
         <h1>Binomial Distribution</h1>
     </header>
     <main>
-        <p>The Binomial Distribution models the number of successes in \(n\) independent Bernoulli trials, each with a probability of success \(p\).</p>
-        <p>Below is an interactive visualization of the Binomial distribution. Adjust the number of trials (\(n\)) and the probability of success (\(p\)) to see how they affect the probability mass function (PMF).</p>
+        <p>The Binomial Distribution models the number of successes in \(n\) independent Bernoulli trials, each with a probability of success \(p\). Below is an interactive visualization of the Binomial distribution. Adjust the number of trials (\(n\)) and the probability of success (\(p\)) to see how they affect the probability mass function (PMF).</p>
 
         <!-- Inputs for number of trials and probability of success -->
         <label for="trials">Number of Trials (\(n\)):</label>
@@ -62,6 +68,56 @@
 
         <!-- Plotly container -->
         <div id="binomial-plot" class="plot-container"></div>
+
+        <div class="example-section">
+            <h2>Example</h2>
+            <p>Consider a Binomial distribution with \(n = 10\) trials and a probability of success \(p = 0.5\). The probability mass function (PMF) for this distribution is given by:</p>
+            <p><b>PMF:</b> 
+                \( P(X = k) = \binom{n}{k} p^k (1 - p)^{n - k} \), where \( k \in \{0, 1, 2, ..., n\} \)
+            </p>
+            
+            <h3>Notation:</h3>
+            <ul>
+                <li><b>X:</b> Random variable representing the number of successes in \(n\) trials.</li>
+                <li><b>n:</b> Number of trials.</li>
+                <li><b>k:</b> Number of successes.</li>
+                <li><b>p:</b> Probability of success in a single trial.</li>
+                <li><b>1 - p:</b> Probability of failure in a single trial.</li>
+            </ul>
+            
+            <h3>Parameters:</h3>
+            <ul>
+                <li><b>n:</b> Number of trials (positive integer).</li>
+                <li><b>p:</b> Probability of success (0 ≤ p ≤ 1).</li>
+            </ul>
+
+            <h3>PMF:</h3>
+            <p>The PMF for a Binomial distribution is calculated using the formula:</p>
+            <p><b>PMF:</b> \( P(X = k) = \binom{n}{k} p^k (1 - p)^{n - k} \)</p>
+
+            <h3>Mean of Binomial Distribution:</h3>
+            <p>The mean (\( \mu \)) of a Binomial distribution is given by:</p>
+            <p><b>Mean:</b> \( \mu = n \cdot p \)</p>
+
+            <h3>Variance:</h3>
+            <p>The variance (\( \sigma^2 \)) of a Binomial distribution is given by:</p>
+            <p><b>Variance:</b> \( \sigma^2 = n \cdot p \cdot (1 - p) \)</p>
+
+            <h3>Example Calculation of Probability:</h3>
+            <p>Let's calculate the probability of getting exactly 5 successes in 10 trials, with a probability of success of 0.5:</p>
+            <p>Using the formula:</p>
+            <p>\[
+            P(X = 5) = \binom{10}{5} (0.5)^5 (0.5)^{5} = \binom{10}{5} (0.5)^{10}
+            \]</p>
+            <p>The binomial coefficient \( \binom{10}{5} \) is calculated as:</p>
+            <p>\[
+            \binom{10}{5} = \frac{10!}{5!(10-5)!} = \frac{10 \times 9 \times 8 \times 7 \times 6}{5 \times 4 \times 3 \times 2 \times 1} = 252
+            \]</p>
+            <p>So the probability is:</p>
+            <p>\[
+            P(X = 5) = 252 \times (0.5)^{10} = 252 \times \frac{1}{1024} \approx 0.2461
+            \]</p>
+        </div>
 
         <p><a href="index.html">&larr; Back to Main Page</a></p>
     </main>
