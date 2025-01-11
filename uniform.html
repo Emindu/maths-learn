@@ -118,7 +118,10 @@
 
             const layout = {
                 title: `Uniform Distribution (a = ${a}, b = ${b})`,
-                xaxis: { title: 'Value (x)' },
+                xaxis: { 
+                    title: 'Value (x)',
+                    range: [0, 15] // Set the fixed range for the x-axis
+                },
                 yaxis: { title: 'Probability Density' }
             };
 
