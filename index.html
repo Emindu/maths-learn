@@ -3,102 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poisson Distribution for Emails per Hour</title>
-    <!-- Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <!-- Optional: For Styling -->
+    <title>Probability Distributions</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
             padding: 20px;
         }
-        #lambda-slider {
-            width: 100%;
-            margin: 20px 0;
+        main {
+            padding: 20px;
         }
-        #poisson-email-graph {
-            width: 100%;
-            height: 70vh;
+        section {
+            margin-bottom: 20px;
         }
-        #email-example-output {
+        a {
+            text-decoration: none;
+            color: #4CAF50;
             font-size: 18px;
-            margin-top: 20px;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <h1>Poisson Distribution for Emails per Hour</h1>
-    
-    <!-- Lambda Slider -->
-    <div>
-        <label for="lambda-slider">Average Emails per Hour (λ):</label>
-        <input type="range" id="lambda-slider" min="1" max="15" step="1" value="5">
-        <span id="lambda-value">λ = 5</span>
-    </div>
-    
-    <!-- Poisson Distribution Graph -->
-    <div id="poisson-email-graph"></div>
-    
-    <!-- Output Text -->
-    <div id="email-example-output"></div>
-
-    <script>
-        // Initialize Lambda value
-        const lambdaSlider = document.getElementById('lambda-slider');
-        const lambdaValueDisplay = document.getElementById('lambda-value');
-        
-        // Function to calculate Poisson distribution PMF
-        function poissonPMF(k, lambda) {
-            return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
-        }
-        
-        // Factorial function
-        function factorial(n) {
-            if (n === 0 || n === 1) return 1;
-            let f = 1;
-            for (let i = 2; i <= n; i++) {
-                f *= i;
-            }
-            return f;
-        }
-        
-        // Function to update the graph and output based on λ
-        function updateGraph(lambda) {
-            const kValues = Array.from({ length: 20 }, (_, i) => i); // k = 0 to 19
-            const probabilities = kValues.map(k => poissonPMF(k, lambda));
-
-            // Create the bar chart using Plotly.js
-            const trace = {
-                x: kValues,
-                y: probabilities,
-                type: 'bar',
-                marker: { color: 'skyblue' }
-            };
-            
-            const layout = {
-                title: `Poisson Distribution of Emails per Hour (λ = ${lambda})`,
-                xaxis: { title: 'Number of Emails (k)' },
-                yaxis: { title: 'Probability' }
-            };
-            
-            Plotly.newPlot('poisson-email-graph', [trace], layout);
-
-            // Example Calculation for k = 3
-            const exampleK = 3;
-            const exampleProbability = poissonPMF(exampleK, lambda);
-            document.getElementById('email-example-output').innerText = 
-                `For λ = ${lambda}, the probability of receiving exactly ${exampleK} emails (P(k=3)) is approximately ${exampleProbability.toFixed(4)}.`;
-        }
-        
-        // Update graph on slider change
-        lambdaSlider.addEventListener('input', function() {
-            const lambda = parseFloat(lambdaSlider.value);
-            lambdaValueDisplay.innerText = `λ = ${lambda}`;
-            updateGraph(lambda);
-        });
-
-        // Initialize graph with default lambda value
-        updateGraph(parseFloat(lambdaSlider.value));
-    </script>
+    <header>
+        <h1>Probability Distributions</h1>
+    </header>
+    <main>
+        <section>
+            <h2>1. Bernoulli Distribution</h2>
+            <p><a href="bernoulli.html" target="_blank">Learn about Bernoulli Distribution</a></p>
+        </section>
+        <section>
+            <h2>2. Binomial Distribution</h2>
+            <p><a href="binomial.html" target="_blank">Learn about Binomial Distribution</a></p>
+        </section>
+        <section>
+            <h2>3. Poisson Distribution</h2>
+            <p><a href="poisson.html" target="_blank">Learn about Poisson Distribution</a></p>
+        </section>
+        <section>
+            <h2>4. Normal Gaussian Distribution</h2>
+            <p><a href="normal.html" target="_blank">Learn about Normal Gaussian Distribution</a></p>
+        </section>
+        <section>
+            <h2>5. Standard Normal Distribution and Z Score</h2>
+            <p><a href="zscore.html" target="_blank">Learn about Standard Normal Distribution and Z Score</a></p>
+        </section>
+        <section>
+            <h2>6. Uniform Distribution</h2>
+            <p><a href="uniform.html" target="_blank">Learn about Uniform Distribution</a></p>
+        </section>
+        <section>
+            <h2>7. Log Normal Distribution</h2>
+            <p><a href="lognormal.html" target="_blank">Learn about Log Normal Distribution</a></p>
+        </section>
+        <section>
+            <h2>8. Power Law Distribution</h2>
+            <p><a href="powerlaw.html" target="_blank">Learn about Power Law Distribution</a></p>
+        </section>
+        <section>
+            <h2>9. Pareto Distribution</h2>
+            <p><a href="pareto.html" target="_blank">Learn about Pareto Distribution</a></p>
+        </section>
+    </main>
 </body>
 </html>
