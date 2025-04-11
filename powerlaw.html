@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Law Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 15px 0;
+        }
+        #powerlaw-distribution-graph {
+            width: 100%;
+            height: 70vh;
+        }
+        #powerlaw-example-output {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Power Law Distribution</h1>
+
+    <p>The Power Law Distribution describes a phenomenon where small occurrences are extremely common, while large instances are rare. It is often used to model city sizes, earthquake magnitudes, and network node degrees.</p>
+
+    <!-- Alpha (Exponent) Slider -->
+    <div>
+        <label for="alpha-slider">Exponent (α):</label>
+        <input type="range" id="alpha-slider" min="1.1" max="5" step="0.1" value="2.5">
+        <span id="alpha-value">α = 2.5</span>
+    </div>
+
+    <!-- x_min Slider -->
+    <div>
+        <label for="xmin-slider">Minimum Value (x<sub>min</sub>):</label>
+        <input type="range" id="xmin-slider" min="1" max="10" step="1" value="1">
+        <span id="xmin-value">x<sub>min</sub> = 1</span>
+    </div>
+
+    <!-- Graph -->
+    <div id="powerlaw-distribution-graph"></div>
+
+    <!-- Example Output -->
+    <div id="powerlaw-example-output"></div>
+
+    <!-- Explanation Section -->
+    <section>
+        <h2>Notation</h2>
+        <p><strong>α</strong> – Exponent parameter (controls the slope of the distribution).</p>
+        <p><strong>x<sub>min</sub></strong> – The minimum value from which the distribution is defined.</p>
+        <p><strong>x</strong> – A value such that x ≥ x<sub>min</sub>.</p>
+
+        <h2>PDF (Probability Density Function)</h2>
+        <pre>
+f(x; α, xₘᵢₙ) = (α - 1) * xₘᵢₙ^(α - 1) / x^α, for x ≥ xₘᵢₙ
+        </pre>
+
+        <h2>Properties</h2>
+        <ul>
+            <li>Heavy-tailed distribution</li>
+            <li>Used in many natural and social phenomena</li>
+        </ul>
+
+        <h2>Example</h2>
+        <p>For α = 2.5 and x<sub>min</sub> = 1, the PDF at x = 2 is:</p>
+        <pre>
+f(2) = (2.5 - 1) * 1^(2.5 - 1) / 2^2.5 ≈ 1.5 / 5.656 ≈ 0.265
+        </pre>
+
+        <h2>Learn More</h2>
+        <p><a href="powerlaw.html" target="_blank">Learn about Power Law Distribution</a></p>
+    </section>
+
+    <script>
+        const alphaSlider = document.getElementById('alpha-slider');
+        const xminSlider = document.getElementById('xmin-slider');
+        const alphaDisplay = document.getElementById('alpha-value');
+        const xminDisplay = document.getElementById('xmin-value');
+
+        function powerLawPDF(x, alpha, xmin) {
+            return x >= xmin ? (alpha - 1) * Math.pow(xmin, alpha - 1) / Math.pow(x, alpha) : 0;
+        }
+
+        function updateGraph(alpha, xmin) {
+            const xValues = Array.from({ length: 200 }, (_, i) => xmin + i * 0.1);
+            const yValues = xValues.map(x => powerLawPDF(x, alpha, xmin));
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'orange' }
+            };
+
+            const layout = {
+                title: `Power Law Distribution (α = ${alpha}, xₘᵢₙ = ${xmin})`,
+                xaxis: { title: 'x', type: 'log', autorange: true },
+                yaxis: { title: 'Probability Density', type: 'log', autorange: true }
+            };
+
+            Plotly.newPlot('powerlaw-distribution-graph', [trace], layout);
+
+            // Example Calculation
+            const exampleX = xmin + 1;
+            const pdfVal = powerLawPDF(exampleX, alpha, xmin).toFixed(5);
+            document.getElementById('powerlaw-example-output').innerText = 
+                `For α = ${alpha} and xₘᵢₙ = ${xmin}, the PDF at x = ${exampleX} is approximately ${pdfVal}.`;
+        }
+
+        alphaSlider.addEventListener('input', () => {
+            const alpha = parseFloat(alphaSlider.value);
+            const xmin = parseFloat(xminSlider.value);
+            alphaDisplay.innerText = `α = ${alpha}`;
+            updateGraph(alpha, xmin);
+        });
+
+        xminSlider.addEventListener('input', () => {
+            const alpha = parseFloat(alphaSlider.value);
+            const xmin = parseFloat(xminSlider.value);
+            xminDisplay.innerHTML = `x<sub>min</sub> = ${xmin}`;
+            updateGraph(alpha, xmin);
+        });
+
+        updateGraph(parseFloat(alphaSlider.value), parseFloat(xminSlider.value));
+    </script>
+</body>
+</html>
