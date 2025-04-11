@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pareto Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 15px 0;
+        }
+        #pareto-distribution-graph {
+            width: 100%;
+            height: 70vh;
+        }
+        #pareto-example-output {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pareto Distribution</h1>
+
+    <p>The Pareto Distribution is a power-law probability distribution used to model wealth distribution, file sizes, and more. It is defined by a scale parameter <em>x<sub>m</sub></em> and a shape parameter <em>α</em>.</p>
+
+    <!-- Alpha (Shape) Slider -->
+    <div>
+        <label for="alpha-slider">Shape Parameter (α):</label>
+        <input type="range" id="alpha-slider" min="1.1" max="5" step="0.1" value="2">
+        <span id="alpha-value">α = 2</span>
+    </div>
+
+    <!-- xm (Scale) Slider -->
+    <div>
+        <label for="xm-slider">Scale Parameter (x<sub>m</sub>):</label>
+        <input type="range" id="xm-slider" min="1" max="10" step="1" value="1">
+        <span id="xm-value">x<sub>m</sub> = 1</span>
+    </div>
+
+    <!-- Pareto Distribution Graph -->
+    <div id="pareto-distribution-graph"></div>
+
+    <!-- Example Output -->
+    <div id="pareto-example-output"></div>
+
+    <!-- Explanation Section -->
+    <section>
+        <h2>Notation</h2>
+        <p><strong>α</strong> – Shape parameter (controls the "tail" of the distribution).</p>
+        <p><strong>x<sub>m</sub></strong> – Scale parameter (minimum possible value).</p>
+        <p><strong>x</strong> – A value such that x ≥ x<sub>m</sub>.</p>
+
+        <h2>PDF (Probability Density Function)</h2>
+        <pre>
+f(x; α, xₘ) = (α * xₘ^α) / x^(α + 1), for x ≥ xₘ
+        </pre>
+
+        <h2>Mean and Variance</h2>
+        <p><strong>Mean:</strong> μ = (α * x<sub>m</sub>) / (α - 1), for α > 1</p>
+        <p><strong>Variance:</strong> σ² = (α * x<sub>m</sub>²) / ((α - 1)² * (α - 2)), for α > 2</p>
+
+        <h2>Example</h2>
+        <p>For α = 2 and x<sub>m</sub> = 1, the PDF at x = 2 is:</p>
+        <pre>
+f(2) = (2 * 1^2) / (2^3) = 2 / 8 = 0.25
+        </pre>
+
+        <h2>Learn More</h2>
+        <p><a href="pareto.html" target="_blank">Learn about Pareto Distribution</a></p>
+    </section>
+
+    <script>
+        const alphaSlider = document.getElementById('alpha-slider');
+        const xmSlider = document.getElementById('xm-slider');
+        const alphaDisplay = document.getElementById('alpha-value');
+        const xmDisplay = document.getElementById('xm-value');
+
+        function paretoPDF(x, alpha, xm) {
+            return x >= xm ? (alpha * Math.pow(xm, alpha)) / Math.pow(x, alpha + 1) : 0;
+        }
+
+        function updateGraph(alpha, xm) {
+            const xValues = Array.from({ length: 200 }, (_, i) => xm + i * 0.1);
+            const yValues = xValues.map(x => paretoPDF(x, alpha, xm));
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'purple' }
+            };
+
+            const layout = {
+                title: `Pareto Distribution (α = ${alpha}, xₘ = ${xm})`,
+                xaxis: { title: 'x', range: [xm, xm + 10] },
+                yaxis: { title: 'Probability Density' }
+            };
+
+            Plotly.newPlot('pareto-distribution-graph', [trace], layout);
+
+            // Example Calculation at x = xm + 1
+            const xExample = xm + 1;
+            const pdfValue = paretoPDF(xExample, alpha, xm).toFixed(5);
+            document.getElementById('pareto-example-output').innerText = 
+                `For α = ${alpha} and xₘ = ${xm}, the PDF at x = ${xExample} is approximately ${pdfValue}.`;
+        }
+
+        alphaSlider.addEventListener('input', function () {
+            const alpha = parseFloat(alphaSlider.value);
+            const xm = parseFloat(xmSlider.value);
+            alphaDisplay.innerText = `α = ${alpha}`;
+            updateGraph(alpha, xm);
+        });
+
+        xmSlider.addEventListener('input', function () {
+            const alpha = parseFloat(alphaSlider.value);
+            const xm = parseFloat(xmSlider.value);
+            xmDisplay.innerHTML = `x<sub>m</sub> = ${xm}`;
+            updateGraph(alpha, xm);
+        });
+
+        updateGraph(parseFloat(alphaSlider.value), parseFloat(xmSlider.value));
+    </script>
+</body>
+</html>
