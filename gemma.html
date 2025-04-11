@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamma Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        #gamma-distribution-graph {
+            width: 100%;
+            height: 70vh;
+        }
+        #gamma-example-output {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gamma Distribution</h1>
+    
+    <p>The Gamma Distribution is a two-parameter family of continuous probability distributions often used to model waiting times.</p>
+
+    <!-- α (shape) and β (rate) Sliders -->
+    <div>
+        <label for="alpha-slider">Shape (α):</label>
+        <input type="range" id="alpha-slider" min="1" max="10" step="0.1" value="2">
+        <span id="alpha-value">α = 2</span>
+    </div>
+    
+    <div>
+        <label for="beta-slider">Rate (β):</label>
+        <input type="range" id="beta-slider" min="0.1" max="5" step="0.1" value="1">
+        <span id="beta-value">β = 1</span>
+    </div>
+
+    <!-- Gamma Distribution Graph -->
+    <div id="gamma-distribution-graph"></div>
+
+    <!-- Example Output -->
+    <div id="gamma-example-output"></div>
+
+    <!-- Explanation Section -->
+    <section>
+        <h2>Notation</h2>
+        <p><strong>α (alpha)</strong> – Shape parameter.</p>
+        <p><strong>β (beta)</strong> – Rate parameter (inverse of scale).</p>
+        <p><strong>x</strong> – The value for which the probability density is evaluated (x > 0).</p>
+
+        <h2>Parameters</h2>
+        <ul>
+            <li><strong>Shape (α)</strong>: Determines the shape of the distribution.</li>
+            <li><strong>Rate (β)</strong>: Controls the rate of decay (inverse of scale).</li>
+        </ul>
+
+        <h2>PDF (Probability Density Function)</h2>
+        <pre>
+f(x; α, β) = (β^α * x^(α-1) * e^(-βx)) / Γ(α), for x > 0
+        </pre>
+        <p>Where Γ(α) is the gamma function evaluated at α.</p>
+
+        <h2>Mean and Variance</h2>
+        <ul>
+            <li><strong>Mean:</strong> μ = α / β</li>
+            <li><strong>Variance:</strong> σ² = α / β²</li>
+        </ul>
+
+        <h2>Example</h2>
+        <p>For α = 2 and β = 1, the PDF at x = 2 is calculated and displayed below.</p>
+    </section>
+
+    <script>
+        const alphaSlider = document.getElementById('alpha-slider');
+        const betaSlider = document.getElementById('beta-slider');
+        const alphaValueDisplay = document.getElementById('alpha-value');
+        const betaValueDisplay = document.getElementById('beta-value');
+
+        function gammaPDF(x, alpha, beta) {
+            if (x <= 0) return 0;
+            const gammaFunc = gamma(alpha);
+            return Math.pow(beta, alpha) * Math.pow(x, alpha - 1) * Math.exp(-beta * x) / gammaFunc;
+        }
+
+        function gamma(z) {
+            // Lanczos approximation for the Gamma function
+            const g = 7;
+            const p = [
+                0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+                771.32342877765313, -176.61502916214059, 12.507343278686905,
+                -0.13857109526572012, 9.9843695780195716e-6,
+                1.5056327351493116e-7
+            ];
+            if (z < 0.5) {
+                return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+            } else {
+                z -= 1;
+                let x = p[0];
+                for (let i = 1; i < g + 2; i++) {
+                    x += p[i] / (z + i);
+                }
+                const t = z + g + 0.5;
+                return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+            }
+        }
+
+        function updateGraph(alpha, beta) {
+            const xValues = Array.from({ length: 100 }, (_, i) => i * 0.1 + 0.1); // x > 0
+            const yValues = xValues.map(x => gammaPDF(x, alpha, beta));
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'orange' }
+            };
+
+            const layout = {
+                title: `Gamma Distribution (α = ${alpha}, β = ${beta})`,
+                xaxis: { title: 'x', range: [0, 10] },
+                yaxis: { title: 'Probability Density' }
+            };
+
+            Plotly.newPlot('gamma-distribution-graph', [trace], layout);
+
+            const exampleX = 2;
+            const exampleProb = gammaPDF(exampleX, alpha, beta).toFixed(5);
+            document.getElementById('gamma-example-output').innerText = 
+                `For α = ${alpha} and β = ${beta}, the probability density at x = ${exampleX} is approximately ${exampleProb}.`;
+        }
+
+        alphaSlider.addEventListener('input', function() {
+            const alpha = parseFloat(alphaSlider.value);
+            const beta = parseFloat(betaSlider.value);
+            alphaValueDisplay.innerText = `α = ${alpha}`;
+            updateGraph(alpha, beta);
+        });
+
+        betaSlider.addEventListener('input', function() {
+            const alpha = parseFloat(alphaSlider.value);
+            const beta = parseFloat(betaSlider.value);
+            betaValueDisplay.innerText = `β = ${beta}`;
+            updateGraph(alpha, beta);
+        });
+
+        updateGraph(parseFloat(alphaSlider.value), parseFloat(betaSlider.value));
+    </script>
+</body>
+</html>
