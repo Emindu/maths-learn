@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Normal Distribution and Z Score</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        #normal-distribution-graph {
+            width: 100%;
+            height: 70vh;
+        }
+        #zscore-output {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Standard Normal Distribution and Z Score</h1>
+
+    <p>The Standard Normal Distribution is a normal distribution with a mean of 0 and standard deviation of 1. Z-scores represent how many standard deviations a data point is from the mean.</p>
+
+    <!-- Z Score Slider -->
+    <div>
+        <label for="z-slider">Z Score:</label>
+        <input type="range" id="z-slider" min="-4" max="4" step="0.1" value="0">
+        <span id="z-value">Z = 0</span>
+    </div>
+
+    <!-- Standard Normal Distribution Graph -->
+    <div id="normal-distribution-graph"></div>
+
+    <!-- Example Output -->
+    <div id="zscore-output"></div>
+
+    <!-- Explanation Section -->
+    <section>
+        <h2>Notation</h2>
+        <p><strong>Z</strong> – The Z score value (number of standard deviations from the mean).</p>
+        <p><strong>x</strong> – The raw value on the original scale.</p>
+        <p><strong>μ</strong> – The mean (0 in standard normal).</p>
+        <p><strong>σ</strong> – The standard deviation (1 in standard normal).</p>
+
+        <h2>Standard Normal PDF</h2>
+        <pre>
+f(z) = (1 / √(2π)) * e^(-z² / 2)
+        </pre>
+
+        <h2>Z Score Formula</h2>
+        <pre>
+Z = (x - μ) / σ
+        </pre>
+
+        <h2>Usage of Z Scores</h2>
+        <p>Z-scores are used to compare values from different normal distributions or to calculate probabilities in a standard normal distribution.</p>
+
+        <h2>Learn More</h2>
+        <p><a href="zscore.html" target="_blank">Learn about Standard Normal Distribution and Z Score</a></p>
+    </section>
+
+    <script>
+        const zSlider = document.getElementById('z-slider');
+        const zValueDisplay = document.getElementById('z-value');
+
+        // Standard Normal PDF
+        function normalPDF(z) {
+            return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z);
+        }
+
+        function updateGraph(zScore) {
+            const xValues = Array.from({ length: 200 }, (_, i) => -4 + i * 0.04);
+            const yValues = xValues.map(x => normalPDF(x));
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Standard Normal PDF',
+                line: { color: 'steelblue' }
+            };
+
+            const zLine = {
+                x: [zScore, zScore],
+                y: [0, normalPDF(zScore)],
+                type: 'scatter',
+                mode: 'lines',
+                name: `Z = ${zScore}`,
+                line: { color: 'red', dash: 'dashdot' }
+            };
+
+            const layout = {
+                title: 'Standard Normal Distribution',
+                xaxis: { title: 'Z Score', range: [-4, 4] },
+                yaxis: { title: 'Probability Density' }
+            };
+
+            Plotly.newPlot('normal-distribution-graph', [trace, zLine], layout);
+
+            const probDensity = normalPDF(zScore).toFixed(5);
+            document.getElementById('zscore-output').innerText = 
+                `At Z = ${zScore}, the probability density is approximately ${probDensity}.`;
+        }
+
+        zSlider.addEventListener('input', function () {
+            const z = parseFloat(zSlider.value);
+            zValueDisplay.innerText = `Z = ${z}`;
+            updateGraph(z);
+        });
+
+        updateGraph(parseFloat(zSlider.value));
+    </script>
+</body>
+</html>
