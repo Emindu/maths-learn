@@ -1,5 +1,7 @@
 # Probability Distributions
 
+[exponential](exponential.md)
+
 # Resources
 
 ## Below Playlist contains informative teaching about probability distributions. 
