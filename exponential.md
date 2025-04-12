@@ -12,6 +12,8 @@
     - Exponential: Number of hours between car arrivals
     - Poisson: Number of hipsters arriving at Apple Genius Bar in one minute
     - Exponential: Number of minutes between new arrivals at Genius Bar[^1]
+    - 
+<img width="1424" alt="image" src="https://github.com/user-attachments/assets/7892c0cd-236f-4049-b1b2-6b983b0ed49e" />
 
 
 ### Key Properties
@@ -25,6 +27,8 @@
 - PDF: Starts at the highest point and decreases exponentially[^1].
 - CDF: Increases from 0 to 1, representing the probability of an event occurring within a given time[^1].
 
+<img width="848" alt="image" src="https://github.com/user-attachments/assets/6578e52b-d8f6-482b-8de7-5a015c5cc8fa" />
+
 
 ### Calculations and Formulas
 
@@ -33,16 +37,25 @@
 - Excel function: EXPON.DIST(x, λ, cumulative)[^1].
 
 
+
 ### Example Problem
+
+<img width="848" alt="image" src="https://github.com/user-attachments/assets/6d7d8cf8-0941-429f-a240-92fc3769749f" />
 
 Given: Unique visitors arrive at a website at an average rate of 3 per hour.
 
 1. Probability of next visitor arriving within 10 minutes:
-    - P(X ≤ 10) = 1 - e^(-10/20) ≈ 0.3935[^1]
+    - $P(X ≤ 10) = 1 - e^(-10/20) ≈ 0.3935$
+    - <img width="884" alt="image" src="https://github.com/user-attachments/assets/05bbdcf4-0289-491d-81fa-4fa5faef39ed" />
+
 2. Probability of next visitor arriving after 30 minutes:
-    - $P(X > 30) = e^{(-30/20)} ≈ 0.2231[^1]$
+    - $P(X > 30) = e^{(-30/20)} ≈ 0.2231$
+    - <img width="884" alt="image" src="https://github.com/user-attachments/assets/372084be-3e2c-4f1d-98f9-b4a5119e3481" />
+
 3. Probability of next visitor arriving in exactly 15 minutes:
-    - P(X = 15) = 0 (for continuous distributions, the probability of an exact value is always 0)[^1]
+    - $P(X = 15) = 0$ (for continuous distributions, the probability of an exact value is always 0)
+    - <img width="884" alt="image" src="https://github.com/user-attachments/assets/1ab86257-94f4-43d6-b618-bc5c6d52b33d" />
+
 
 ### Why It's Called "Exponential"
 
