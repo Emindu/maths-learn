@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markov Chain Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for state nodes and transitions */
+        .state-node {
+            transition: transform 0.2s ease-in-out, background-color 0.3s ease;
+        }
+        .state-node.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.7); /* Blue glow */
+        }
+        /* Style for the distribution bars */
+        .dist-bar {
+            transition: height 0.3s ease-out;
+            /* self-end is removed as parent uses items-end */
+        }
+         /* Container for each label/value set below the chart */
+        .dist-item-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1; /* Distribute space evenly */
+            flex-basis: 0; /* Allow flex-grow to work properly */
+            min-width: 60px; /* Prevent items becoming too narrow */
+            text-align: center;
+        }
+         /* Ensure bar container takes up horizontal space */
+         /* No longer needed as bars are direct children */
+         /* #distributionChart > div { ... } */
+
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-xl p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Markov Chain: Weather Model</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">States & Current State</h2>
+                <div id="statesContainer" class="flex justify-around items-center mb-6 p-4 min-h-[100px]">
+                    </div>
+                <div class="text-center">
+                    <p class="text-lg">Current State: <strong id="currentStateDisplay" class="text-blue-600">---</strong></p>
+                    <p class="text-sm text-gray-500 mt-1">Step: <strong id="stepCount">0</strong></p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col justify-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Controls</h2>
+                <div class="flex flex-wrap justify-center gap-3 mb-4">
+                    <button id="stepButton" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">Step</button>
+                    <button id="runButton" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">Run</button>
+                    <button id="stopButton" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Stop</button>
+                    <button id="resetButton" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">Reset</button>
+                </div>
+                 <div class="mt-2 text-center">
+                     <label for="speedRange" class="block text-sm font-medium text-gray-700 mb-1">Speed (<span id="speedValue">1.0</span> steps/sec):</label>
+                     <input type="range" id="speedRange" min="0.2" max="5" value="1" step="0.1" class="w-3/4 md:w-1/2 cursor-pointer accent-blue-500">
+                 </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-1">
+                 <h2 class="text-xl font-semibold text-gray-700 mb-3 text-center">Transition Matrix (P)</h2>
+                 <p class="text-xs text-gray-500 text-center mb-3">P[row][col] = Probability (State<sub>row</sub> → State<sub>col</sub>)</p>
+                 <div class="overflow-x-auto">
+                     <table id="transitionTable" class="w-full min-w-[300px] text-sm text-left text-gray-600 border-collapse">
+                         <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                             </thead>
+                         <tbody class="bg-white">
+                             </tbody>
+                     </table>
+                 </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-1">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">State Visit Distribution</h2>
+                <div id="distributionChart" class="h-40 flex justify-around items-end border-b border-gray-300 pb-2 px-2 gap-2">
+                    </div>
+                 <div id="distributionLabelsValues" class="flex justify-around text-xs text-gray-600 mt-1 px-2 gap-2">
+                    </div>
+            </div>
+
+        </div> <div class="mt-6 md:mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3 text-center">State History</h2>
+            <div id="historyLog" class="text-sm text-gray-700 max-h-24 overflow-y-auto bg-white p-2 border rounded-md break-words">
+                </div>
+        </div>
+
+    </div> <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration ---
+            const states = [
+                { name: 'Sunny', color: 'bg-yellow-400', emoji: '☀️' },
+                { name: 'Cloudy', color: 'bg-gray-400', emoji: '☁️' },
+                { name: 'Rainy', color: 'bg-blue-400', emoji: '🌧️' }
+            ];
+            // Transition Matrix: P[i][j] is prob of going from state i to state j
+            // Rows must sum to 1
+            const transitionMatrix = [
+                // To: Sunny, Cloudy, Rainy (From Sunny)
+                [0.7,   0.2,    0.1],
+                // To: Sunny, Cloudy, Rainy (From Cloudy)
+                [0.4,   0.4,    0.2],
+                // To: Sunny, Cloudy, Rainy (From Rainy)
+                [0.2,   0.6,    0.2]
+            ];
+            const initialStateIndex = 0; // Start Sunny
+
+            // --- DOM Elements ---
+            const statesContainer = document.getElementById('statesContainer');
+            const currentStateDisplay = document.getElementById('currentStateDisplay');
+            const stepButton = document.getElementById('stepButton');
+            const runButton = document.getElementById('runButton');
+            const stopButton = document.getElementById('stopButton');
+            const resetButton = document.getElementById('resetButton');
+            const transitionTable = document.getElementById('transitionTable');
+            const tableHead = transitionTable.querySelector('thead');
+            const tableBody = transitionTable.querySelector('tbody');
+            const stepCountDisplay = document.getElementById('stepCount');
+            const historyLog = document.getElementById('historyLog');
+            const speedRange = document.getElementById('speedRange');
+            const speedValue = document.getElementById('speedValue');
+            const distributionChart = document.getElementById('distributionChart');
+            // Combined container for labels and values
+            const distributionLabelsValues = document.getElementById('distributionLabelsValues');
+
+
+            // --- State Variables ---
+            let currentStateIndex = initialStateIndex;
+            let stateElements = []; // To hold references to the state divs
+            let stepCounter = 0;
+            let simulationInterval = null; // To hold the interval ID for run/stop
+            let currentSpeed = 1000 / parseFloat(speedRange.value); // Interval duration in ms
+            let stateVisitCounts = new Array(states.length).fill(0); // Track visits to each state
+            let history = []; // Store sequence of states visited
+
+            // --- Functions ---
+
+            // Initialize the visualization
+            function initialize() {
+                // Clear previous elements
+                statesContainer.innerHTML = '';
+                tableHead.innerHTML = '';
+                tableBody.innerHTML = '';
+                distributionChart.innerHTML = ''; // Clear bars
+                distributionLabelsValues.innerHTML = ''; // Clear combined container
+                historyLog.innerHTML = '';
+                stateElements = [];
+                stateVisitCounts.fill(0);
+                history = [];
+
+                // Create state nodes, distribution bars, labels, and value displays
+                states.forEach((state, index) => {
+                    // State Node
+                    const node = document.createElement('div');
+                    node.classList.add('state-node', 'w-16', 'h-16', 'md:w-20', 'md:h-20', 'rounded-full', 'flex', 'flex-col', 'items-center', 'justify-center', 'text-center', 'p-2', 'border-2', 'border-gray-300', state.color);
+                    node.dataset.index = index;
+                    node.innerHTML = `<span class="text-2xl md:text-3xl">${state.emoji}</span><span class="text-xs font-medium text-gray-800 mt-1">${state.name}</span>`;
+                    statesContainer.appendChild(node);
+                    stateElements.push(node);
+
+                    // *** FIXED: Create Distribution Bar directly ***
+                    const bar = document.createElement('div');
+                    // Add classes for styling and identification
+                    bar.classList.add('dist-bar', 'w-8', 'md:w-10', 'rounded-t', state.color);
+                    // Set initial height to 0
+                    bar.style.height = '0%';
+                    // Add data-index to easily find the bar later
+                    bar.dataset.index = index;
+                    // *** Append the bar DIRECTLY to the chart container ***
+                    distributionChart.appendChild(bar);
+
+                    // Container for Label and Value Text (below the bar chart area)
+                    const labelValueContainer = document.createElement('div');
+                    labelValueContainer.classList.add('dist-item-container'); // Apply centering and grow styles
+                    labelValueContainer.dataset.index = index; // Add index for easier selection later
+
+                    // Distribution Label
+                    const label = document.createElement('div');
+                    label.classList.add('w-full', 'truncate'); // Allow full width within container
+                    label.textContent = state.name;
+                    labelValueContainer.appendChild(label);
+
+                    // Distribution Value (Probability)
+                    const valueDisplay = document.createElement('div');
+                    // Style the probability value
+                    valueDisplay.classList.add('w-full', 'text-sm', 'font-medium', 'text-blue-700', 'mt-0.5');
+                    valueDisplay.textContent = '0.00'; // Initial value
+                    labelValueContainer.appendChild(valueDisplay);
+
+                    // Append the combined label/value container to the dedicated row below the chart
+                    distributionLabelsValues.appendChild(labelValueContainer);
+                });
+
+                // Create Transition Matrix Table Header
+                const headerRow = tableHead.insertRow();
+                headerRow.insertCell().outerHTML = `<th scope="col" class="px-3 py-2 border border-gray-300">From \\ To</th>`;
+                states.forEach(state => {
+                    headerRow.insertCell().outerHTML = `<th scope="col" class="px-3 py-2 border border-gray-300 text-center">${state.name}</th>`;
+                });
+
+                // Create Transition Matrix Table Body
+                transitionMatrix.forEach((row, rowIndex) => {
+                    const tableRow = tableBody.insertRow();
+                    tableRow.insertCell().outerHTML = `<th scope="row" class="px-3 py-2 border border-gray-300 font-medium text-gray-900 whitespace-nowrap bg-gray-50">${states[rowIndex].name}</th>`;
+                    row.forEach(prob => {
+                        const cell = tableRow.insertCell();
+                        cell.classList.add('px-3', 'py-2', 'border', 'border-gray-300', 'text-center');
+                        cell.textContent = prob.toFixed(2); // Format probability
+                    });
+                });
+
+                // Set initial state
+                resetState();
+                updateSpeedDisplay();
+            }
+
+            // Update the visual state (highlighting)
+            function updateVisualization() {
+                stateElements.forEach((node, index) => {
+                    if (index === currentStateIndex) {
+                        node.classList.add('active', 'border-blue-500');
+                        node.classList.remove('border-gray-300');
+                    } else {
+                        node.classList.remove('active', 'border-blue-500');
+                        node.classList.add('border-gray-300');
+                    }
+                });
+                currentStateDisplay.textContent = states[currentStateIndex].name;
+                stepCountDisplay.textContent = stepCounter;
+            }
+
+            // Update the distribution chart and probability values
+            function updateDistributionChart() {
+                // Total visits includes the initial state + all steps taken
+                const totalVisits = stepCounter + 1;
+                // Select bars directly from the chart container
+                const bars = distributionChart.querySelectorAll('.dist-bar');
+                // Select the label/value containers from their dedicated row
+                const labelValueContainers = distributionLabelsValues.querySelectorAll('.dist-item-container');
+
+                stateVisitCounts.forEach((count, index) => {
+                    const probability = totalVisits > 0 ? count / totalVisits : 0;
+                    const percentage = probability * 100;
+
+                    // Update Bar Height
+                    // Find the correct bar using its data-index
+                    const bar = bars[index]; // Direct selection should work now
+                    if (bar) {
+                         bar.style.height = `${Math.min(percentage, 100)}%`; // Cap at 100%
+                         bar.title = `${states[index].name}: ${count} visits (${percentage.toFixed(1)}%)`; // Tooltip
+                    } else {
+                        console.error(`Bar with index ${index} not found.`); // Debugging
+                    }
+
+                    // Update Probability Value Text within the correct container
+                    const container = labelValueContainers[index];
+                    if (container) {
+                        // Find the value display element (second child) within the container
+                        const valueDisplay = container.children[1];
+                        if (valueDisplay) {
+                           valueDisplay.textContent = probability.toFixed(2); // Display probability
+                        }
+                    } else {
+                         console.error(`Label/Value container with index ${index} not found.`); // Debugging
+                    }
+                });
+            }
+
+
+            // Add current state to history log
+            function logHistory() {
+                history.push(states[currentStateIndex].emoji); // Store emoji for history
+                // Display the last N states (e.g., 50) for performance
+                const maxHistoryLength = 50;
+                const displayedHistory = history.slice(-maxHistoryLength);
+
+                historyLog.innerHTML = displayedHistory.map((emoji, index) => {
+                     const isLast = index === displayedHistory.length - 1;
+                     return `<span class="${isLast ? 'font-bold text-blue-700' : ''}">${emoji}</span>`;
+                }).join('<span class="mx-1 text-gray-400">→</span>'); // Use arrows
+
+                historyLog.scrollTop = historyLog.scrollHeight; // Auto-scroll
+            }
+
+            // Perform one step of the Markov chain
+            function step() {
+                // Increment count for the *current* state before transitioning
+                stateVisitCounts[currentStateIndex]++;
+
+                // Determine the next state
+                const probabilities = transitionMatrix[currentStateIndex];
+                const random = Math.random();
+                let cumulativeProb = 0;
+                let nextStateIndex = probabilities.length - 1; // Default to last state
+
+                for (let i = 0; i < probabilities.length; i++) {
+                    cumulativeProb += probabilities[i];
+                    if (random < cumulativeProb) {
+                        nextStateIndex = i;
+                        break;
+                    }
+                }
+
+                // Update state and step count *after* determining next state
+                currentStateIndex = nextStateIndex;
+                stepCounter++;
+
+                // Update visuals based on the *new* current state and counts
+                updateVisualization();
+                updateDistributionChart(); // Update chart and probabilities
+
+                // Log history for the *new* current state
+                logHistory();
+            }
+
+
+            // Start automatic simulation
+            function runSimulation() {
+                if (simulationInterval) return; // Already running
+
+                // Count and log the initial state *before* starting the interval
+                if (stepCounter === 0 && stateVisitCounts.reduce((a, b) => a + b, 0) === 0) {
+                    stateVisitCounts[initialStateIndex]++;
+                    updateDistributionChart();
+                    logHistory();
+                }
+
+
+                simulationInterval = setInterval(step, currentSpeed);
+
+                runButton.disabled = true;
+                stepButton.disabled = true;
+                stopButton.disabled = false;
+                resetButton.disabled = true;
+            }
+
+            // Stop automatic simulation
+            function stopSimulation() {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+
+                runButton.disabled = false;
+                stepButton.disabled = false;
+                stopButton.disabled = true;
+                resetButton.disabled = false;
+            }
+
+             // Update speed display and simulation interval if running
+            function updateSpeedDisplay() {
+                const stepsPerSec = parseFloat(speedRange.value);
+                speedValue.textContent = stepsPerSec.toFixed(1);
+                currentSpeed = 1000 / stepsPerSec;
+
+                if (simulationInterval) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = setInterval(step, currentSpeed);
+                }
+            }
+
+
+            // Reset to initial state
+            function resetState() {
+                stopSimulation();
+                currentStateIndex = initialStateIndex;
+                stepCounter = 0;
+                stateVisitCounts.fill(0);
+                history = [];
+                historyLog.innerHTML = '';
+
+                // Count the initial state visit upon reset
+                stateVisitCounts[initialStateIndex]++;
+
+                updateVisualization();
+                updateDistributionChart(); // Reset chart and show initial probability
+                logHistory(); // Log the reset state
+
+
+                runButton.disabled = false;
+                stepButton.disabled = false;
+                stopButton.disabled = true;
+                resetButton.disabled = false;
+            }
+
+
+            // --- Event Listeners ---
+            stepButton.addEventListener('click', () => {
+                 if (!simulationInterval) {
+                    if (stepCounter === 0 && stateVisitCounts.reduce((a, b) => a + b, 0) === 0) {
+                         stateVisitCounts[initialStateIndex]++;
+                         updateDistributionChart();
+                         logHistory();
+                    }
+                    step();
+                 }
+            });
+            runButton.addEventListener('click', runSimulation);
+            stopButton.addEventListener('click', stopSimulation);
+            resetButton.addEventListener('click', resetState);
+            speedRange.addEventListener('input', updateSpeedDisplay);
+
+
+            // --- Initial Setup ---
+            initialize(); // Calls resetState internally
+        });
+    </script>
+
+</body>
+</html>
