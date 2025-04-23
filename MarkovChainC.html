@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuous Markov Process: AR(1) Model</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // MathJax Configuration
+        window.MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']], // Define inline math delimiters
+            displayMath: [['$$', '$$'], ['\\[', '\\]']] // Define display math delimiters
+          },
+          svg: {
+            fontCache: 'global' // Use global font cache for SVG output
+          }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        /* Custom styles for SVG plots */
+        .plot-svg {
+            background-color: #f8f9fa; /* Light background for the plot */
+            border: 1px solid #dee2e6; /* Border for the plot area */
+            border-radius: 0.25rem; /* Rounded corners */
+            display: block; /* Ensure block display */
+            width: 100%;
+            height: 100%;
+        }
+        #trajectoryPath {
+            stroke: #007bff; /* Blue line for the path */
+            stroke-width: 1.5;
+            fill: none;
+        }
+         #zeroLine {
+            stroke: #adb5bd; /* Gray line for the zero axis */
+            stroke-width: 0.5;
+            stroke-dasharray: 4 2; /* Dashed line */
+        }
+        .hist-bar {
+            fill: #28a745; /* Green bars for histogram */
+            stroke: #1c7430; /* Darker green border */
+            stroke-width: 0.5;
+            transition: height 0.1s ease-out, y 0.1s ease-out; /* Smooth transitions */
+        }
+        /* Ensure SVG scales correctly */
+        svg {
+             display: block;
+             width: 100%;
+             height: 100%;
+        }
+        /* Style range input */
+        input[type=range] {
+            cursor: pointer;
+        }
+        /* Style for math equations */
+        .math-equation {
+            font-size: 1rem; /* Base font size */
+            display: inline-block; /* Ensure proper inline rendering */
+            transform: scale(0.8); /* Scale down the equation */
+            transform-origin: center; /* Scale from the center */
+            vertical-align: middle; /* Align with surrounding text */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Continuous Markov Process: AR(1) Model</h1>
+        <p class="text-center text-sm text-gray-600 mb-6">
+            Model: <span class="math-equation">$X_{t+1} \sim N(\phi X_t, 1)$</span>, with <span class="math-equation">$|\phi| < 1$</span>
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+
+            <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-700 mb-3 text-center">Particle Trajectory</h2>
+                <div id="plotContainer" class="w-full h-64 md:h-80">
+                     <svg id="trajectoryPlot" class="plot-svg" preserveAspectRatio="xMidYMid meet">
+                         <line id="zeroLine" x1="0" y1="50%" x2="100%" y2="50%" />
+                         <polyline id="trajectoryPath" points=""></polyline>
+                    </svg>
+                </div>
+                 <p class="text-xs text-gray-500 text-center mt-2">Position (Y-axis) vs. Time Steps (X-axis)</p>
+            </div>
+
+            <div class="md:col-span-1 bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col justify-between">
+                 <div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Controls & Info</h2>
+                    <div class="flex flex-wrap justify-center gap-3 mb-4">
+                        <button id="stepButton" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">Step</button>
+                        <button id="runButton" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">Run</button>
+                        <button id="stopButton" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Stop</button>
+                        <button id="resetButton" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">Reset</button>
+                    </div>
+                    <div class="mt-2 text-center mb-4">
+                        <label for="speedRange" class="block text-sm font-medium text-gray-700 mb-1">Speed (<span id="speedValue">5.0</span> steps/sec):</label>
+                        <input type="range" id="speedRange" min="0.5" max="20" value="5" step="0.5" class="w-3/4 md:w-1/2 accent-blue-500">
+                    </div>
+                     <div class="text-sm text-center border-t pt-3 mt-3">
+                         <h3 class="font-semibold mb-1">Process Parameters</h3>
+                         <p>Step Distribution: <span class="math-equation">$N(\phi X_t, \sigma^2)$</span></p>
+                         <div class="mt-2">
+                            <label for="phiRange" class="block text-sm font-medium text-gray-700 mb-1">Autoregression (<span class="math-equation">$\phi$</span>): <span id="phiValue" class="font-medium text-purple-600">0.90</span></label>
+                            <input type="range" id="phiRange" min="-0.99" max="0.99" value="0.9" step="0.01" class="w-3/4 md:w-1/2 accent-purple-500">
+                         </div>
+                         <p class="mt-1">Noise Std Dev (<span class="math-equation">$\sigma$</span>): <span id="stdDevDisplay" class="font-medium text-blue-600">1.0</span> (Fixed)</p>
+                     </div>
+                </div>
+                 <div class="text-center mt-4 border-t pt-3">
+                    <p class="text-lg">Current Position: <strong id="currentPositionDisplay" class="text-blue-600">0.00</strong></p>
+                    <p class="text-sm text-gray-500 mt-1">Time Step: <strong id="stepCount">0</strong></p>
+                </div>
+            </div>
+        </div> <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3 text-center">Position Distribution Histogram</h2>
+            <div id="histogramContainer" class="w-full h-48 md:h-64">
+                 <svg id="histogramPlot" class="plot-svg" preserveAspectRatio="xMidYMid meet">
+                     </svg>
+            </div>
+             <p class="text-xs text-gray-500 text-center mt-2">Frequency (Y-axis) vs. Position Bins (X-axis)</p>
+        </div>
+
+    </div> <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration ---
+            const initialPosition = 0;
+            const noiseStdDev = 1.0; // Standard deviation (sigma) of the noise term N(0, sigma^2) -> FIXED at 1 for this model
+            const maxStepsToPlot = 200; // Limit points on trajectory plot for performance
+            const histogramBins = 30; // Number of bins for the histogram
+
+            // --- DOM Elements ---
+            const currentPositionDisplay = document.getElementById('currentPositionDisplay');
+            const stepButton = document.getElementById('stepButton');
+            const runButton = document.getElementById('runButton');
+            const stopButton = document.getElementById('stopButton');
+            const resetButton = document.getElementById('resetButton');
+            const stepCountDisplay = document.getElementById('stepCount');
+            const speedRange = document.getElementById('speedRange');
+            const speedValue = document.getElementById('speedValue');
+            const stdDevDisplay = document.getElementById('stdDevDisplay'); // Displays fixed noise sigma
+            const phiRange = document.getElementById('phiRange'); // Slider for phi
+            const phiValue = document.getElementById('phiValue'); // Display for phi
+            // Trajectory Plot
+            const trajectoryPlot = document.getElementById('trajectoryPlot');
+            const trajectoryPath = document.getElementById('trajectoryPath');
+            const zeroLine = document.getElementById('zeroLine');
+            // Histogram Plot
+            const histogramPlot = document.getElementById('histogramPlot');
+
+            // --- State Variables ---
+            let currentPosition = initialPosition;
+            let stepCounter = 0;
+            let simulationInterval = null;
+            let currentSpeed = 1000 / parseFloat(speedRange.value); // ms per step
+            let currentPhi = parseFloat(phiRange.value); // Autoregressive parameter phi
+            let trajectoryPoints = []; // Array to store [step, position] pairs
+            // SVG dimensions
+            let trajectorySvgWidth = 0;
+            let trajectorySvgHeight = 0;
+            let histogramSvgWidth = 0;
+            let histogramSvgHeight = 0;
+            // Plot ranges
+            let yMinTraj = -5; // Initial Y-axis range for trajectory (adjust based on expected stationary variance)
+            let yMaxTraj = 5;
+            let yMinHist = -5; // X-axis range for histogram (position)
+            let yMaxHist = 5;
+
+            // --- Helper Functions ---
+
+            // Standard Normal variate (mean 0, stdDev 1) using Box-Muller transform.
+            function gaussianRandomStdNormal() {
+                let u = 0, v = 0;
+                while(u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+                while(v === 0) v = Math.random();
+                return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+            }
+
+            // Generate random number from N(mean, stdDev^2)
+            function gaussianRandom(mean, stdDev) {
+                return mean + stdDev * gaussianRandomStdNormal();
+            }
+
+            // Get SVG dimensions for both plots
+            function updateSvgDimensions() {
+                 const trajBounds = trajectoryPlot.getBoundingClientRect();
+                 trajectorySvgWidth = trajBounds.width;
+                 trajectorySvgHeight = trajBounds.height;
+                 if (trajectorySvgWidth > 0 && trajectorySvgHeight > 0) {
+                    trajectoryPlot.setAttribute('viewBox', `0 0 ${trajectorySvgWidth} ${trajectorySvgHeight}`);
+                    // Update zero line based on new height
+                    zeroLine.setAttribute('y1', trajectorySvgHeight / 2);
+                    zeroLine.setAttribute('y2', trajectorySvgHeight / 2);
+                    zeroLine.setAttribute('x2', trajectorySvgWidth);
+                 }
+
+                 const histBounds = histogramPlot.getBoundingClientRect();
+                 histogramSvgWidth = histBounds.width;
+                 histogramSvgHeight = histBounds.height;
+                  if (histogramSvgWidth > 0 && histogramSvgHeight > 0) {
+                     histogramPlot.setAttribute('viewBox', `0 0 ${histogramSvgWidth} ${histogramSvgHeight}`);
+                  }
+            }
+
+            // --- Core Functions ---
+
+            // Initialize or reset the visualization
+            function initialize() {
+                stopSimulation(); // Make sure any running simulation is stopped
+                updateSvgDimensions(); // Get initial sizes
+                currentPosition = initialPosition;
+                stepCounter = 0;
+                trajectoryPoints = [[0, initialPosition]]; // Start at step 0, initial position
+                currentPhi = parseFloat(phiRange.value); // Read phi from slider
+
+                // Reset ranges - initial guess, will adapt
+                // Stationary variance is 1 / (1 - phi^2). Std dev is sqrt of that.
+                // Set range based on ~3 standard deviations of stationary distribution
+                const stationaryStdDev = Math.sqrt(1 / (1 - currentPhi * currentPhi));
+                const initialRange = Math.max(5, 3 * stationaryStdDev); // Ensure minimum range
+                yMinTraj = -initialRange;
+                yMaxTraj = initialRange;
+                yMinHist = -initialRange;
+                yMaxHist = initialRange;
+
+                stdDevDisplay.textContent = noiseStdDev.toFixed(1);
+                phiValue.textContent = currentPhi.toFixed(2);
+
+                updateVisualization(); // Includes trajectory and histogram update
+                updateSpeedDisplay(); // Read initial speed
+
+                // Ensure controls are in correct initial state
+                 runButton.disabled = false;
+                 stepButton.disabled = false;
+                 stopButton.disabled = true;
+                 resetButton.disabled = false;
+
+                 // Re-typeset MathJax elements if needed after reset
+                 if (window.MathJax && window.MathJax.typeset) {
+                    window.MathJax.typeset();
+                 }
+            }
+
+            // Update the trajectory plot
+            function updateTrajectoryPlot() {
+                 if (!trajectorySvgWidth || !trajectorySvgHeight || trajectoryPoints.length === 0) return;
+
+                const pointsToPlot = trajectoryPoints.slice(-maxStepsToPlot);
+                const currentXMax = pointsToPlot[pointsToPlot.length - 1][0];
+                const currentXMin = pointsToPlot[0][0];
+
+                // Dynamically adjust Y range for trajectory if needed
+                const currentYMin = Math.min(...pointsToPlot.map(p => p[1]));
+                const currentYMax = Math.max(...pointsToPlot.map(p => p[1]));
+                const yPadding = Math.max(1, Math.abs(currentYMax - currentYMin) * 0.1);
+
+                // Expand range if needed, but don't shrink it too quickly
+                yMinTraj = Math.min(yMinTraj, currentYMin - yPadding);
+                yMaxTraj = Math.max(yMaxTraj, currentYMax + yPadding);
+
+                // Map data points to SVG coordinates
+                const mappedPoints = pointsToPlot.map(([step, pos]) => {
+                    const xRange = Math.max(1, currentXMax - currentXMin);
+                    const x = ((step - currentXMin) / xRange) * trajectorySvgWidth;
+                    const yRange = Math.max(1e-6, yMaxTraj - yMinTraj); // Avoid division by zero
+                    const y = trajectorySvgHeight - ((pos - yMinTraj) / yRange) * trajectorySvgHeight;
+                    return `${x.toFixed(1)},${y.toFixed(1)}`;
+                }).join(' ');
+
+                trajectoryPath.setAttribute('points', mappedPoints);
+
+                // Update zero line position based on current yMin/yMax scaling
+                const yZeroRange = Math.max(1e-6, yMaxTraj - yMinTraj);
+                const yZero = trajectorySvgHeight - ((0 - yMinTraj) / yZeroRange) * trajectorySvgHeight;
+                zeroLine.setAttribute('y1', yZero);
+                zeroLine.setAttribute('y2', yZero);
+            }
+
+            // Update the histogram plot
+            function updateHistogram() {
+                if (!histogramSvgWidth || !histogramSvgHeight || trajectoryPoints.length < 2) { // Need at least 2 points for range
+                    histogramPlot.innerHTML = ''; // Clear if no data or size unknown
+                    return;
+                }
+
+                const positions = trajectoryPoints.map(p => p[1]); // Get all recorded positions
+
+                // Update histogram range based on overall min/max positions seen
+                const overallYMin = Math.min(...positions);
+                const overallYMax = Math.max(...positions);
+                // Add padding relative to the observed range, ensure minimum padding
+                const histPadding = Math.max(0.5, Math.abs(overallYMax - overallYMin) * 0.05);
+
+                // Expand range if needed
+                yMinHist = Math.min(yMinHist, overallYMin - histPadding);
+                yMaxHist = Math.max(yMaxHist, overallYMax + histPadding);
+
+                const binWidth = (yMaxHist - yMinHist) / histogramBins;
+                if (binWidth <= 0) return; // Avoid errors if range is zero or negative
+
+                const bins = new Array(histogramBins).fill(0);
+                positions.forEach(pos => {
+                    // Determine bin index for the position
+                    const binIndex = Math.floor((pos - yMinHist) / binWidth);
+                     // Add to bin only if it falls within the current range [0, histogramBins - 1]
+                    if (binIndex >= 0 && binIndex < histogramBins) {
+                         bins[binIndex]++;
+                    }
+                });
+
+                const maxBinCount = Math.max(...bins, 1); // Ensure max count is at least 1
+
+                // Clear previous bars
+                histogramPlot.innerHTML = '';
+
+                // Create and append new bars
+                bins.forEach((count, index) => {
+                    // Normalize height by max count
+                    const barHeight = (count / maxBinCount) * histogramSvgHeight;
+                    const barWidth = histogramSvgWidth / histogramBins;
+                    const x = index * barWidth;
+                    const y = histogramSvgHeight - barHeight; // Y starts from top in SVG
+
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute('class', 'hist-bar');
+                    rect.setAttribute('x', x);
+                    rect.setAttribute('y', y);
+                    rect.setAttribute('width', Math.max(0, barWidth - 1)); // Small gap, ensure non-negative
+                    rect.setAttribute('height', Math.max(0, barHeight)); // Ensure non-negative
+                    rect.setAttribute('title', `Range: [${(yMinHist + index * binWidth).toFixed(1)}, ${(yMinHist + (index + 1) * binWidth).toFixed(1)}) Count: ${count}`); // Tooltip
+                    histogramPlot.appendChild(rect);
+                });
+            }
+
+            // Update all visualizations and text displays
+            function updateVisualization() {
+                // Update text displays
+                currentPositionDisplay.textContent = currentPosition.toFixed(2);
+                stepCountDisplay.textContent = stepCounter;
+
+                // Update plots
+                updateTrajectoryPlot();
+                updateHistogram();
+            }
+
+            // Perform one step of the AR(1) process
+            function step() {
+                // Calculate the mean for the next step based on AR(1) model
+                const mean = currentPhi * currentPosition;
+                // Generate the next position: N(mean, noiseStdDev^2)
+                const nextPosition = gaussianRandom(mean, noiseStdDev);
+
+                currentPosition = nextPosition; // Update position
+                stepCounter++;
+                trajectoryPoints.push([stepCounter, currentPosition]);
+
+                updateVisualization(); // Update both plots
+            }
+
+            // Start automatic simulation
+            function runSimulation() {
+                if (simulationInterval) return;
+                simulationInterval = setInterval(step, currentSpeed);
+                runButton.disabled = true;
+                stepButton.disabled = true;
+                stopButton.disabled = false;
+                resetButton.disabled = true;
+            }
+
+            // Stop automatic simulation
+            function stopSimulation() {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+                runButton.disabled = false;
+                stepButton.disabled = false;
+                stopButton.disabled = true;
+                resetButton.disabled = false;
+            }
+
+             // Update speed display and simulation interval if running
+            function updateSpeedDisplay() {
+                const stepsPerSec = parseFloat(speedRange.value);
+                speedValue.textContent = stepsPerSec.toFixed(1);
+                currentSpeed = 1000 / stepsPerSec;
+
+                if (simulationInterval) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = setInterval(step, currentSpeed);
+                }
+            }
+
+            // Reset to initial state
+            function resetState() {
+                // No need to call stopSimulation() here as initialize() calls it.
+                initialize(); // Re-initialize everything, including reading phi
+            }
+
+            // Update phi value when slider changes
+            function updatePhi() {
+                currentPhi = parseFloat(phiRange.value);
+                phiValue.textContent = currentPhi.toFixed(2);
+                // Optional: Reset simulation when phi changes significantly?
+                // For now, just let it continue with the new phi.
+                // You could call resetState() here if you want a fresh start upon changing phi.
+
+                 // Re-typeset MathJax elements containing phi if needed
+                 if (window.MathJax && window.MathJax.typeset) {
+                    // You might need to target specific elements if only some update
+                    // For simplicity, re-typeset the whole document or relevant container
+                    // window.MathJax.typeset(); // Might be too broad
+                 }
+            }
+
+            // --- Event Listeners ---
+            stepButton.addEventListener('click', () => {
+                 if (!simulationInterval) step();
+            });
+            runButton.addEventListener('click', runSimulation);
+            stopButton.addEventListener('click', stopSimulation);
+            resetButton.addEventListener('click', resetState);
+            speedRange.addEventListener('input', updateSpeedDisplay);
+            phiRange.addEventListener('input', updatePhi); // Update phi when slider moves
+
+             // Handle window resize to rescale plots
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    updateSvgDimensions();
+                    updateVisualization(); // Redraw both plots
+                }, 150); // Debounce resize events
+            });
+
+            // --- Initial Setup ---
+            initialize();
+        });
+    </script>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'934c2b1e499eb0c9',t:'MTc0NTM5ODgwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
