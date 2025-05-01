@@ -64,9 +64,9 @@
                     transition={{ duration: 0.3 }}
                     whileHover={{ scale: 1.05 }}
                 >
-                    <span className={`text-lg sm:text-xl font-bold ${isOpen ? 'text-black' : 'text-white'}`}>
-                        Door {number}
-                    </span>
+                <div className={`text-lg sm:text-xl font-bold ${isOpen ? 'text-black' : 'text-white'} mb-4`}>
+                    Door {number}
+                </div>
                     {isOpen && (
                         <motion.img
                             src={isCar ? "https://cdn-icons-png.flaticon.com/512/3202/3202003.png" : "https://cdn-icons-png.flaticon.com/512/1886/1886933.png"}
