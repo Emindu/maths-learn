@@ -1,0 +1,412 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Softmax Layer Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .formula {
+            text-align: center;
+            margin: 15px 0;
+            background: #e6f3ff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            color: #444;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .value-display {
+            font-size: 0.9em;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .explanation {
+            font-size: 0.95em;
+            line-height: 1.5;
+            color: #555;
+        }
+        .network-section {
+            width: 100%;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            height: 400px; /* Increased height to accommodate all nodes */
+        }
+        .network-section svg {
+            width: 100%;
+            height: 100%;
+        }
+        .node {
+            fill: #4682b4;
+            stroke: #000;
+            stroke-width: 1;
+        }
+        .prob-node {
+            fill: #90ee90;
+            stroke: #000;
+            stroke-width: 1;
+        }
+        .connection {
+            stroke: #ccc;
+            stroke-width: 0.5;
+        }
+        .arrow {
+            stroke: #000;
+            stroke-width: 2;
+            marker-end: "url(#arrowhead)";
+        }
+        .highlight {
+            fill: #32cd32;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Softmax Function Visualization</h1>
+    <div class="formula">
+        Softmax: \( \sigma(z_i) = \frac{e^{z_i}}{\sum_{j=1}^K e^{z_j}} \)
+    </div>
+    <div class="explanation section">
+        <h2>About Softmax</h2>
+        <p>The softmax function converts raw scores (logits) into probabilities that sum to 1, used in neural networks for multi-class classification (e.g., identifying classes). Larger scores get higher probabilities due to the exponential function.</p>
+    </div>
+    <div class="network-section">
+        <h2>Neural Network View</h2>
+        <svg id="networkSvg">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#000"/>
+                </marker>
+            </defs>
+            <!-- Nodes, connections, and arrows will be added dynamically -->
+        </svg>
+    </div>
+    <div class="container">
+        <div class="section">
+            <h2>Input Scores</h2>
+            <div id="inputs">
+                <div class="input-group">
+                    <label for="score0">Class 1 Score</label>
+                    <input type="range" id="score0" min="-5" max="5" step="0.1" value="-0.1">
+                    <span class="value-display" id="value0">-0.1</span>
+                </div>
+                <div class="input-group">
+                    <label for="score1">Class 2 Score</label>
+                    <input type="range" id="score1" min="-5" max="5" step="0.1" value="3.8">
+                    <span class="value-display" id="value1">3.8</span>
+                </div>
+                <div class="input-group">
+                    <label for="score2">Class 3 Score</label>
+                    <input type="range" id="score2" min="-5" max="5" step="0.1" value="1.1">
+                    <span class="value-display" id="value2">1.1</span>
+                </div>
+                <div class="input-group">
+                    <label for="score3">Class 4 Score</label>
+                    <input type="range" id="score3" min="-5" max="5" step="0.1" value="-0.3">
+                    <span class="value-display" id="value3">-0.3</span>
+                </div>
+            </div>
+            <h2>Calculations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Score (\( z_i \))</th>
+                        <th>Exp (\( e^{z_i} \))</th>
+                        <th>Probability (\( \sigma(z_i) \))</th>
+                    </tr>
+                </thead>
+                <tbody id="calcTable">
+                    <tr><td>Class 1</td><td id="z0">-0.1</td><td id="exp0">-</td><td id="prob0">-</td></tr>
+                    <tr><td>Class 2</td><td id="z1">3.8</td><td id="exp1">-</td><td id="prob1">-</td></tr>
+                    <tr><td>Class 3</td><td id="z2">1.1</td><td id="exp2">-</td><td id="prob2">-</td></tr>
+                    <tr><td>Class 4</td><td id="z3">-0.3</td><td id="exp3">-</td><td id="prob3">-</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+            <h2>Softmax Probabilities</h2>
+            <canvas id="probabilityChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Chart.js
+        const ctx = document.getElementById('probabilityChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Class 1', 'Class 2', 'Class 3', 'Class 4'],
+                datasets: [{
+                    label: 'Probability',
+                    data: [0, 0, 0, 0],
+                    backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ff9f40'],
+                    borderColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ff9f40'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        title: { display: true, text: 'Probability' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Probability: ${context.parsed.y.toFixed(4)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Softmax function
+        function softmax(scores) {
+            const expScores = scores.map(score => Math.exp(score));
+            const sumExpScores = expScores.reduce((sum, val) => sum + val, 0);
+            return { probabilities: expScores.map(expScore => expScore / sumExpScores), expScores };
+        }
+
+        // Draw neural network with final softmax layer
+        function drawNetwork(scores, probabilities) {
+            const svg = document.getElementById('networkSvg');
+            svg.innerHTML = svg.querySelector('defs').outerHTML; // Preserve arrowhead definition
+
+            const width = 1200; // Increased width for full-width display
+            const height = 400; // Increased height to ensure all nodes are visible
+            const nodeRadius = 15;
+            const inputNodes = 5;
+            const outputNodes = 4;
+            const labels = ['Class 1', 'Class 2', 'Class 3', 'Class 4'];
+
+            // Positions
+            const inputX = 100;
+            const inputYStep = height / (inputNodes + 1);
+            const outputX = 400;
+            const probX = 700;
+            const outputYStep = height / (outputNodes + 1); // Recalculated for new height
+
+            // Draw connections (input to output)
+            for (let i = 0; i < inputNodes; i++) {
+                for (let j = 0; j < outputNodes; j++) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", inputX + nodeRadius * 2);
+                    line.setAttribute("y1", (i + 1) * inputYStep);
+                    line.setAttribute("x2", outputX - nodeRadius * 2);
+                    line.setAttribute("y2", (j + 1) * outputYStep);
+                    line.setAttribute("class", "connection");
+                    svg.appendChild(line);
+                }
+            }
+
+            // Draw arrows (output to softmax probabilities)
+            for (let i = 0; i < outputNodes; i++) {
+                const arrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                arrow.setAttribute("x1", outputX + nodeRadius * 2);
+                arrow.setAttribute("y1", (i + 1) * outputYStep);
+                arrow.setAttribute("x2", probX - nodeRadius * 2);
+                arrow.setAttribute("y2", (i + 1) * outputYStep);
+                arrow.setAttribute("class", "arrow");
+                svg.appendChild(arrow);
+            }
+
+            // Draw input nodes
+            for (let i = 0; i < inputNodes; i++) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", inputX);
+                circle.setAttribute("cy", (i + 1) * inputYStep);
+                circle.setAttribute("r", nodeRadius);
+                circle.setAttribute("class", "node");
+                svg.appendChild(circle);
+            }
+
+            // Draw output nodes with scores
+            for (let i = 0; i < outputNodes; i++) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", outputX);
+                circle.setAttribute("cy", (i + 1) * outputYStep);
+                circle.setAttribute("r", nodeRadius);
+                circle.setAttribute("class", "node");
+                svg.appendChild(circle);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", outputX);
+                text.setAttribute("y", (i + 1) * outputYStep + 5);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("fill", "#000");
+                text.textContent = scores[i].toFixed(1);
+                svg.appendChild(text);
+            }
+
+            // Draw softmax probability nodes
+            const maxProbIndex = probabilities.indexOf(Math.max(...probabilities));
+            for (let i = 0; i < outputNodes; i++) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", probX);
+                circle.setAttribute("cy", (i + 1) * outputYStep);
+                circle.setAttribute("r", nodeRadius);
+                circle.setAttribute("class", i === maxProbIndex ? "prob-node highlight" : "prob-node");
+                svg.appendChild(circle);
+
+                const probText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                probText.setAttribute("x", probX + 40);
+                probText.setAttribute("y", (i + 1) * outputYStep);
+                probText.setAttribute("fill", "#000");
+                probText.textContent = `${probabilities[i].toFixed(2)}`;
+                svg.appendChild(probText);
+
+                const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                labelText.setAttribute("x", probX + 90);
+                labelText.setAttribute("y", (i + 1) * outputYStep);
+                labelText.setAttribute("fill", "#000");
+                labelText.textContent = labels[i];
+                svg.appendChild(labelText);
+            }
+
+            svg.setAttribute("width", width);
+            svg.setAttribute("height", height);
+        }
+
+        // Update visualization
+        function updateVisualization() {
+            const scores = [
+                parseFloat(document.getElementById('score0').value),
+                parseFloat(document.getElementById('score1').value),
+                parseFloat(document.getElementById('score2').value),
+                parseFloat(document.getElementById('score3').value)
+            ];
+
+            // Update value displays and table
+            for (let i = 0; i < scores.length; i++) {
+                document.getElementById(`value${i}`).textContent = scores[i].toFixed(1);
+                document.getElementById(`z${i}`).textContent = scores[i].toFixed(1);
+            }
+
+            // Calculate softmax
+            const { probabilities, expScores } = softmax(scores);
+
+            // Update table with exp and probabilities
+            for (let i = 0; i < scores.length; i++) {
+                document.getElementById(`exp${i}`).textContent = expScores[i].toFixed(4);
+                document.getElementById(`prob${i}`).textContent = probabilities[i].toFixed(4);
+            }
+
+            // Update chart
+            chart.data.datasets[0].data = probabilities;
+            chart.update();
+
+            // Update neural network
+            drawNetwork(scores, probabilities);
+        }
+
+        // Add event listeners
+        for (let i = 0; i < 4; i++) {
+            document.getElementById(`score${i}`).addEventListener('input', updateVisualization);
+        }
+
+        // Initial update
+        updateVisualization();
+    </script>
+</body>
+</html>
