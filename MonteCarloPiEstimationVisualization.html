@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monte Carlo Pi Estimation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        /* Custom scrollbar for better aesthetics (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .number-input::-webkit-outer-spin-button,
+        .number-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .number-input {
+            -moz-appearance: textfield; /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">Monte Carlo Pi Estimation</h1>
+            <p class="text-sm text-gray-600 mt-1">Visualizing Pi through random sampling</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
+
+            <div class="bg-white p-5 sm:p-6 rounded-xl shadow-lg w-full lg:w-1/3 lg:sticky lg:top-8">
+                <div class="mb-5">
+                    <label for="numPoints" class="block text-sm font-medium text-gray-700 mb-1">Number of Points (N):</label>
+                    <input type="number" id="numPoints" value="10000" min="100" max="2000000" 
+                           class="number-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5">
+                </div>
+                <button id="startButton" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Start Simulation
+                </button>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200 space-y-3 text-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Simulation Results:</h3>
+                    <p class="flex justify-between"><strong>Estimated Pi (π):</strong> <span id="piEstimate" class="font-semibold text-indigo-600">N/A</span></p>
+                    <p class="flex justify-between"><strong>Points Simulated:</strong> <span id="pointsSimulated" class="font-semibold">0</span></p>
+                    <p class="flex justify-between"><strong>Points Inside Circle:</strong> <span id="pointsInside" class="font-semibold">0</span></p>
+                    <p class="flex justify-between"><strong>Theoretical Pi:</strong> <span class="font-semibold">3.1415926...</span></p>
+                    <p class="flex justify-between"><strong>Error:</strong> <span id="errorPercentage" class="font-semibold text-red-500">N/A</span></p>
+                </div>
+            </div>
+
+            <div class="bg-white p-1 sm:p-2 rounded-xl shadow-lg w-full lg:w-2/3 flex justify-center items-center aspect-square">
+                 <canvas id="monteCarloCanvas" class="rounded-md border border-gray-200"></canvas>
+            </div>
+        </div>
+
+        <div class="mt-8 md:mt-10 p-5 sm:p-6 bg-white rounded-xl shadow-lg">
+            <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">How It Works</h2>
+            <div class="text-sm text-gray-600 space-y-2 leading-relaxed">
+                <p>This simulation estimates Pi (π) using the Monte Carlo method, a computational technique that relies on repeated random sampling to obtain numerical results.</p>
+                <ol class="list-decimal list-inside space-y-1 pl-2">
+                    <li>Imagine a square with side length 2, centered at the origin (0,0). Its area is (2r)<sup>2</sup> = 4 (assuming r=1 for the circle).</li>
+                    <li>An imaginary circle with radius 1 is perfectly inscribed within this square. Its area is πr<sup>2</sup> = π.</li>
+                    <li>We then generate a large number of random points that fall within the boundaries of the square.</li>
+                    <li>We count how many of these points also fall inside the circle. A point (x,y) is inside the circle if x<sup>2</sup> + y<sup>2</sup> ≤ 1.</li>
+                    <li>The ratio of (points inside the circle) to (total points generated) approximates the ratio of (area of the circle) to (area of the square).
+                        <br><code class="text-xs bg-gray-200 p-1 rounded">(Points Inside / Total Points) ≈ (Area of Circle / Area of Square)</code>
+                    </li>
+                    <li>So, <code class="text-xs bg-gray-200 p-1 rounded">(Points Inside / Total Points) ≈ π / 4</code>.</li>
+                    <li>Rearranging this, we can estimate Pi: <code class="text-xs bg-gray-200 p-1 rounded">π ≈ 4 * (Points Inside / Total Points)</code>.</li>
+                </ol>
+                <p>The more points we generate, the more accurate our estimation of Pi tends to become.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('monteCarloCanvas');
+        const ctx = canvas.getContext('2d');
+        const numPointsInput = document.getElementById('numPoints');
+        const startButton = document.getElementById('startButton');
+        const piEstimateDisplay = document.getElementById('piEstimate');
+        const pointsSimulatedDisplay = document.getElementById('pointsSimulated');
+        const pointsInsideDisplay = document.getElementById('pointsInside');
+        const errorPercentageDisplay = document.getElementById('errorPercentage');
+
+        let canvasSize; // Will be set dynamically
+        const simRadius = 1; // Logical radius of the circle in simulation space [-1,1]
+        let canvasActualRadius; 
+        let canvasCenter; 
+
+        // Variables for asynchronous simulation
+        let currentPointIndex = 0;
+        let pointsInsideCircleAsync = 0;
+        let totalPointsToSimulate = 0;
+        let animationFrameId = null;
+
+        // Function to set canvas size responsively
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const computedStyle = getComputedStyle(container);
+            // Calculate total horizontal padding
+            const paddingWidth = parseInt(computedStyle.paddingLeft) + parseInt(computedStyle.paddingRight);
+            
+            // Calculate available width for the canvas, ensuring it's not negative
+            // This was the primary fix: ensure clientWidth - paddingWidth is not negative before Math.min
+            const availableWidth = Math.max(0, container.clientWidth - paddingWidth);
+            
+            // Determine canvas size, capped at 500px
+            const size = Math.min(availableWidth, 500); 
+
+            canvas.width = size;
+            canvas.height = size; // Maintain 1:1 aspect ratio
+            canvasSize = size;
+            canvasActualRadius = canvasSize / 2;
+            canvasCenter = canvasSize / 2;
+            
+            // Only attempt to draw if the canvas has a drawable size
+            if (canvasSize > 0) {
+                drawBackground(); 
+            } else if (ctx) {
+                // If canvas size is 0 (or less, though now prevented), ensure it's clear
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+
+        // Function to draw the background (square and circle outline)
+        function drawBackground() {
+            // Guard against drawing if canvas context is not ready or size is not positive
+            if (!ctx || !canvasSize || canvasSize <= 0) return; 
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+            // Optional: Fill background for the square area
+            // ctx.fillStyle = "#f9fafb"; // Very light gray
+            // ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+            // Draw circle outline
+            ctx.beginPath();
+            // canvasActualRadius is now guaranteed to be non-negative due to resizeCanvas logic
+            ctx.arc(canvasCenter, canvasCenter, canvasActualRadius, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = 'rgba(79, 70, 229, 0.8)'; // Indigo color for circle
+            ctx.lineWidth = Math.max(1, canvasSize / 200); // Responsive line width
+            ctx.stroke();
+        }
+
+        // Function to draw a single point on the canvas
+        // simX, simY are in the range [-1, 1]
+        function drawPointOnCanvas(simX, simY, isInside) {
+            if (!ctx || canvasSize <= 0) return; // Don't draw if canvas isn't ready or has no size
+            // Convert simulation coordinates [-1, 1] to canvas coordinates [0, canvasSize]
+            const canvasX = (simX + simRadius) * canvasActualRadius;
+            const canvasY = (simRadius - simY) * canvasActualRadius; // Y is inverted for canvas
+
+            ctx.fillStyle = isInside ? 'rgba(59, 130, 246, 0.6)' : 'rgba(239, 68, 68, 0.6)'; // Blue for inside, Red for outside
+            ctx.fillRect(Math.floor(canvasX), Math.floor(canvasY), 1, 1); // Draw 1x1 pixel for performance
+        }
+
+        // This function runs one batch of the simulation
+        function simulationStep() {
+            if (!totalPointsToSimulate || canvasSize <= 0) return; // Stop if no points or no canvas
+
+            const pointsPerBatch = Math.min(1000, totalPointsToSimulate - currentPointIndex); 
+
+            for (let i = 0; i < pointsPerBatch; i++) {
+                if (currentPointIndex >= totalPointsToSimulate) break; // Safety break
+
+                const simX = Math.random() * 2 - 1; // Random float between -1 and 1
+                const simY = Math.random() * 2 - 1; // Random float between -1 and 1
+
+                const distanceSquared = simX * simX + simY * simY;
+
+                if (distanceSquared <= simRadius * simRadius) { // simRadius is 1, so simRadius*simRadius is 1
+                    pointsInsideCircleAsync++;
+                    drawPointOnCanvas(simX, simY, true);
+                } else {
+                    drawPointOnCanvas(simX, simY, false);
+                }
+                currentPointIndex++;
+            }
+
+            // Update display statistics
+            const currentPiEstimate = (currentPointIndex > 0) ? (4 * (pointsInsideCircleAsync / currentPointIndex)) : 0;
+            piEstimateDisplay.textContent = currentPiEstimate.toFixed(6);
+            pointsSimulatedDisplay.textContent = currentPointIndex.toLocaleString();
+            pointsInsideDisplay.textContent = pointsInsideCircleAsync.toLocaleString();
+
+            const theoreticalPi = Math.PI;
+            const currentError = (currentPointIndex > 0 && currentPiEstimate > 0) ? Math.abs((currentPiEstimate - theoreticalPi) / theoreticalPi) * 100 : 0;
+            errorPercentageDisplay.textContent = (currentPointIndex > 0 && currentPiEstimate > 0) ? currentError.toFixed(4) + '%' : 'N/A';
+
+            // Request next frame if simulation is not complete
+            if (currentPointIndex < totalPointsToSimulate) {
+                animationFrameId = requestAnimationFrame(simulationStep);
+            } else {
+                // Simulation finished
+                startButton.disabled = false;
+                startButton.textContent = "Start Simulation";
+                // console.log("Simulation finished");
+            }
+        }
+
+        // Main function to start/restart the simulation
+        function startFullSimulation() {
+            startButton.disabled = true;
+            startButton.textContent = "Simulating...";
+
+            // Cancel any ongoing animation frame
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            totalPointsToSimulate = parseInt(numPointsInput.value);
+            if (isNaN(totalPointsToSimulate) || totalPointsToSimulate <= 0) {
+                // Using a custom modal or inline message would be better than alert,
+                // but for simplicity, alert is kept. In a production app, replace this.
+                console.error("Invalid number of points entered."); // Log error
+                // For now, we'll just re-enable the button and return.
+                // A more user-friendly approach would be an inline error message.
+                startButton.disabled = false;
+                startButton.textContent = "Start Simulation";
+                // Show a message to the user, e.g., by updating a status div
+                // For now, we'll just use a console log and not an alert.
+                // piEstimateDisplay.textContent = "Error: Invalid input"; 
+                return;
+            }
+             // Cap for browser sanity, matching input max
+            if (totalPointsToSimulate > 2000000) {
+                 // Similar to above, avoid alert if possible.
+                console.warn("Number of points capped at 2,000,000.");
+                totalPointsToSimulate = 2000000;
+                numPointsInput.value = "2000000";
+            }
+            
+            // Ensure canvas is ready before starting
+            if (canvasSize <= 0) {
+                console.warn("Canvas not ready or too small to simulate.");
+                startButton.disabled = false;
+                startButton.textContent = "Start Simulation";
+                piEstimateDisplay.textContent = "Error: Canvas too small";
+                return;
+            }
+
+
+            // Reset simulation variables
+            currentPointIndex = 0;
+            pointsInsideCircleAsync = 0;
+
+            drawBackground(); // Clear canvas and redraw circle outline
+
+            // Reset display statistics for a new simulation
+            piEstimateDisplay.textContent = "Calculating...";
+            pointsSimulatedDisplay.textContent = "0";
+            pointsInsideDisplay.textContent = "0";
+            errorPercentageDisplay.textContent = "Calculating...";
+
+            // Start the simulation loop
+            animationFrameId = requestAnimationFrame(simulationStep);
+        }
+
+        // Event listener for the start button
+        startButton.addEventListener('click', startFullSimulation);
+
+        // Initial setup on window load
+        window.onload = () => {
+            resizeCanvas(); // Set initial canvas size
+            // Set default values for display
+            piEstimateDisplay.textContent = "N/A";
+            pointsSimulatedDisplay.textContent = "0";
+            pointsInsideDisplay.textContent = "0";
+            errorPercentageDisplay.textContent = "N/A";
+            numPointsInput.value = "10000"; // Default number of points
+        };
+        
+        // Resize canvas when window size changes
+        window.addEventListener('resize', resizeCanvas);
+
+    </script>
+</body>
+</html>
