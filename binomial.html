@@ -7,121 +7,172 @@
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
     <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+        }
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
         }
-        header {
-            background-color: #4CAF50;
-            color: white;
+        h1 {
+            color: var(--primary-color);
             text-align: center;
-            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
         }
-        main {
+        .container {
+            background: white;
             padding: 20px;
-            max-width: 800px;
-            margin: auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+            margin-bottom: 20px;
+        }
+        .slider-container {
+            margin: 10px 0 0 0;
+            padding: 10px 0 0 0;
+            background: none;
+            border-radius: 0;
         }
         label {
-            display: block;
-            margin-top: 20px;
-            font-size: 18px;
+            font-size: 1em;
+            margin-bottom: 0;
         }
-        input[type="number"] {
-            width: 100px;
-            padding: 5px;
-            margin-top: 10px;
-            font-size: 16px;
+        input[type="range"] {
+            width: 80%;
+            margin: 0 10px 0 0;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
         }
-        .plot-container {
-            margin-top: 30px;
+        input[type="range"]::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .parameter-display {
+            display: inline;
+            font-size: 0.95em;
+            font-weight: 400;
+            margin-left: 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .stats-container {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 0 0;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 7px;
+            box-shadow: none;
+            text-align: center;
+            min-width: 110px;
+        }
+        .stat-box h3 {
+            font-size: 1em;
+            margin: 0 0 2px 0;
+        }
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        #binomial-plot {
+            width: 100%;
+            height: 50vh;
+            margin: 20px 0;
+        }
+        section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
         }
         a {
             text-decoration: none;
-            color: #4CAF50;
+            color: var(--secondary-color);
         }
         a:hover {
             text-decoration: underline;
         }
-        .example-section {
-            margin-top: 30px;
-        }
-        .example-section h2 {
-            color: #4CAF50;
-        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Binomial Distribution</h1>
-    </header>
-    <main>
-        <p>The Binomial Distribution models the number of successes in \(n\) independent Bernoulli trials, each with a probability of success \(p\). Below is an interactive visualization of the Binomial distribution. Adjust the number of trials (\(n\)) and the probability of success (\(p\)) to see how they affect the probability mass function (PMF).</p>
-
-        <!-- Inputs for number of trials and probability of success -->
-        <label for="trials">Number of Trials (\(n\)):</label>
-        <input type="number" id="trials" min="1" max="50" step="1" value="10" />
-
-        <label for="probability">Probability of Success (\(p\)):</label>
-        <input type="number" id="probability" min="0" max="1" step="0.01" value="0.5" />
-
-        <!-- Plotly container -->
-        <div id="binomial-plot" class="plot-container"></div>
-
-        <div class="example-section">
-            <h2>Example</h2>
-            <p>Consider a Binomial distribution with \(n = 10\) trials and a probability of success \(p = 0.5\). The probability mass function (PMF) for this distribution is given by:</p>
-            <p><b>PMF:</b> 
-                \( P(X = k) = \binom{n}{k} p^k (1 - p)^{n - k} \), where \( k \in \{0, 1, 2, ..., n\} \)
-            </p>
-            
-            <h3>Notation:</h3>
-            <ul>
-                <li><b>X:</b> Random variable representing the number of successes in \(n\) trials.</li>
-                <li><b>n:</b> Number of trials.</li>
-                <li><b>k:</b> Number of successes.</li>
-                <li><b>p:</b> Probability of success in a single trial.</li>
-                <li><b>1 - p:</b> Probability of failure in a single trial.</li>
-            </ul>
-            
-            <h3>Parameters:</h3>
-            <ul>
-                <li><b>n:</b> Number of trials (positive integer).</li>
-                <li><b>p:</b> Probability of success (0 ≤ p ≤ 1).</li>
-            </ul>
-
-            <h3>PMF:</h3>
-            <p>The PMF for a Binomial distribution is calculated using the formula:</p>
-            <p><b>PMF:</b> \( P(X = k) = \binom{n}{k} p^k (1 - p)^{n - k} \)</p>
-
-            <h3>Mean of Binomial Distribution:</h3>
-            <p>The mean (\( \mu \)) of a Binomial distribution is given by:</p>
-            <p><b>Mean:</b> \( \mu = n \cdot p \)</p>
-
-            <h3>Variance:</h3>
-            <p>The variance (\( \sigma^2 \)) of a Binomial distribution is given by:</p>
-            <p><b>Variance:</b> \( \sigma^2 = n \cdot p \cdot (1 - p) \)</p>
-
-            <h3>Example Calculation of Probability:</h3>
-            <p>Let's calculate the probability of getting exactly 5 successes in 10 trials, with a probability of success of 0.5:</p>
-            <p>Using the formula:</p>
-            <p>\[
-            P(X = 5) = \binom{10}{5} (0.5)^5 (0.5)^{5} = \binom{10}{5} (0.5)^{10}
-            \]</p>
-            <p>The binomial coefficient \( \binom{10}{5} \) is calculated as:</p>
-            <p>\[
-            \binom{10}{5} = \frac{10!}{5!(10-5)!} = \frac{10 \times 9 \times 8 \times 7 \times 6}{5 \times 4 \times 3 \times 2 \times 1} = 252
-            \]</p>
-            <p>So the probability is:</p>
-            <p>\[
-            P(X = 5) = 252 \times (0.5)^{10} = 252 \times \frac{1}{1024} \approx 0.2461
-            \]</p>
+    <h1>Binomial Distribution</h1>
+    <div class="container">
+        <p style="margin-bottom: 10px;">The Binomial Distribution models the number of successes in <b>n</b> independent Bernoulli trials, each with a probability of success <b>p</b>.</p>
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="trials-slider">Number of Trials (n):</label>
+                <input type="range" id="trials-slider" min="1" max="50" step="1" value="10">
+                <span class="parameter-display" id="trials-value">n = 10</span>
+            </div>
         </div>
-
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="probability-slider">Probability of Success (p):</label>
+                <input type="range" id="probability-slider" min="0" max="1" step="0.01" value="0.5">
+                <span class="parameter-display" id="probability-value">p = 0.5</span>
+            </div>
+        </div>
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3>Mean (μ)</h3>
+                <div class="stat-value" id="mean-value">5.00</div>
+            </div>
+            <div class="stat-box">
+                <h3>Variance (σ²)</h3>
+                <div class="stat-value" id="variance-value">2.50</div>
+            </div>
+        </div>
+        <div id="binomial-plot"></div>
+    </div>
+    <section>
+        <h2>PMF (Probability Mass Function)</h2>
+        <pre>
+P(X = k) = C(n, k) p^k (1-p)^{n-k},   k ∈ {0, 1, ..., n}
+        </pre>
+        <h2>Parameters</h2>
+        <ul>
+            <li><b>n</b>: Number of trials (positive integer)</li>
+            <li><b>p</b>: Probability of success (0 ≤ p ≤ 1)</li>
+        </ul>
+        <h2>Mean and Variance</h2>
+        <ul>
+            <li><b>Mean:</b> μ = n·p</li>
+            <li><b>Variance:</b> σ² = n·p·(1 - p)</li>
+        </ul>
+        <h2>Example</h2>
+        <p>For n = 10, p = 0.5, the PMF for k = 5 is:</p>
+        <pre>
+P(X = 5) = C(10, 5) (0.5)^5 (0.5)^5 = C(10, 5) (0.5)^{10} ≈ 0.2461
+        </pre>
         <p><a href="index.html">&larr; Back to Main Page</a></p>
-    </main>
-
+    </section>
     <script>
         // Function to calculate binomial PMF
         const calculateBinomialPMF = (n, p) => {
@@ -130,50 +181,88 @@
             const pmf = Array.from({ length: n + 1 }, (_, k) => comb(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k));
             return pmf;
         };
-
-        // Initial plot rendering
-        const plotBinomial = (n, p) => {
-            const x = Array.from({ length: n + 1 }, (_, i) => i); // Possible successes (0 to n)
-            const y = calculateBinomialPMF(n, p); // PMF values
-
+        function plotBinomial(n, p) {
+            const x = Array.from({ length: n + 1 }, (_, i) => i);
+            const y = calculateBinomialPMF(n, p);
+            // Find the most likely outcome (mode)
+            const maxY = Math.max(...y);
+            const modeIndices = y.reduce((arr, val, idx) => val === maxY ? arr.concat(idx) : arr, []);
+            const barColors = x.map((_, i) => modeIndices.includes(i) ? '#2ecc71' : '#3498db');
             const data = [{
                 x: x,
                 y: y,
                 type: 'bar',
-                marker: { color: 'skyblue' },
+                marker: { color: barColors },
                 text: y.map(val => val.toFixed(4)),
-                textposition: 'auto',
+                textposition: 'outside',
+                hovertemplate: 'P(X=%{x}) = %{y:.4f}<extra></extra>',
             }];
-
+            // Mean line
+            const mean = n * p;
+            const variance = n * p * (1 - p);
+            const meanLine = {
+                x: [mean, mean],
+                y: [0, Math.max(...y)],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Mean',
+                line: { color: '#e74c3c', width: 2, dash: 'dash' },
+                hoverinfo: 'skip',
+                showlegend: false
+            };
+            // Annotations for mean and variance
+            const annotations = [
+                {
+                    x: mean,
+                    y: Math.max(...y) + 0.04,
+                    xref: 'x',
+                    yref: 'y',
+                    text: `μ = ${mean.toFixed(2)}`,
+                    showarrow: false,
+                    font: { color: '#e74c3c', size: 14 }
+                },
+                {
+                    x: mean,
+                    y: Math.max(...y) + 0.12,
+                    xref: 'x',
+                    yref: 'y',
+                    text: `σ² = ${variance.toFixed(2)}`,
+                    showarrow: false,
+                    font: { color: '#3498db', size: 14 }
+                }
+            ];
             const layout = {
                 title: `Binomial Distribution (n = ${n}, p = ${p})`,
-                xaxis: { title: 'Number of Successes (k)' },
-                yaxis: { title: 'Probability', range: [0, 1] },
-                template: 'plotly_white',
+                xaxis: { title: 'Number of Successes (k)', dtick: 1 },
+                yaxis: { title: 'Probability', range: [0, Math.max(...y) + 0.2], gridcolor: '#ddd' },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: false,
+                barmode: 'group',
+                annotations: annotations,
+                margin: { t: 60, b: 60, l: 60, r: 30 }
             };
-
-            Plotly.newPlot('binomial-plot', data, layout);
-        };
-
-        // Initial plot with default values
-        plotBinomial(10, 0.5);
-
-        // Update the plot when inputs change
-        document.getElementById('trials').addEventListener('input', (event) => {
-            const n = parseInt(event.target.value, 10);
-            const p = parseFloat(document.getElementById('probability').value);
-            if (n >= 1 && p >= 0 && p <= 1) {
-                plotBinomial(n, p);
-            }
-        });
-
-        document.getElementById('probability').addEventListener('input', (event) => {
-            const p = parseFloat(event.target.value);
-            const n = parseInt(document.getElementById('trials').value, 10);
-            if (n >= 1 && p >= 0 && p <= 1) {
-                plotBinomial(n, p);
-            }
-        });
+            Plotly.newPlot('binomial-plot', [data[0], meanLine], layout, {displayModeBar: false});
+        }
+        // Use the sliders and value spans already present in the HTML
+        const trialsSlider = document.getElementById('trials-slider');
+        const probabilitySlider = document.getElementById('probability-slider');
+        const trialsValue = document.getElementById('trials-value');
+        const probabilityValue = document.getElementById('probability-value');
+        const meanValue = document.getElementById('mean-value');
+        const varianceValue = document.getElementById('variance-value');
+        function updateBinomial() {
+            const n = parseInt(trialsSlider.value, 10);
+            const p = parseFloat(probabilitySlider.value);
+            trialsValue.textContent = `n = ${n}`;
+            probabilityValue.textContent = `p = ${p}`;
+            meanValue.textContent = (n * p).toFixed(2);
+            varianceValue.textContent = (n * p * (1 - p)).toFixed(2);
+            plotBinomial(n, p);
+        }
+        trialsSlider.addEventListener('input', updateBinomial);
+        probabilitySlider.addEventListener('input', updateBinomial);
+        updateBinomial();
     </script>
 </body>
 </html>
