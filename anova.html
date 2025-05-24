@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANOVA Testing</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .plot-container {
+            width: 100%;
+            height: 600px;
+        }
+        .controls {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .explanation {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .formula {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Analysis of Variance (ANOVA)</h1>
+    
+    <div class="explanation">
+        <h2>What is ANOVA?</h2>
+        <p>ANOVA (Analysis of Variance) is a statistical method used to test differences between two or more means. It compares the variance between groups to the variance within groups to determine if the means are significantly different.</p>
+    </div>
+
+    <div class="container">
+        <div class="plot-container" id="boxplot"></div>
+    </div>
+
+    <div class="controls">
+        <h3>Simulate Plant Growth Data</h3>
+        <div>
+            <label for="control-mean">Control Group Mean:</label>
+            <input type="range" id="control-mean" min="4" max="6" step="0.1" value="5">
+            <span id="control-mean-value">5.0</span>
+        </div>
+        <div>
+            <label for="treatment1-mean">Treatment 1 Mean:</label>
+            <input type="range" id="treatment1-mean" min="4" max="6" step="0.1" value="4.6">
+            <span id="treatment1-mean-value">4.6</span>
+        </div>
+        <div>
+            <label for="treatment2-mean">Treatment 2 Mean:</label>
+            <input type="range" id="treatment2-mean" min="4" max="6" step="0.1" value="5.5">
+            <span id="treatment2-mean-value">5.5</span>
+        </div>
+        <div>
+            <label for="variance">Common Variance:</label>
+            <input type="range" id="variance" min="0.1" max="2" step="0.1" value="0.5">
+            <span id="variance-value">0.5</span>
+        </div>
+    </div>
+
+    <div class="explanation">
+        <h2>ANOVA Model Components</h2>
+        <div class="formula">
+            y_ij = μ_i + ε_ij
+        </div>
+        <p>Where:</p>
+        <ul>
+            <li>y_ij is the jth observation in the ith group</li>
+            <li>μ_i is the mean of the ith group</li>
+            <li>ε_ij is the random error term</li>
+        </ul>
+
+        <h2>Hypothesis Testing</h2>
+        <p>Null Hypothesis (H₀): All group means are equal</p>
+        <p>Alternative Hypothesis (H₁): At least one group mean is different</p>
+
+        <h2>F-Statistic</h2>
+        <div class="formula">
+            F = (Between-group variance) / (Within-group variance)
+        </div>
+    </div>
+
+    <div id="anova-results" class="explanation">
+        <h2>ANOVA Results</h2>
+        <p>F-statistic: <span id="f-stat">-</span></p>
+        <p>p-value: <span id="p-value">-</span></p>
+        <p>Conclusion: <span id="conclusion">-</span></p>
+    </div>
+
+    <script>
+        // Function to generate random data
+        function generateData(mean, variance, n) {
+            return Array.from({length: n}, () => 
+                mean + Math.sqrt(variance) * (Math.random() + Math.random() + Math.random() - 1.5)
+            );
+        }
+
+        // Function to calculate ANOVA statistics
+        function calculateANOVA(data) {
+            const grandMean = data.flat().reduce((a, b) => a + b, 0) / data.flat().length;
+            
+            // Between-group variance
+            const betweenGroupVar = data.reduce((sum, group) => {
+                const groupMean = group.reduce((a, b) => a + b, 0) / group.length;
+                return sum + group.length * Math.pow(groupMean - grandMean, 2);
+            }, 0) / (data.length - 1);
+
+            // Within-group variance
+            const withinGroupVar = data.reduce((sum, group) => {
+                const groupMean = group.reduce((a, b) => a + b, 0) / group.length;
+                return sum + group.reduce((s, x) => s + Math.pow(x - groupMean, 2), 0);
+            }, 0) / (data.flat().length - data.length);
+
+            const fStat = betweenGroupVar / withinGroupVar;
+            const pValue = 1 - Math.min(1, Math.max(0, 1 - Math.exp(-fStat/2)));
+
+            return { fStat, pValue };
+        }
+
+        // Function to update plots
+        function updatePlots() {
+            const controlMean = parseFloat(document.getElementById('control-mean').value);
+            const treatment1Mean = parseFloat(document.getElementById('treatment1-mean').value);
+            const treatment2Mean = parseFloat(document.getElementById('treatment2-mean').value);
+            const variance = parseFloat(document.getElementById('variance').value);
+
+            const controlData = generateData(controlMean, variance, 10);
+            const treatment1Data = generateData(treatment1Mean, variance, 10);
+            const treatment2Data = generateData(treatment2Mean, variance, 10);
+
+            // Create traces for each group
+            const traces = [
+                {
+                    y: controlData,
+                    type: 'box',
+                    name: 'Control',
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    marker: { color: 'rgb(7,40,89)' },
+                    boxmean: true
+                },
+                {
+                    y: treatment1Data,
+                    type: 'box',
+                    name: 'Treatment 1',
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: 0,
+                    marker: { color: 'rgb(9,56,125)' },
+                    boxmean: true
+                },
+                {
+                    y: treatment2Data,
+                    type: 'box',
+                    name: 'Treatment 2',
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: 1.8,
+                    marker: { color: 'rgb(8,81,156)' },
+                    boxmean: true
+                }
+            ];
+
+            const layout = {
+                title: 'Plant Growth by Treatment Group',
+                yaxis: { 
+                    title: 'Weight',
+                    range: [3.5, 7]
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: 1.1
+                },
+                boxmode: 'group'
+            };
+
+            Plotly.newPlot('boxplot', traces, layout);
+
+            // Calculate and display ANOVA results
+            const anovaResults = calculateANOVA([controlData, treatment1Data, treatment2Data]);
+            
+            document.getElementById('f-stat').textContent = anovaResults.fStat.toFixed(2);
+            document.getElementById('p-value').textContent = anovaResults.pValue.toFixed(4);
+            document.getElementById('conclusion').textContent = 
+                anovaResults.pValue < 0.05 
+                    ? 'Reject H₀: There is a significant difference between groups'
+                    : 'Fail to reject H₀: No significant difference between groups';
+        }
+
+        // Add event listeners to sliders
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', function() {
+                document.getElementById(this.id + '-value').textContent = this.value;
+                updatePlots();
+            });
+        });
+
+        // Initial plot
+        updatePlots();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project NPV and Duration Simulation</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        .visualization {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+        .plot-container {
+            height: 400px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .control-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .control-group input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .slider-value {
+            display: inline-block;
+            width: 60px;
+            text-align: right;
+        }
+        .distribution-plots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .distribution-plot {
+            height: 300px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background-color: #e9ecef;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tooltip {
+            position: absolute;
+            left: 0;
+            bottom: 100%;
+            margin-bottom: 10px;
+            width: 260px;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .control-group:hover .tooltip {
+            opacity: 1;
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 100%;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+    </style>
+</head>
+<body>
+    <div style="background:#f8f9fa;padding:18px 24px 10px 24px;border-radius:8px;margin-bottom:24px;">
+        <h2 style="margin-top:0;">Equations Used in Simulation</h2>
+        <ul style="font-size:1.1em;">
+            <li><b>Labor Costs:</b> \( \text{Labor Costs} = \text{Effort} \times \text{Daily Rate} \)</li>
+            <li><b>Technology Costs:</b> \( \text{Technology Costs} = \text{FTE} \times \text{Technology Charges} \)</li>
+            <li><b>Overhead Costs:</b> \( \text{Overhead Costs} = \text{FTE} \times \text{Overhead Charges} \)</li>
+            <li><b>Revenue:</b> \( \text{Revenue} = \text{Price} \times \text{Units} \)</li>
+            <li><b>Duration:</b> \( \text{Duration} = \frac{\text{Effort}}{\text{FTE}} \)</li>
+            <li><b>Free Cash Flow:</b> \( \text{FCF} = (\text{Revenue} - \text{Labor Costs} - \text{Technology Costs} - \text{Overhead Costs}) \times (1 - \text{Tax Rate}) \)</li>
+            <li><b>NPV:</b> \( \text{NPV} = \frac{\text{FCF}}{1 + \text{Discount Rate}} \)</li>
+        </ul>
+        <script>if(window.MathJax) MathJax.typeset();</script>
+    </div>
+    
+    <h1>Project NPV and Duration Simulation</h1>
+    
+    <div class="container">
+        <div class="controls">
+            <h2>Simulation Parameters</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('basic')">Basic</button>
+                <button class="tab" onclick="showTab('distributions')">Distributions</button>
+            </div>
+
+            <div id="basic-tab" class="tab-content active">
+                <div class="control-group">
+                    <label>Number of Simulations:</label>
+                    <input type="range" id="n-simulations" min="1000" max="10000" step="1000" value="10000">
+                    <span class="slider-value" id="n-simulations-value">10000</span>
+                    <div class="tooltip">Total number of Monte Carlo simulations to run. Higher values provide more accurate results but may take longer to compute.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Daily Rate ($):</label>
+                    <input type="range" id="daily-rate" min="200" max="600" step="50" value="400">
+                    <span class="slider-value" id="daily-rate-value">400</span>
+                    <div class="tooltip">The daily rate charged for labor. This is multiplied by the effort to calculate labor costs.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Technology Charges ($):</label>
+                    <input type="range" id="tech-charges" min="300" max="700" step="50" value="500">
+                    <span class="slider-value" id="tech-charges-value">500</span>
+                    <div class="tooltip">Fixed technology charges per FTE. Includes software licenses, hardware, and other technical resources.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Overhead Charges ($):</label>
+                    <input type="range" id="overhead-charges" min="100" max="300" step="50" value="200">
+                    <span class="slider-value" id="overhead-charges-value">200</span>
+                    <div class="tooltip">Fixed overhead costs per FTE. Includes office space, utilities, and administrative expenses.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Tax Rate (%):</label>
+                    <input type="range" id="tax-rate" min="10" max="30" step="1" value="15">
+                    <span class="slider-value" id="tax-rate-value">15</span>
+                    <div class="tooltip">The tax rate applied to the project's profit. Affects the final NPV calculation.</div>
+                </div>
+            </div>
+
+            <div id="distributions-tab" class="tab-content">
+                <div class="control-group">
+                    <label>FTE Range:</label>
+                    <div>
+                        <label>Min:</label>
+                        <input type="range" id="fte-min" min="1" max="3" step="0.1" value="1">
+                        <span class="slider-value" id="fte-min-value">1.0</span>
+                    </div>
+                    <div>
+                        <label>Max:</label>
+                        <input type="range" id="fte-max" min="3" max="7" step="0.1" value="5">
+                        <span class="slider-value" id="fte-max-value">5.0</span>
+                    </div>
+                    <div class="tooltip">Full-Time Equivalent (FTE) range for the project team. Affects both costs and project duration. Uniformly distributed between min and max values.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Effort Range (days):</label>
+                    <div>
+                        <label>Min:</label>
+                        <input type="range" id="effort-min" min="120" max="360" step="10" value="240">
+                        <span class="slider-value" id="effort-min-value">240</span>
+                    </div>
+                    <div>
+                        <label>Max:</label>
+                        <input type="range" id="effort-max" min="360" max="600" step="10" value="480">
+                        <span class="slider-value" id="effort-max-value">480</span>
+                    </div>
+                    <div class="tooltip">Total effort required in person-days. Uniformly distributed between min and max values. Affects both costs and project duration.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Price Range ($):</label>
+                    <div>
+                        <label>Min:</label>
+                        <input type="range" id="price-min" min="50" max="150" step="10" value="100">
+                        <span class="slider-value" id="price-min-value">100</span>
+                    </div>
+                    <div>
+                        <label>Max:</label>
+                        <input type="range" id="price-max" min="150" max="250" step="10" value="200">
+                        <span class="slider-value" id="price-max-value">200</span>
+                    </div>
+                    <div class="tooltip">Price per unit of the product/service. Uniformly distributed between min and max values. Affects revenue calculation.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Units Distribution:</label>
+                    <div>
+                        <label>Mean:</label>
+                        <input type="range" id="units-mean" min="500" max="1500" step="50" value="1000">
+                        <span class="slider-value" id="units-mean-value">1000</span>
+                    </div>
+                    <div>
+                        <label>Std Dev:</label>
+                        <input type="range" id="units-std" min="100" max="1000" step="50" value="500">
+                        <span class="slider-value" id="units-std-value">500</span>
+                    </div>
+                    <div class="tooltip">Expected number of units to be sold. Normally distributed with specified mean and standard deviation. Higher standard deviation indicates more uncertainty in sales volume.</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Discount Rate Range (%):</label>
+                    <div>
+                        <label>Min:</label>
+                        <input type="range" id="discount-min" min="4" max="8" step="0.1" value="6">
+                        <span class="slider-value" id="discount-min-value">6.0</span>
+                    </div>
+                    <div>
+                        <label>Max:</label>
+                        <input type="range" id="discount-max" min="8" max="12" step="0.1" value="10">
+                        <span class="slider-value" id="discount-max-value">10.0</span>
+                    </div>
+                    <div class="tooltip">Discount rate range for NPV calculation. Uniformly distributed between min and max values. Higher rates reduce the present value of future cash flows.</div>
+                </div>
+            </div>
+
+            <div class="results">
+                <h3>Results</h3>
+                <p>Success Probability: <span id="success-prob">-</span>%</p>
+                <p>Duration < 180 days: <span id="duration-prob">-</span>%</p>
+                <p>Mean NPV: $<span id="mean-npv">-</span></p>
+                <p>Mean Duration: <span id="mean-duration">-</span> days</p>
+            </div>
+        </div>
+
+        <div class="visualization">
+            <div class="plot-container" id="npv-plot"></div>
+            <div class="plot-container" id="duration-plot"></div>
+            <div class="distribution-plots">
+                <div class="distribution-plot" id="fte-plot"></div>
+                <div class="distribution-plot" id="effort-plot"></div>
+                <div class="distribution-plot" id="price-plot"></div>
+                <div class="distribution-plot" id="units-plot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Function to generate random numbers with normal distribution
+        function normalRandom(mean, std) {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random();
+            while(v === 0) v = Math.random();
+            return mean + std * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        }
+
+        // Function to run simulation
+        function runSimulation() {
+            const n = parseInt(document.getElementById('n-simulations').value);
+            const dailyRate = parseFloat(document.getElementById('daily-rate').value);
+            const techCharges = parseFloat(document.getElementById('tech-charges').value);
+            const overheadCharges = parseFloat(document.getElementById('overhead-charges').value);
+            const taxRate = parseFloat(document.getElementById('tax-rate').value) / 100;
+
+            // Get distribution parameters
+            const fteMin = parseFloat(document.getElementById('fte-min').value);
+            const fteMax = parseFloat(document.getElementById('fte-max').value);
+            const effortMin = parseFloat(document.getElementById('effort-min').value);
+            const effortMax = parseFloat(document.getElementById('effort-max').value);
+            const priceMin = parseFloat(document.getElementById('price-min').value);
+            const priceMax = parseFloat(document.getElementById('price-max').value);
+            const unitsMean = parseFloat(document.getElementById('units-mean').value);
+            const unitsStd = parseFloat(document.getElementById('units-std').value);
+            const discountMin = parseFloat(document.getElementById('discount-min').value) / 100;
+            const discountMax = parseFloat(document.getElementById('discount-max').value) / 100;
+
+            // Generate random values
+            const fte = Array.from({length: n}, () => Math.random() * (fteMax - fteMin) + fteMin);
+            const effort = Array.from({length: n}, () => Math.random() * (effortMax - effortMin) + effortMin);
+            const price = Array.from({length: n}, () => Math.random() * (priceMax - priceMin) + priceMin);
+            const units = Array.from({length: n}, () => normalRandom(unitsMean, unitsStd));
+            const discountRate = Array.from({length: n}, () => Math.random() * (discountMax - discountMin) + discountMin);
+
+            // Calculate project metrics
+            const laborCosts = effort.map(e => e * dailyRate);
+            const technologyCosts = fte.map(f => f * techCharges);
+            const overheadCosts = fte.map(f => f * overheadCharges);
+            const revenues = price.map((p, i) => p * units[i]);
+            const duration = effort.map((e, i) => e / fte[i]);
+            const freeCashFlow = revenues.map((r, i) => 
+                (r - laborCosts[i] - technologyCosts[i] - overheadCosts[i]) * (1 - taxRate));
+            const npv = freeCashFlow.map((fcf, i) => fcf / (1 + discountRate[i]));
+
+            // Calculate statistics
+            const successProb = (npv.filter(n => n > 0).length / n * 100).toFixed(1);
+            const durationProb = (duration.filter(d => d < 180).length / n * 100).toFixed(1);
+            const meanNPV = (npv.reduce((a, b) => a + b, 0) / n).toFixed(2);
+            const meanDuration = (duration.reduce((a, b) => a + b, 0) / n).toFixed(1);
+
+            // Update results
+            document.getElementById('success-prob').textContent = successProb;
+            document.getElementById('duration-prob').textContent = durationProb;
+            document.getElementById('mean-npv').textContent = meanNPV;
+            document.getElementById('mean-duration').textContent = meanDuration;
+
+            // Create histograms for main results
+            const npvTrace = {
+                x: npv,
+                type: 'histogram',
+                name: 'NPV Distribution',
+                nbinsx: 50,
+                marker: {
+                    color: 'rgb(55, 83, 109)',
+                    line: { color: 'white', width: 1 }
+                }
+            };
+
+            const durationTrace = {
+                x: duration,
+                type: 'histogram',
+                name: 'Duration Distribution',
+                nbinsx: 50,
+                marker: {
+                    color: 'rgb(26, 118, 255)',
+                    line: { color: 'white', width: 1 }
+                }
+            };
+
+            // Create histograms for individual distributions
+            const fteTrace = {
+                x: fte,
+                type: 'histogram',
+                name: 'FTE Distribution',
+                nbinsx: 30,
+                marker: {
+                    color: 'rgb(255, 99, 71)',
+                    line: { color: 'white', width: 1 }
+                }
+            };
+
+            const effortTrace = {
+                x: effort,
+                type: 'histogram',
+                name: 'Effort Distribution',
+                nbinsx: 30,
+                marker: {
+                    color: 'rgb(60, 179, 113)',
+                    line: { color: 'white', width: 1 }
+                }
+            };
+
+            const priceTrace = {
+                x: price,
+                type: 'histogram',
+                name: 'Price Distribution',
+                nbinsx: 30,
+                marker: {
+                    color: 'rgb(106, 90, 205)',
+                    line: { color: 'white', width: 1 }
+                }
+            };
+
+            const unitsTrace = {
+                x: units,
+                type: 'histogram',
+                name: 'Units Distribution',
+                nbinsx: 30,
+                marker: {
+                    color: 'rgb(255, 165, 0)',
+                    line: { color: 'white', width: 1 }
+                }
+            };
+
+            // Layout configurations
+            const npvLayout = {
+                title: 'Distribution of Project NPV',
+                xaxis: { title: 'Project NPV ($)' },
+                yaxis: { title: 'Frequency' },
+                showlegend: false
+            };
+
+            const durationLayout = {
+                title: 'Distribution of Project Duration',
+                xaxis: { title: 'Duration (Days)' },
+                yaxis: { title: 'Frequency' },
+                showlegend: false
+            };
+
+            const fteLayout = {
+                title: 'FTE Distribution',
+                xaxis: { title: 'FTE' },
+                yaxis: { title: 'Frequency' },
+                showlegend: false
+            };
+
+            const effortLayout = {
+                title: 'Effort Distribution',
+                xaxis: { title: 'Days' },
+                yaxis: { title: 'Frequency' },
+                showlegend: false
+            };
+
+            const priceLayout = {
+                title: 'Price Distribution',
+                xaxis: { title: 'Price ($)' },
+                yaxis: { title: 'Frequency' },
+                showlegend: false
+            };
+
+            const unitsLayout = {
+                title: 'Units Distribution',
+                xaxis: { title: 'Units' },
+                yaxis: { title: 'Frequency' },
+                showlegend: false
+            };
+
+            // Plot all distributions
+            Plotly.newPlot('npv-plot', [npvTrace], npvLayout);
+            Plotly.newPlot('duration-plot', [durationTrace], durationLayout);
+            Plotly.newPlot('fte-plot', [fteTrace], fteLayout);
+            Plotly.newPlot('effort-plot', [effortTrace], effortLayout);
+            Plotly.newPlot('price-plot', [priceTrace], priceLayout);
+            Plotly.newPlot('units-plot', [unitsTrace], unitsLayout);
+        }
+
+        // Add event listeners to all sliders
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', function() {
+                document.getElementById(this.id + '-value').textContent = this.value;
+                runSimulation();
+            });
+        });
+
+        // Initial simulation
+        runSimulation();
+    </script>
+</body>
+</html> 
