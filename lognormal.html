@@ -4,68 +4,157 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lognormal Distribution</title>
-    <!-- Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <!-- Optional: For Styling -->
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
         }
-        #mu-slider, #sigma-slider {
-            width: 100%;
-            margin: 20px 0;
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+            margin-bottom: 20px;
+        }
+        .slider-container {
+            margin: 10px 0 0 0;
+            padding: 10px 0 0 0;
+            background: none;
+            border-radius: 0;
+        }
+        label {
+            font-size: 1em;
+            margin-bottom: 0;
+        }
+        input[type="range"] {
+            width: 80%;
+            margin: 0 10px 0 0;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .parameter-display {
+            display: inline;
+            font-size: 0.95em;
+            font-weight: 400;
+            margin-left: 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .stats-container {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 0 0;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 7px;
+            box-shadow: none;
+            text-align: center;
+            min-width: 110px;
+        }
+        .stat-box h3 {
+            font-size: 1em;
+            margin: 0 0 2px 0;
+        }
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--secondary-color);
         }
         #lognormal-distribution-graph {
             width: 100%;
             height: 70vh;
+            margin: 20px 0;
         }
-        #lognormal-example-output {
-            font-size: 18px;
-            margin-top: 20px;
+        section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
     <h1>Lognormal Distribution</h1>
-    
-    <p>The Lognormal Distribution models situations where a variable is the result of the product of many small, independent factors.</p>
-
-    <!-- Mu and Sigma Sliders -->
-    <div>
-        <label for="mu-slider">Mean (μ):</label>
-        <input type="range" id="mu-slider" min="-2" max="2" step="0.1" value="0">
-        <span id="mu-value">μ = 0</span>
+    <div class="container">
+        <p style="margin-bottom: 10px;">The Lognormal Distribution models situations where a variable is the result of the product of many small, independent factors.</p>
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="mu-slider">Mean (μ):</label>
+                <input type="range" id="mu-slider" min="-2" max="2" step="0.1" value="0">
+                <span class="parameter-display" id="mu-value">μ = 0</span>
+            </div>
+        </div>
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="sigma-slider">Std Dev (σ):</label>
+                <input type="range" id="sigma-slider" min="0.1" max="3" step="0.1" value="1">
+                <span class="parameter-display" id="sigma-value">σ = 1</span>
+            </div>
+        </div>
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3>Mean (μₓ)</h3>
+                <div class="stat-value" id="mean-value">1.65</div>
+            </div>
+            <div class="stat-box">
+                <h3>Variance (σₓ²)</h3>
+                <div class="stat-value" id="variance-value">4.67</div>
+            </div>
+        </div>
+        <div id="lognormal-distribution-graph"></div>
     </div>
-    
-    <div>
-        <label for="sigma-slider">Standard Deviation (σ):</label>
-        <input type="range" id="sigma-slider" min="0.1" max="3" step="0.1" value="1">
-        <span id="sigma-value">σ = 1</span>
-    </div>
-    
-    <!-- Lognormal Distribution Graph -->
-    <div id="lognormal-distribution-graph"></div>
-
-    <!-- Example Output -->
-    <div id="lognormal-example-output"></div>
-
-    <!-- Notation, Parameters, and Formulas Section -->
     <section>
         <h2>Notation</h2>
         <p><strong>μ</strong> – The mean of the distribution in the log scale.</p>
         <p><strong>σ</strong> – The standard deviation of the distribution in the log scale.</p>
         <p><strong>x</strong> – A point for which we want to calculate the probability density.</p>
-
         <h2>Parameters</h2>
         <p>The key parameters of the Lognormal distribution are:</p>
         <ul>
             <li><strong>μ</strong>: The mean in the log scale.</li>
             <li><strong>σ</strong>: The standard deviation in the log scale.</li>
         </ul>
-
-        <h2>PMF (Probability Density Function)</h2>
-        <p>The probability density function (PDF) for the Lognormal distribution is given by the formula:</p>
+        <h2>PDF (Probability Density Function)</h2>
         <pre>
             f(x; μ, σ) = (1 / (xσ√(2π))) * exp(-((ln(x) - μ)² / (2σ²))) for x > 0
             f(x; μ, σ) = 0 otherwise
@@ -76,115 +165,103 @@
             <li><strong>σ</strong> is the standard deviation of the distribution in the log scale.</li>
             <li><strong>x</strong> is a point for which we want to calculate the probability density.</li>
         </ul>
-
         <h2>Mean and Variance of Lognormal Distribution</h2>
         <p>The mean and variance of a Lognormal distribution are:</p>
         <p><strong>Mean:</strong> <em>μₓ = exp(μ + σ² / 2)</em></p>
         <p><strong>Variance:</strong> <em>σₓ² = (exp(σ²) - 1) * exp(2μ + σ²)</em></p>
-
-        <h2>Example Calculation of Probability</h2>
-        <p>For the Lognormal distribution with μ = 0 and σ = 1, let's calculate the probability density at x = 2:</p>
-        <pre>
-            f(2; 0, 1) = (1 / (2 * 1 * sqrt(2π))) * exp(-((ln(2) - 0)² / (2 * 1²)))
-            f(2; 0, 1) ≈ 0.176
-        </pre>
-        <p>So, the probability density at x = 2 is approximately 0.176.</p>
-
-        <h2>Log-Transformed Normal Distribution</h2>
-        <p>The log-transformed normal distribution is simply the normal distribution applied to the logarithms of the data. It assumes that the log-transformed variable follows a normal distribution. The probability density function (PDF) of a log-transformed normal distribution is:</p>
-        <pre>
-            f(y; μ, σ) = (1 / (σ√(2π))) * exp(-((y - μ)² / (2σ²)))
-        </pre>
-        <p>Where:</p>
-        <ul>
-            <li><strong>y</strong> = ln(x) (log-transformed variable)</li>
-            <li><strong>μ</strong> and <strong>σ</strong> are the mean and standard deviation in the log scale (same as the lognormal).</li>
-        </ul>
-        <p>Thus, we calculate the normal distribution for the log-transformed variable \( y = \ln(x) \).</p>
     </section>
-
     <script>
-        // Initialize mu and sigma values
         const muSlider = document.getElementById('mu-slider');
         const sigmaSlider = document.getElementById('sigma-slider');
         const muValueDisplay = document.getElementById('mu-value');
         const sigmaValueDisplay = document.getElementById('sigma-value');
-
-        // Function to calculate Lognormal distribution PDF
         function lognormalPDF(x, mu, sigma) {
             if (x <= 0) return 0;
             const coeff = 1 / (x * sigma * Math.sqrt(2 * Math.PI));
             const exponent = Math.exp(-Math.pow(Math.log(x) - mu, 2) / (2 * sigma * sigma));
             return coeff * exponent;
         }
-
-        // Function to calculate Normal distribution PDF for log-transformed variable
-        function normalPDF(y, mu, sigma) {
-            const coeff = 1 / (sigma * Math.sqrt(2 * Math.PI));
-            const exponent = Math.exp(-Math.pow(y - mu, 2) / (2 * sigma * sigma));
-            return coeff * exponent;
-        }
-
-        // Function to update the graph and output based on mu and sigma
         function updateGraph(mu, sigma) {
             const xValues = Array.from({ length: 100 }, (_, i) => 0.1 + i * 0.1); // x = [0.1, 10]
-            const logTransformedValues = Array.from({ length: 100 }, (_, i) => -5 + i * 0.1); // Include negative values for log-transformed values
-            const lognormalProbabilities = xValues.map(x => lognormalPDF(x, mu, sigma)); // Lognormal PDF
-            const normalProbabilities = logTransformedValues.map(y => normalPDF(y, mu, sigma)); // Normal PDF for log-transformed values
-
-            // Create the graph using Plotly.js
-            const lognormalTrace = {
+            const yValues = xValues.map(x => lognormalPDF(x, mu, sigma));
+            // Calculate mean and variance for lognormal
+            const meanX = Math.exp(mu + sigma * sigma / 2);
+            const varianceX = (Math.exp(sigma * sigma) - 1) * Math.exp(2 * mu + sigma * sigma);
+            const stdDevX = Math.sqrt(varianceX);
+            // Update stats display
+            document.getElementById('mean-value').textContent = meanX.toFixed(2);
+            document.getElementById('variance-value').textContent = varianceX.toFixed(2);
+            // Main PDF trace
+            const trace = {
                 x: xValues,
-                y: lognormalProbabilities,
+                y: yValues,
                 type: 'scatter',
                 mode: 'lines',
-                name: 'Lognormal Distribution',
-                line: { color: 'skyblue' }
+                name: 'PDF',
+                line: { color: '#3498db', width: 3 }
             };
-
-            const normalTrace = {
-                x: logTransformedValues,
-                y: normalProbabilities,
+            // Mean line
+            const meanTrace = {
+                x: [meanX, meanX],
+                y: [0, Math.max(...yValues)],
                 type: 'scatter',
                 mode: 'lines',
-                name: 'Log-transformed Normal Distribution',
-                line: { color: 'orange' }
+                name: 'Mean',
+                line: { color: '#e74c3c', width: 2, dash: 'dash' }
             };
-
+            // Variance region: fill under the curve between mean-stdDev and mean+stdDev
+            const lower = meanX - stdDevX;
+            const upper = meanX + stdDevX;
+            const varianceXVals = xValues.filter(x => x >= lower && x <= upper);
+            const varianceYVals = varianceXVals.map(x => lognormalPDF(x, mu, sigma));
+            const fillX = [varianceXVals[0], ...varianceXVals, varianceXVals[varianceXVals.length-1]];
+            const fillY = [0, ...varianceYVals, 0];
+            const varianceTrace = {
+                x: fillX,
+                y: fillY,
+                type: 'scatter',
+                mode: 'lines',
+                name: '±1σ',
+                line: { color: '#2ecc71', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(46, 204, 113, 0.2)'
+            };
             const layout = {
-                title: `Lognormal vs Log-transformed Normal Distribution (μ = ${mu}, σ = ${sigma})`,
-                xaxis: { 
-                    title: 'Value (x)',
-                    range: [-5, 5] // Set the fixed range for the x-axis
+                title: {
+                    text: `Lognormal Distribution (μ = ${mu.toFixed(2)}, σ = ${sigma.toFixed(2)})`,
+                    font: { size: 24 }
                 },
-                yaxis: { title: 'Probability Density' }
+                xaxis: { 
+                    title: 'x',
+                    range: [0, 10],
+                    gridcolor: '#ddd'
+                },
+                yaxis: { 
+                    title: 'Probability Density',
+                    gridcolor: '#ddd'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: true,
+                legend: {
+                    x: 0.7,
+                    y: 1
+                }
             };
-
-            Plotly.newPlot('lognormal-distribution-graph', [lognormalTrace, normalTrace], layout);
-
-            // Example Calculation for x = 2 (Lognormal)
-            const exampleX = 2;
-            const exampleProbability = lognormalPDF(exampleX, mu, sigma);
-            document.getElementById('lognormal-example-output').innerText = 
-                `For μ = ${mu} and σ = ${sigma}, the probability density at x = ${exampleX} for Lognormal distribution is approximately ${exampleProbability.toFixed(4)}.`;
+            Plotly.newPlot('lognormal-distribution-graph', [varianceTrace, trace, meanTrace], layout);
         }
-
-        // Update graph on slider change
         muSlider.addEventListener('input', function() {
             const mu = parseFloat(muSlider.value);
             const sigma = parseFloat(sigmaSlider.value);
             muValueDisplay.innerText = `μ = ${mu}`;
             updateGraph(mu, sigma);
         });
-
         sigmaSlider.addEventListener('input', function() {
             const mu = parseFloat(muSlider.value);
             const sigma = parseFloat(sigmaSlider.value);
             sigmaValueDisplay.innerText = `σ = ${sigma}`;
             updateGraph(mu, sigma);
         });
-
-        // Initialize graph with default mu and sigma values
         updateGraph(parseFloat(muSlider.value), parseFloat(sigmaSlider.value));
     </script>
 </body>
