@@ -6,49 +6,157 @@
     <title>Gamma Distribution</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
         }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+            margin-bottom: 20px;
+        }
+
+        .slider-container {
+            margin: 10px 0 0 0;
+            padding: 10px 0 0 0;
+            background: none;
+            border-radius: 0;
+        }
+
+        label {
+            font-size: 1em;
+            margin-bottom: 0;
+        }
+
         input[type="range"] {
-            width: 100%;
-            margin: 10px 0;
+            width: 80%;
+            margin: 0 10px 0 0;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
         }
+        input[type="range"]::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .parameter-display {
+            display: inline;
+            font-size: 0.95em;
+            font-weight: 400;
+            margin-left: 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 0 0;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 7px;
+            box-shadow: none;
+            text-align: center;
+            min-width: 90px;
+        }
+        .stat-box h3 {
+            font-size: 1em;
+            margin: 0 0 2px 0;
+        }
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
         #gamma-distribution-graph {
             width: 100%;
             height: 70vh;
+            margin: 20px 0;
         }
-        #gamma-example-output {
-            font-size: 18px;
-            margin-top: 20px;
+
+        section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
     <h1>Gamma Distribution</h1>
     
-    <p>The Gamma Distribution is a two-parameter family of continuous probability distributions often used to model waiting times.</p>
+    <div class="container">
+        <p style="margin-bottom: 10px;">The Gamma Distribution is a two-parameter family of continuous probability distributions often used to model waiting times.</p>
 
-    <!-- α (shape) and β (rate) Sliders -->
-    <div>
-        <label for="alpha-slider">Shape (α):</label>
-        <input type="range" id="alpha-slider" min="1" max="10" step="0.1" value="2">
-        <span id="alpha-value">α = 2</span>
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="alpha-slider">Shape (α):</label>
+                <input type="range" id="alpha-slider" min="1" max="10" step="0.1" value="2">
+                <span class="parameter-display" id="alpha-value">α = 2</span>
+            </div>
+        </div>
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="beta-slider">Rate (β):</label>
+                <input type="range" id="beta-slider" min="0.1" max="5" step="0.1" value="1">
+                <span class="parameter-display" id="beta-value">β = 1</span>
+            </div>
+        </div>
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3>Mean (μ)</h3>
+                <div class="stat-value" id="mean-value">2.00</div>
+            </div>
+            <div class="stat-box">
+                <h3>Variance (σ²)</h3>
+                <div class="stat-value" id="variance-value">2.00</div>
+            </div>
+        </div>
+        <div id="gamma-distribution-graph"></div>
     </div>
-    
-    <div>
-        <label for="beta-slider">Rate (β):</label>
-        <input type="range" id="beta-slider" min="0.1" max="5" step="0.1" value="1">
-        <span id="beta-value">β = 1</span>
-    </div>
 
-    <!-- Gamma Distribution Graph -->
-    <div id="gamma-distribution-graph"></div>
-
-    <!-- Example Output -->
-    <div id="gamma-example-output"></div>
-
-    <!-- Explanation Section -->
     <section>
         <h2>Notation</h2>
         <p><strong>α (alpha)</strong> – Shape parameter.</p>
@@ -72,9 +180,6 @@ f(x; α, β) = (β^α * x^(α-1) * e^(-βx)) / Γ(α), for x > 0
             <li><strong>Mean:</strong> μ = α / β</li>
             <li><strong>Variance:</strong> σ² = α / β²</li>
         </ul>
-
-        <h2>Example</h2>
-        <p>For α = 2 and β = 1, the PDF at x = 2 is calculated and displayed below.</p>
     </section>
 
     <script>
@@ -112,29 +217,80 @@ f(x; α, β) = (β^α * x^(α-1) * e^(-βx)) / Γ(α), for x > 0
         }
 
         function updateGraph(alpha, beta) {
-            const xValues = Array.from({ length: 100 }, (_, i) => i * 0.1 + 0.1); // x > 0
+            const xValues = Array.from({ length: 100 }, (_, i) => i * 0.1 + 0.1);
             const yValues = xValues.map(x => gammaPDF(x, alpha, beta));
+            
+            // Calculate mean and variance
+            const mean = alpha / beta;
+            const variance = alpha / (beta * beta);
+            const stdDev = Math.sqrt(variance);
+
+            // Update stats display
+            document.getElementById('mean-value').textContent = mean.toFixed(2);
+            document.getElementById('variance-value').textContent = variance.toFixed(2);
 
             const trace = {
                 x: xValues,
                 y: yValues,
                 type: 'scatter',
                 mode: 'lines',
-                line: { color: 'orange' }
+                name: 'PDF',
+                line: { color: '#3498db', width: 3 }
+            };
+
+            // Add mean line
+            const meanTrace = {
+                x: [mean, mean],
+                y: [0, Math.max(...yValues)],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Mean',
+                line: { color: '#e74c3c', width: 2, dash: 'dash' }
+            };
+
+            // Variance region: fill under the curve between mean-stdDev and mean+stdDev
+            const lower = mean - stdDev;
+            const upper = mean + stdDev;
+            const varianceX = xValues.filter(x => x >= lower && x <= upper);
+            const varianceY = varianceX.map(x => gammaPDF(x, alpha, beta));
+            // Add start and end at y=0 for proper fill
+            const fillX = [varianceX[0], ...varianceX, varianceX[varianceX.length-1]];
+            const fillY = [0, ...varianceY, 0];
+            const varianceTrace = {
+                x: fillX,
+                y: fillY,
+                type: 'scatter',
+                mode: 'lines',
+                name: '±1σ',
+                line: { color: '#2ecc71', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(46, 204, 113, 0.2)'
             };
 
             const layout = {
-                title: `Gamma Distribution (α = ${alpha}, β = ${beta})`,
-                xaxis: { title: 'x', range: [0, 10] },
-                yaxis: { title: 'Probability Density' }
+                title: {
+                    text: `Gamma Distribution (α = ${alpha.toFixed(1)}, β = ${beta.toFixed(1)})`,
+                    font: { size: 24 }
+                },
+                xaxis: { 
+                    title: 'x',
+                    range: [0, 10],
+                    gridcolor: '#ddd'
+                },
+                yaxis: { 
+                    title: 'Probability Density',
+                    gridcolor: '#ddd'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: true,
+                legend: {
+                    x: 0.7,
+                    y: 1
+                }
             };
 
-            Plotly.newPlot('gamma-distribution-graph', [trace], layout);
-
-            const exampleX = 2;
-            const exampleProb = gammaPDF(exampleX, alpha, beta).toFixed(5);
-            document.getElementById('gamma-example-output').innerText = 
-                `For α = ${alpha} and β = ${beta}, the probability density at x = ${exampleX} is approximately ${exampleProb}.`;
+            Plotly.newPlot('gamma-distribution-graph', [varianceTrace, trace, meanTrace], layout);
         }
 
         alphaSlider.addEventListener('input', function() {
