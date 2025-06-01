@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirichlet Distribution Explained</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZYPo8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; 
+        }
+        .katex-display > .katex {
+            text-align: left !important; 
+            display: block;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #38bdf8; /* sky-500 */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #38bdf8; /* sky-500 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #38bdf8; /* sky-500 */
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8">
+
+    <header class="mb-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-sky-400">
+            The Dirichlet Distribution
+        </h1>
+        <p class="text-slate-400 text-lg mt-2">An Interactive Guide to Data Science Basics</p>
+    </header>
+
+    <nav class="mb-8">
+        <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+            <button data-tab="intro" class="tab-button flex items-center space-x-2 p-3 md:p-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 bg-sky-500 text-white shadow-md">
+                <i class="fas fa-book-open w-5 h-5 md:w-6 md:h-6"></i> <span class="hidden sm:inline">Introduction</span>
+            </button>
+            <button data-tab="params" class="tab-button flex items-center space-x-2 p-3 md:p-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 bg-slate-700 hover:bg-sky-600 text-slate-200 hover:text-white">
+                <i class="fas fa-sliders-h w-5 h-5 md:w-6 md:h-6"></i> <span class="hidden sm:inline">Parameters</span>
+            </button>
+            <button data-tab="viz" class="tab-button flex items-center space-x-2 p-3 md:p-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 bg-slate-700 hover:bg-sky-600 text-slate-200 hover:text-white">
+                <i class="fas fa-chart-bar w-5 h-5 md:w-6 md:h-6"></i> <span class="hidden sm:inline">Visualization</span>
+            </button>
+            <button data-tab="props" class="tab-button flex items-center space-x-2 p-3 md:p-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 bg-slate-700 hover:bg-sky-600 text-slate-200 hover:text-white">
+                <i class="fas fa-list-check w-5 h-5 md:w-6 md:h-6"></i> <span class="hidden sm:inline">Properties</span>
+            </button>
+            <button data-tab="uses" class="tab-button flex items-center space-x-2 p-3 md:p-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 bg-slate-700 hover:bg-sky-600 text-slate-200 hover:text-white">
+                <i class="fas fa-lightbulb w-5 h-5 md:w-6 md:h-6"></i> <span class="hidden sm:inline">Use Cases</span>
+            </button>
+            <button data-tab="quiz" class="tab-button flex items-center space-x-2 p-3 md:p-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 bg-slate-700 hover:bg-sky-600 text-slate-200 hover:text-white">
+                <i class="fas fa-question-circle w-5 h-5 md:w-6 md:h-6"></i> <span class="hidden sm:inline">Quiz</span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <div id="intro-content" class="tab-content active">
+            <div class="section-card bg-slate-800 p-6 rounded-xl shadow-xl mb-6">
+                <h2 class="text-2xl font-semibold text-sky-400 mb-4 border-b-2 border-sky-500 pb-2">What is the Dirichlet Distribution?</h2>
+                <div class="space-y-4 text-slate-300 leading-relaxed">
+                    <p>The Dirichlet distribution, often denoted $\text{Dir}(\boldsymbol{\alpha})$, is a family of continuous multivariate probability distributions parameterized by a vector $\boldsymbol{\alpha}$ of positive real numbers (concentration parameters).</p>
+                    <p>It is a "distribution over distributions." Specifically, it describes probability distributions over $K$ categories. If you draw a sample from a Dirichlet distribution, that sample itself is a set of $K$ probabilities $\{p_1, p_2, \ldots, p_K\}$ such that each $p_i \ge 0$ and their sum $\sum_{i=1}^K p_i = 1$.</p>
+                    <p>Think of it like this: if you have $K$ possible outcomes for an event (e.g., K types of fruit in a basket), the Dirichlet distribution can model your belief or uncertainty about the proportions of each type of fruit.</p>
+                    <h3 class="text-xl font-medium text-sky-300 mt-4 mb-2">Why is it useful?</h3>
+                    <ul class="list-disc list-inside space-y-1 pl-4">
+                        <li>It's the conjugate prior for the parameters of a multinomial distribution in Bayesian statistics. This makes calculations much easier.</li>
+                        <li>It's fundamental in topic modeling (like Latent Dirichlet Allocation - LDA) to represent the distribution of topics in a document and the distribution of words in a topic.</li>
+                        <li>It can model proportions in various fields, from genetics to machine learning.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="params-content" class="tab-content">
+            <div class="section-card bg-slate-800 p-6 rounded-xl shadow-xl mb-6">
+                <h2 class="text-2xl font-semibold text-sky-400 mb-4 border-b-2 border-sky-500 pb-2">Understanding Alpha ($\alpha$) Parameters</h2>
+                <div class="space-y-4 text-slate-300 leading-relaxed">
+                    <p>The Dirichlet distribution is parameterized by a vector $\boldsymbol{\alpha} = (\alpha_1, \alpha_2, \ldots, \alpha_K)$, where each $\alpha_i > 0$. These are called concentration parameters.</p>
+                    <h3 class="text-xl font-medium text-sky-300 mt-4 mb-2">The Sum $\alpha_0 = \sum_{i=1}^K \alpha_i$ (Total Concentration)</h3>
+                    <ul class="list-disc list-inside space-y-1 pl-4">
+                        <li>A <span class="font-semibold text-sky-400">larger $\alpha_0$</span> means the distribution is more "concentrated." Samples $(p_1, \ldots, p_K)$ will be closer to the mean of the distribution, which is $(\alpha_1/\alpha_0, \ldots, \alpha_K/\alpha_0)$. The distribution is tighter and less spread out.</li>
+                        <li>A <span class="font-semibold text-sky-400">smaller $\alpha_0$</span> means the distribution is more "sparse" or "dispersed." Samples can vary more widely and are more likely to have some probabilities close to 0 or 1.</li>
+                    </ul>
+                    <h3 class="text-xl font-medium text-sky-300 mt-4 mb-2">Individual $\alpha_i$ Values</h3>
+                    <ul class="list-disc list-inside space-y-1 pl-4">
+                        <li>A larger $\alpha_i$ relative to other $\alpha_j$ values means that category $i$ is expected to have a higher probability $p_i$ on average.</li>
+                    </ul>
+                    <h3 class="text-xl font-medium text-sky-300 mt-4 mb-2">Symmetric Dirichlet Distribution ($\alpha_i = c$ for all $i$)</h3>
+                    <p>When all $\alpha_i$ values are equal (e.g., $\alpha_i = a$ for all $i$):</p>
+                    <ul class="list-disc list-inside space-y-1 pl-4">
+                        <li>If $a = 1$ (e.g., $\boldsymbol{\alpha} = (1, 1, 1)$ for K=3): This results in a uniform distribution over the simplex. Any set of probabilities $(p_1, \ldots, p_K)$ is equally likely.</li>
+                        <li>If $a > 1$ (e.g., $\boldsymbol{\alpha} = (10, 10, 10)$): Samples tend to cluster around the center of the simplex, i.e., $p_i \approx 1/K$ for all $i$. The distribution is more peaked in the middle.</li>
+                        <li>If $a < 1$ (e.g., $\boldsymbol{\alpha} = (0.1, 0.1, 0.1)$): Samples tend to be sparse, meaning they cluster near the corners or edges of the simplex. Most of the probability mass is concentrated in solutions where one or a few $p_i$ are close to 1 and others are close to 0.</li>
+                    </ul>
+                    <h3 class="text-xl font-medium text-sky-300 mt-4 mb-2">Asymmetric Dirichlet Distribution</h3>
+                    <p>When $\alpha_i$ values are different (e.g., $\boldsymbol{\alpha} = (10, 1, 1)$ for K=3): Samples will be biased towards the category with the higher $\alpha$ value. In this example, $p_1$ would tend to be larger than $p_2$ and $p_3$.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="viz-content" class="tab-content">
+            <div class="section-card bg-slate-800 p-6 rounded-xl shadow-xl mb-6">
+                <h2 class="text-2xl font-semibold text-sky-400 mb-4 border-b-2 border-sky-500 pb-2">Visualize Dirichlet Samples (K=3)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-end">
+                    <div>
+                        <label for="alpha-1-slider" class="text-sm font-medium text-sky-300">$\alpha_1$: <span id="alpha-1-value">1.000</span></label>
+                        <input type="range" id="alpha-1-slider" min="0.01" max="20" step="0.01" value="1.0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                    </div>
+                    <div>
+                        <label for="alpha-2-slider" class="text-sm font-medium text-sky-300">$\alpha_2$: <span id="alpha-2-value">1.000</span></label>
+                        <input type="range" id="alpha-2-slider" min="0.01" max="20" step="0.01" value="1.0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                    </div>
+                    <div>
+                        <label for="alpha-3-slider" class="text-sm font-medium text-sky-300">$\alpha_3$: <span id="alpha-3-value">1.000</span></label>
+                        <input type="range" id="alpha-3-slider" min="0.01" max="20" step="0.01" value="1.0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-end">
+                    <div class="flex flex-col space-y-1">
+                        <label for="num-samples-slider" class="text-sm font-medium text-sky-300">Number of Samples: <span id="num-samples-value">100</span></label>
+                        <input type="range" id="num-samples-slider" min="10" max="1000" step="10" value="100" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500">
+                    </div>
+                    <button id="generate-samples-btn" class="col-span-1 md:col-span-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center justify-center space-x-2 disabled:opacity-50 h-10">
+                        <i class="fas fa-play"></i> <span id="generate-btn-text">Generate Samples</span>
+                    </button>
+                    <button id="reset-alphas-btn" class="col-span-1 md:col-span-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center justify-center space-x-2 disabled:opacity-50 h-10">
+                        <i class="fas fa-sync-alt"></i> <span>Reset Alphas</span>
+                    </button>
+                </div>
+
+                <div id="svg-container" class="w-full flex justify-center items-center bg-slate-700 p-4 rounded-lg shadow-inner min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
+                    <svg id="ternary-plot" class="overflow-visible"></svg>
+                </div>
+                <div class="parameter-display">
+                    <p>This plot shows samples drawn from Dir(α₁ = <span id="alpha1-text">1.00</span>, α₂ = <span id="alpha2-text">1.00</span>, α₃ = <span id="alpha3-text">1.00</span>). Each point represents a probability vector (p₁, p₂, p₃). The closer a point is to a vertex Pᵢ, the higher the probability for that corresponding category pᵢ.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="props-content" class="tab-content">
+            <div class="section-card bg-slate-800 p-6 rounded-xl shadow-xl mb-6">
+                <h2 class="text-2xl font-semibold text-sky-400 mb-4 border-b-2 border-sky-500 pb-2">Key Properties</h2>
+                <div class="space-y-4 text-slate-300 leading-relaxed">
+                    <ul class="list-disc list-inside space-y-3 pl-4">
+                        <li><strong>Support:</strong> The distribution is defined on the standard $K-1$ simplex, which is the set of $K$-dimensional vectors $\mathbf{p} = (p_1, \ldots, p_K)$ such that $p_i \ge 0$ for all $i$, and $\sum_{i=1}^K p_i = 1$.</li>
+                        <li><strong>Probability Density Function (PDF):</strong>
+                            <div class="my-2 p-3 bg-slate-700 rounded-md overflow-x-auto">
+                                $$f(p_1, \ldots, p_K; \alpha_1, \ldots, \alpha_K) = \frac{1}{B(\boldsymbol{\alpha})} \prod_{i=1}^K p_i^{\alpha_i - 1}$$
+                            </div>
+                            where $B(\boldsymbol{\alpha})$ is the multivariate Beta function:
+                            <div class="my-2 p-3 bg-slate-700 rounded-md overflow-x-auto">
+                                $$B(\boldsymbol{\alpha}) = \frac{\prod_{i=1}^K \Gamma(\alpha_i)}{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}$$
+                            </div>
+                            and $\Gamma(x)$ is the Gamma function.
+                        </li>
+                        <li><strong>Mean:</strong> The expected value of $p_i$ is:
+                            <div class="my-2 p-3 bg-slate-700 rounded-md">
+                                $$E[p_i] = \frac{\alpha_i}{\sum_{j=1}^K \alpha_j} = \frac{\alpha_i}{\alpha_0}$$
+                            </div>
+                        </li>
+                        <li><strong>Variance:</strong> The variance of $p_i$ is:
+                            <div class="my-2 p-3 bg-slate-700 rounded-md overflow-x-auto">
+                                $$\text{Var}(p_i) = \frac{\alpha_i (\alpha_0 - \alpha_i)}{\alpha_0^2 (\alpha_0 + 1)}$$
+                            </div>
+                        </li>
+                        <li><strong>Mode:</strong> If all $\alpha_i > 1$, the mode (most likely set of probabilities) is:
+                            <div class="my-2 p-3 bg-slate-700 rounded-md">
+                                $$p_i^{\text{mode}} = \frac{\alpha_i - 1}{\sum_{j=1}^K (\alpha_j - 1)}$$
+                            </div>
+                            If any $\alpha_i \le 1$, the mode is more complex and may be at the boundaries of the simplex.
+                        </li>
+                        <li><strong>Conjugate Prior:</strong> The Dirichlet distribution is the conjugate prior for the parameters of the multinomial and categorical distributions. This is extremely useful in Bayesian inference as it simplifies the calculation of the posterior distribution.</li>
+                        <li><strong>Aggregation Property:</strong> If $(p_1, \ldots, p_K) \sim \text{Dir}(\alpha_1, \ldots, \alpha_K)$, then if you group some categories, their sum also follows a Dirichlet-like pattern. For example, $(p_1 + p_2, p_3, \ldots, p_K)$ is related to $\text{Dir}(\alpha_1 + \alpha_2, \alpha_3, \ldots, \alpha_K)$ (more precisely, the combined term is Beta distributed).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="uses-content" class="tab-content">
+            <div class="section-card bg-slate-800 p-6 rounded-xl shadow-xl mb-6">
+                <h2 class="text-2xl font-semibold text-sky-400 mb-4 border-b-2 border-sky-500 pb-2">Common Use Cases</h2>
+                <div class="space-y-4 text-slate-300 leading-relaxed">
+                    <ul class="list-disc list-inside space-y-3 pl-4">
+                        <li><strong>Latent Dirichlet Allocation (LDA):</strong> This is a widely used topic modeling technique.
+                            <ul class="list-circle list-inside pl-6 space-y-1 mt-1">
+                                <li>Documents are modeled as mixtures of topics. The distribution of topics per document is drawn from a Dirichlet distribution.</li>
+                                <li>Topics are modeled as distributions over words. The distribution of words per topic is also drawn from a Dirichlet distribution.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Bayesian Inference for Categorical Data:</strong> As the conjugate prior for the multinomial distribution, it's used to estimate the probabilities of $K$ categories given observed counts. For example, estimating the proportion of different colored balls in an urn after drawing some samples.</li>
+                        <li><strong>Modeling Proportions:</strong>
+                            <ul class="list-circle list-inside pl-6 space-y-1 mt-1">
+                                <li>In bioinformatics, for modeling the proportions of different nucleotides (A, C, G, T) at a site in a DNA sequence.</li>
+                                <li>In ecology, for modeling the proportions of different species in an environment.</li>
+                                <li>In marketing, for modeling customer preferences across different product categories.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Hierarchical Bayesian Models:</strong> Often used as a building block in more complex models where distributions over probabilities are needed at different levels of a hierarchy.</li>
+                        <li><strong>A/B/n Testing:</strong> When comparing more than two variants (e.g., different website designs) to see which performs best, Dirichlet-multinomial models can be used to model conversion rates for each variant.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="quiz-content" class="tab-content">
+            <div class="section-card bg-slate-800 p-6 rounded-xl shadow-xl mb-6">
+                <h2 id="quiz-title" class="text-2xl font-semibold text-sky-400 mb-4 border-b-2 border-sky-500 pb-2">Quiz: Question 1 of 5</h2>
+                <div id="quiz-question-area">
+                    <p id="quiz-question-text" class="text-lg font-medium text-slate-100 mb-4"></p>
+                    <div id="quiz-options-container" class="space-y-3 mb-6">
+                        </div>
+                    <button id="quiz-submit-btn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
+                        Submit Answer
+                    </button>
+                </div>
+                <div id="quiz-feedback-area" class="hidden mt-4 p-4 rounded-lg bg-slate-700">
+                    <div id="quiz-feedback-correct" class="hidden flex items-center text-green-400">
+                        <i class="fas fa-check-circle mr-2"></i> <p class="font-semibold">Correct!</p>
+                    </div>
+                    <div id="quiz-feedback-incorrect" class="hidden flex items-center text-red-400">
+                        <i class="fas fa-times-circle mr-2"></i> <p class="font-semibold">Incorrect.</p>
+                    </div>
+                    <p id="quiz-explanation-text" class="text-sm text-slate-300 mt-2"></p>
+                    <button id="quiz-next-btn" class="mt-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center justify-center">
+                        Next Question <i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+                <div id="quiz-results-area" class="hidden text-center">
+                    <p id="quiz-score-text" class="text-xl mb-4"></p>
+                    <button id="quiz-restart-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
+                        Restart Quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-12 text-center text-sm text-slate-500">
+        <p>&copy; <span id="current-year"></span> Dirichlet Educational App. For learning purposes.</p>
+        <p class="mt-1">Ensure KaTeX CDN links are correctly added for math formulas to render.</p>
+    </footer>
+
+    <script>
+        // --- Dirichlet Sampling Logic (from React app) ---
+        function sampleNormal() {
+            let u1 = 0, u2 = 0;
+            while (u1 === 0) u1 = Math.random();
+            while (u2 === 0) u2 = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        }
+
+        function sampleGamma(alpha) {
+            if (alpha <= 0) return sampleGamma(0.01);
+            if (alpha < 1) return sampleGamma(alpha + 1) * Math.pow(Math.random(), 1 / alpha);
+
+            const d = alpha - 1/3;
+            const c = 1 / Math.sqrt(9 * d);
+            let x, v, u;
+            while (true) {
+                do { x = sampleNormal(); v = 1 + c * x; } while (v <= 0);
+                v = v * v * v;
+                u = Math.random();
+                if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+                if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+            }
+        }
+
+        function sampleDirichlet(alphas) {
+            const K = alphas.length;
+            const gammas = new Array(K);
+            let sumGammas = 0;
+            for (let i = 0; i < K; i++) {
+                const currentAlpha = alphas[i] > 0 ? alphas[i] : 0.01;
+                gammas[i] = sampleGamma(currentAlpha);
+                if (isNaN(gammas[i])) gammas[i] = sampleGamma(0.01);
+                sumGammas += gammas[i];
+            }
+            if (sumGammas === 0 || isNaN(sumGammas) || !isFinite(sumGammas)) {
+                const uniformProb = 1.0 / K;
+                return Array(K).fill(uniformProb);
+            }
+            return gammas.map(g => g / sumGammas);
+        }
+
+        // --- Quiz Data ---
+        const quizQuestions = [
+            { question: "What does a Dirichlet distribution primarily model?", options: ["A single continuous value", "Counts of events in fixed intervals", "A probability distribution over a set of categories", "The relationship between two variables"], correctAnswer: "A probability distribution over a set of categories", explanation: "The Dirichlet distribution models a set of K probabilities {p1, ..., pK} that sum to 1, representing the likelihood of different distributions over K categories." },
+            { question: "If all alpha parameters (α_i) in a symmetric Dirichlet distribution are very large (e.g., α_i = 100), where will the sampled probability vectors tend to cluster?", options: ["Near the corners of the simplex (e.g., one p_i is close to 1)", "Near the center of the simplex (e.g., p_i ≈ 1/K for all i)", "Uniformly spread across the simplex", "Along the edges of the simplex"], correctAnswer: "Near the center of the simplex (e.g., p_i ≈ 1/K for all i)", explanation: "Large alpha values lead to high concentration, pulling samples towards the mean of the distribution, which is (1/K, ..., 1/K) for a symmetric Dirichlet." },
+            { question: "Consider a Dirichlet distribution for K=3 categories with α = (0.2, 0.2, 0.2). What kind of samples would you generally expect?", options: ["Samples tightly clustered around (1/3, 1/3, 1/3)", "Samples mostly near the vertices (e.g., close to (1,0,0) or (0,1,0) or (0,0,1))", "Samples concentrated along one specific edge of the simplex", "All samples will be exactly (0.2, 0.2, 0.2)"], correctAnswer: "Samples mostly near the vertices (e.g., close to (1,0,0) or (0,1,0) or (0,0,1))", explanation: "When all alpha_i < 1, the distribution is sparse, and samples tend to have one probability close to 1 and others close to 0, concentrating them near the vertices." },
+            { question: "The sum of the components (p_1, p_2, ..., p_K) of a vector sampled from a Dirichlet distribution is always:", options: ["Less than 1", "Equal to 1", "Greater than 1", "Dependent on the alpha values"], correctAnswer: "Equal to 1", explanation: "By definition, samples from a Dirichlet distribution are probability vectors, and their components must sum to 1." },
+            { question: "The Dirichlet distribution is a conjugate prior for which likelihood distribution?", options: ["Normal distribution", "Poisson distribution", "Binomial distribution", "Multinomial distribution"], correctAnswer: "Multinomial distribution", explanation: "This conjugacy is a key property, simplifying Bayesian inference for categorical data where the likelihood is multinomial." }
+        ];
+
+        // --- Application State & DOM Elements ---
+        let currentAlphas = [1.0, 1.0, 1.0];
+        let currentNumSamples = 100;
+        let currentSamples = [];
+        let isLoadingSamples = false;
+
+        let currentQuizQuestionIndex = 0;
+        let quizScore = 0;
+        let selectedQuizAnswer = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // KaTeX auto-render initialization
+            // Ensure this is called after KaTeX scripts are loaded (defer helps)
+            // And after the main DOM is ready.
+            if (window.renderMathInElement) {
+                try {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "$", right: "$", display: false},
+                            {left: "\\(", right: "\\)", display: false},
+                            {left: "\\[", right: "\\]", display: true}
+                        ],
+                        throwOnError: false // Set to true for debugging KaTeX parse errors
+                    });
+                } catch (e) {
+                    console.error("Global KaTeX auto-render failed:", e);
+                }
+            } else {
+                console.warn("KaTeX auto-render (renderMathInElement) not available on DOMContentLoaded. Math formulas might not display correctly. Check KaTeX script loading.");
+            }
+            
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // --- Tab Switching Logic ---
+            function setActiveTab(tabId) {
+                tabButtons.forEach(button => {
+                    if (button.dataset.tab === tabId) {
+                        button.classList.add('bg-sky-500', 'text-white', 'shadow-md');
+                        button.classList.remove('bg-slate-700', 'hover:bg-sky-600', 'text-slate-200', 'hover:text-white');
+                    } else {
+                        button.classList.remove('bg-sky-500', 'text-white', 'shadow-md');
+                        button.classList.add('bg-slate-700', 'hover:bg-sky-600', 'text-slate-200', 'hover:text-white');
+                    }
+                });
+                tabContents.forEach(content => {
+                    content.classList.toggle('active', content.id === `${tabId}-content`);
+                });
+                // Re-render math for the newly active tab
+                 if (window.renderMathInElement) { 
+                    try {
+                        renderMathInElement(document.getElementById(`${tabId}-content`), {
+                             delimiters: [
+                                {left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false},
+                                {left: "\\(", right: "\\)", display: false}, {left: "\\[", right: "\\]", display: true}
+                            ],
+                            throwOnError: false
+                        });
+                    } catch (e) {
+                        console.error(`KaTeX auto-render failed for tab ${tabId}:`, e);
+                    }
+                }
+            }
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => setActiveTab(button.dataset.tab));
+            });
+
+            // --- Visualization Logic ---
+            const alphaSliders = [
+                document.getElementById('alpha-1-slider'),
+                document.getElementById('alpha-2-slider'),
+                document.getElementById('alpha-3-slider')
+            ];
+            const alphaValueSpans = [
+                document.getElementById('alpha-1-value'),
+                document.getElementById('alpha-2-value'),
+                document.getElementById('alpha-3-value')
+            ];
+            const numSamplesSlider = document.getElementById('num-samples-slider');
+            const numSamplesValueSpan = document.getElementById('num-samples-value');
+            const generateBtn = document.getElementById('generate-samples-btn');
+            const generateBtnText = document.getElementById('generate-btn-text');
+            const resetBtn = document.getElementById('reset-alphas-btn');
+            const ternaryPlotSVG = document.getElementById('ternary-plot');
+            const svgContainer = document.getElementById('svg-container');
+            const alphaTextSpans = [
+                document.getElementById('alpha1-text'),
+                document.getElementById('alpha2-text'),
+                document.getElementById('alpha3-text')
+            ];
+
+
+            function updateAlphaText() {
+                alphaTextSpans.forEach((span, i) => {
+                    if(span) span.textContent = currentAlphas[i].toFixed(2);
+                });
+            }
+            
+            function drawTernaryPlot() {
+                if (!svgContainer || !ternaryPlotSVG) {
+                    console.error("SVG container or plot element not found for drawing.");
+                    return;
+                }
+                const containerWidth = svgContainer.offsetWidth;
+                // Ensure containerWidth is positive before calculating svgWidth
+                if (containerWidth <=0) {
+                    // console.warn("SVG container has no width, plot cannot be drawn yet.");
+                    return; 
+                }
+                const svgWidth = Math.max(250, Math.min(containerWidth - 10, 450)); 
+                const svgHeight = svgWidth * (Math.sqrt(3)/2) * 0.9; // Aspect ratio for equilateral feel
+                
+                ternaryPlotSVG.setAttribute('width', svgWidth);
+                ternaryPlotSVG.setAttribute('height', svgHeight);
+                ternaryPlotSVG.innerHTML = ''; 
+
+                const margin = { top: 30, right: 20, bottom: 40, left: 20 };
+                const plotWidth = svgWidth - margin.left - margin.right;
+                const plotHeight = svgHeight - margin.top - margin.bottom;
+
+                // Ensure plotWidth and plotHeight are positive
+                if (plotWidth <= 0 || plotHeight <= 0) {
+                    // console.warn("Calculated plot dimensions are not positive, cannot draw plot.");
+                    return;
+                }
+
+                const v1 = { x: plotWidth / 2, y: 0 }; // Top: P1
+                const v2 = { x: 0, y: plotHeight };    // Bottom-left: P2
+                const v3 = { x: plotWidth, y: plotHeight }; // Bottom-right: P3
+
+                const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                polygon.setAttribute('points', `${v1.x + margin.left},${v1.y + margin.top} ${v2.x + margin.left},${v2.y + margin.top} ${v3.x + margin.left},${v3.y + margin.top}`);
+                polygon.setAttribute('class', 'fill-slate-800 stroke-sky-400 stroke-2');
+                ternaryPlotSVG.appendChild(polygon);
+
+                const createText = (x, y, anchor, textContent, isKatex = false) => {
+                    const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    textEl.setAttribute('x', x);
+                    textEl.setAttribute('y', y);
+                    textEl.setAttribute('text-anchor', anchor);
+                    textEl.setAttribute('class', 'fill-sky-300 text-xs sm:text-sm');
+                    if (isKatex && window.katex) {
+                        try {
+                            textEl.innerHTML = window.katex.renderToString(textContent, { throwOnError: false, displayMode: false });
+                        } catch (e) { 
+                            // console.error("KaTeX rendering error for SVG text:", e);
+                            textEl.textContent = textContent; // Fallback
+                        }
+                    } else {
+                        textEl.textContent = textContent;
+                    }
+                    return textEl;
+                };
+                ternaryPlotSVG.appendChild(createText(v1.x + margin.left, v1.y + margin.top - 8, 'middle', 'P_1=(1,0,0)', true));
+                ternaryPlotSVG.appendChild(createText(v2.x + margin.left - 5, v2.y + margin.top + 15, 'end', 'P_2=(0,1,0)', true));
+                ternaryPlotSVG.appendChild(createText(v3.x + margin.left + 5, v3.y + margin.top + 15, 'start', 'P_3=(0,0,1)', true));
+                
+                currentSamples.forEach(sample => {
+                    if (!sample || sample.length !== 3 || sample.some(s => isNaN(s) || !isFinite(s))) return;
+                    let [p1, p2, p3] = sample;
+                    const sum = p1 + p2 + p3;
+                    if (Math.abs(sum - 1.0) > 1e-5 && sum !== 0) { 
+                        p1 /= sum; p2 /= sum; p3 /= sum;
+                    } else if (sum === 0) { 
+                        return;
+                    }
+
+                    const x = p1 * v1.x + p2 * v2.x + p3 * v3.x + margin.left;
+                    const y = p1 * v1.y + p2 * v2.y + p3 * v3.y + margin.top;
+
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute('cx', x);
+                    circle.setAttribute('cy', y);
+                    circle.setAttribute('r', svgWidth < 350 ? 1.5 : 2.5);
+                    circle.setAttribute('class', 'fill-pink-500 opacity-60 hover:opacity-100 transition-opacity');
+                    ternaryPlotSVG.appendChild(circle);
+                });
+            }
+            
+            function handleGenerateSamples() {
+                if (isLoadingSamples) return;
+                isLoadingSamples = true;
+                generateBtn.disabled = true;
+                resetBtn.disabled = true;
+                
+                // Clear existing icon before adding spinner
+                const existingIcon = generateBtn.querySelector('i.fa-play');
+                if(existingIcon) existingIcon.remove();
+                generateBtnText.innerHTML = '<span class="loading-spinner inline-block mr-2"></span> Generating...';
+
+
+                requestAnimationFrame(() => { 
+                    currentSamples = [];
+                    for (let i = 0; i < currentNumSamples; i++) {
+                        currentSamples.push(sampleDirichlet(currentAlphas));
+                    }
+                    drawTernaryPlot();
+                    updateAlphaText();
+                    isLoadingSamples = false;
+                    generateBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    generateBtnText.textContent = 'Generate Samples'; // Remove spinner text
+                     // Re-insert the play icon
+                    const playIcon = document.createElement('i');
+                    playIcon.className = 'fas fa-play';
+                    generateBtn.insertBefore(playIcon, generateBtnText);
+                });
+            }
+
+            alphaSliders.forEach((slider, index) => {
+                slider.addEventListener('input', () => {
+                    currentAlphas[index] = parseFloat(slider.value);
+                    alphaValueSpans[index].textContent = currentAlphas[index].toFixed(3);
+                });
+                slider.addEventListener('change', handleGenerateSamples); 
+            });
+
+            numSamplesSlider.addEventListener('input', () => {
+                currentNumSamples = parseInt(numSamplesSlider.value);
+                numSamplesValueSpan.textContent = currentNumSamples;
+            });
+            numSamplesSlider.addEventListener('change', handleGenerateSamples);
+
+
+            generateBtn.addEventListener('click', handleGenerateSamples);
+            resetBtn.addEventListener('click', () => {
+                currentAlphas = [1.0, 1.0, 1.0];
+                currentNumSamples = 100;
+                alphaSliders.forEach((s, i) => { s.value = currentAlphas[i]; alphaValueSpans[i].textContent = currentAlphas[i].toFixed(3); });
+                numSamplesSlider.value = currentNumSamples;
+                numSamplesValueSpan.textContent = currentNumSamples;
+                handleGenerateSamples();
+            });
+            
+            // Use ResizeObserver for more robust SVG resizing if available
+            if (typeof ResizeObserver !== 'undefined' && svgContainer) {
+                new ResizeObserver(drawTernaryPlot).observe(svgContainer);
+            } else {
+                window.addEventListener('resize', drawTernaryPlot);
+            }
+            
+            // Initial plot generation after a slight delay to ensure layout is stable
+            setTimeout(handleGenerateSamples, 100); 
+
+            // --- Quiz Logic ---
+            const quizTitle = document.getElementById('quiz-title');
+            const quizQuestionArea = document.getElementById('quiz-question-area');
+            const quizQuestionText = document.getElementById('quiz-question-text');
+            const quizOptionsContainer = document.getElementById('quiz-options-container');
+            const quizSubmitBtn = document.getElementById('quiz-submit-btn');
+            const quizFeedbackArea = document.getElementById('quiz-feedback-area');
+            const quizFeedbackCorrect = document.getElementById('quiz-feedback-correct');
+            const quizFeedbackIncorrect = document.getElementById('quiz-feedback-incorrect');
+            const quizExplanationText = document.getElementById('quiz-explanation-text');
+            const quizNextBtn = document.getElementById('quiz-next-btn');
+            const quizResultsArea = document.getElementById('quiz-results-area');
+            const quizScoreText = document.getElementById('quiz-score-text');
+            const quizRestartBtn = document.getElementById('quiz-restart-btn');
+
+            function loadQuizQuestion() {
+                selectedQuizAnswer = null;
+                quizQuestionArea.classList.remove('hidden');
+                quizFeedbackArea.classList.add('hidden');
+                quizResultsArea.classList.add('hidden');
+                quizSubmitBtn.disabled = true;
+
+                const questionData = quizQuestions[currentQuizQuestionIndex];
+                quizTitle.textContent = `Quiz: Question ${currentQuizQuestionIndex + 1} of ${quizQuestions.length}`;
+                quizQuestionText.textContent = questionData.question;
+                quizOptionsContainer.innerHTML = '';
+
+                questionData.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.className = 'w-full text-left p-3 rounded-lg border-2 transition-all duration-150 bg-slate-700 border-slate-600 hover:border-sky-500 hover:bg-slate-600';
+                    button.addEventListener('click', () => {
+                        selectedQuizAnswer = option;
+                        quizSubmitBtn.disabled = false;
+                        Array.from(quizOptionsContainer.children).forEach(btn => {
+                            btn.classList.remove('bg-sky-600', 'border-sky-400', 'text-white');
+                            btn.classList.add('bg-slate-700', 'border-slate-600');
+                        });
+                        button.classList.add('bg-sky-600', 'border-sky-400', 'text-white');
+                        button.classList.remove('bg-slate-700', 'border-slate-600');
+                    });
+                    quizOptionsContainer.appendChild(button);
+                });
+            }
+
+            quizSubmitBtn.addEventListener('click', () => {
+                if (selectedQuizAnswer === null) return;
+                
+                const questionData = quizQuestions[currentQuizQuestionIndex];
+                const isCorrect = selectedQuizAnswer === questionData.correctAnswer;
+
+                if (isCorrect) quizScore++;
+                
+                quizFeedbackCorrect.classList.toggle('hidden', !isCorrect);
+                quizFeedbackIncorrect.classList.toggle('hidden', isCorrect);
+                quizExplanationText.textContent = questionData.explanation;
+                quizFeedbackArea.classList.remove('hidden');
+                quizSubmitBtn.disabled = true; 
+                Array.from(quizOptionsContainer.children).forEach(button => {
+                    button.disabled = true; 
+                    if (button.textContent === questionData.correctAnswer) {
+                        button.classList.remove('bg-sky-600', 'border-sky-400', 'text-white', 'bg-slate-700', 'border-slate-600');
+                        button.classList.add('bg-green-700', 'border-green-500', 'text-white');
+                    } else if (button.textContent === selectedQuizAnswer && !isCorrect) {
+                        button.classList.remove('bg-sky-600', 'border-sky-400', 'text-white', 'bg-slate-700', 'border-slate-600');
+                        button.classList.add('bg-red-700', 'border-red-500', 'text-white');
+                    }
+                });
+
+
+                if (currentQuizQuestionIndex < quizQuestions.length - 1) {
+                    quizNextBtn.innerHTML = 'Next Question <i class="fas fa-chevron-right ml-1"></i>';
+                } else {
+                    quizNextBtn.textContent = 'Show Results';
+                }
+            });
+
+            quizNextBtn.addEventListener('click', () => {
+                if (currentQuizQuestionIndex < quizQuestions.length - 1) {
+                    currentQuizQuestionIndex++;
+                    loadQuizQuestion();
+                } else {
+                    quizQuestionArea.classList.add('hidden');
+                    quizFeedbackArea.classList.add('hidden');
+                    quizResultsArea.classList.remove('hidden');
+                    quizTitle.textContent = "Quiz Results";
+                    quizScoreText.textContent = `You scored ${quizScore} out of ${quizQuestions.length}!`;
+                }
+            });
+
+            quizRestartBtn.addEventListener('click', () => {
+                currentQuizQuestionIndex = 0;
+                quizScore = 0;
+                loadQuizQuestion();
+            });
+            
+            setActiveTab('intro');
+            loadQuizQuestion(); 
+        });
+
+    </script>
+</body>
+</html>
