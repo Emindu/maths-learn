@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skewness and Kurtosis: Beyond Averages</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="navbar__title">Statistical Moments Explorer</h1>
+            <div class="navbar__nav">
+                <button class="nav-btn active" data-section="intro">Introduction</button>
+                <button class="nav-btn" data-section="mean-std">Mean & Std Dev</button>
+                <button class="nav-btn" data-section="skewness">Skewness</button>
+                <button class="nav-btn" data-section="kurtosis">Kurtosis</button>
+                <button class="nav-btn" data-section="practice">Practice</button>
+                <button class="nav-btn" data-section="summary">Summary</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Introduction Section -->
+        <section id="intro" class="section active">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Why Averages Aren't Enough</h2>
+                    <p class="section-subtitle">The story that reveals the hidden patterns in data</p>
+                </div>
+                
+                <div class="story-card card">
+                    <div class="card__body">
+                        <h3>The Statistics Professor's Dilemma</h3>
+                        <p>A statistics professor wants to compare two teaching methods:</p>
+                        <div class="comparison-grid">
+                            <div class="method-card">
+                                <h4>Lecture A (Traditional)</h4>
+                                <p>Consistent teaching approach with steady, predictable results</p>
+                                <div class="avg-score">Average: 70</div>
+                            </div>
+                            <div class="method-card">
+                                <h4>Lecture B (New Method)</h4>
+                                <p>Innovative approach with varied outcomes - some excel, others struggle</p>
+                                <div class="avg-score">Average: 70</div>
+                            </div>
+                        </div>
+                        <div class="insight-box">
+                            <strong>The Problem:</strong> Both methods have the same average score, but are they really the same? 
+                            We need more sophisticated tools to understand the full story.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="learning-objectives">
+                    <h3>What You'll Learn</h3>
+                    <div class="objectives-grid">
+                        <div class="objective-item">
+                            <h4>Mean & Standard Deviation</h4>
+                            <p>Review the basics of center and spread</p>
+                        </div>
+                        <div class="objective-item">
+                            <h4>Skewness</h4>
+                            <p>Discover how distributions can be asymmetric</p>
+                        </div>
+                        <div class="objective-item">
+                            <h4>Kurtosis</h4>
+                            <p>Understand the "tailedness" of distributions</p>
+                        </div>
+                        <div class="objective-item">
+                            <h4>Real-World Application</h4>
+                            <p>Apply these concepts to practical scenarios</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mean & Standard Deviation Section -->
+        <section id="mean-std" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Mean & Standard Deviation Review</h2>
+                    <p class="section-subtitle">The foundation of statistical understanding</p>
+                </div>
+
+                <div class="concept-explanation">
+                    <div class="concept-grid">
+                        <div class="concept-card">
+                            <h3>Mean (Average)</h3>
+                            <p>The center of mass of your distribution. Think of it as the balance point where the data would balance if placed on a seesaw.</p>
+                        </div>
+                        <div class="concept-card">
+                            <h3>Standard Deviation</h3>
+                            <p>Measures how spread out the data is around the mean. Higher values mean more uncertainty and variability.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visualization-container">
+                    <div class="viz-controls">
+                        <h3>Interactive Example: Lecture Comparison</h3>
+                        <div class="control-group">
+                            <label for="std-slider">Standard Deviation:</label>
+                            <input type="range" id="std-slider" min="5" max="20" value="10" step="1">
+                            <span id="std-value">10</span>
+                        </div>
+                    </div>
+                    <canvas id="mean-std-canvas" width="800" height="400"></canvas>
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <span class="stat-label">Mean:</span>
+                            <span class="stat-value" id="mean-value">70</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Standard Deviation:</span>
+                            <span class="stat-value" id="current-std">10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skewness Section -->
+        <section id="skewness" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Skewness: Measuring Asymmetry</h2>
+                    <p class="section-subtitle">When distributions lean to one side</p>
+                </div>
+
+                <div class="concept-explanation">
+                    <div class="skewness-types">
+                        <div class="skew-card negative-skew">
+                            <h3>Negative Skewness</h3>
+                            <p>Long tail to the left. Most students perform well, but a few struggle significantly.</p>
+                            <div class="skew-value">Skewness < 0</div>
+                        </div>
+                        <div class="skew-card normal-skew">
+                            <h3>No Skewness (Normal)</h3>
+                            <p>Symmetric distribution. Equal spread on both sides of the mean.</p>
+                            <div class="skew-value">Skewness = 0</div>
+                        </div>
+                        <div class="skew-card positive-skew">
+                            <h3>Positive Skewness</h3>
+                            <p>Long tail to the right. Most students struggle, but a few excel dramatically.</p>
+                            <div class="skew-value">Skewness > 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visualization-container">
+                    <div class="viz-controls">
+                        <h3>Interactive Skewness Explorer</h3>
+                        <div class="control-group">
+                            <label for="skew-slider">Skewness:</label>
+                            <input type="range" id="skew-slider" min="-2" max="2" value="0" step="0.1">
+                            <span id="skew-value">0.0</span>
+                        </div>
+                    </div>
+                    <canvas id="skewness-canvas" width="800" height="400"></canvas>
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <span class="stat-label">Mean:</span>
+                            <span class="stat-value">70</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Skewness:</span>
+                            <span class="stat-value" id="current-skew">0.0</span>
+                        </div>
+                        <div class="interpretation" id="skew-interpretation">
+                            Symmetric distribution - equal spread on both sides
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kurtosis Section -->
+        <section id="kurtosis" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Kurtosis: Understanding Tailedness</h2>
+                    <p class="section-subtitle">How fat or thin are the distribution tails?</p>
+                </div>
+
+                <div class="concept-explanation">
+                    <div class="kurtosis-types">
+                        <div class="kurt-card platykurtic">
+                            <h3>Platykurtic</h3>
+                            <p>Thin tails, fewer outliers. Results cluster tightly around the average with rare extreme values.</p>
+                            <div class="kurt-value">Kurtosis < 0</div>
+                        </div>
+                        <div class="kurt-card mesokurtic">
+                            <h3>Mesokurtic (Normal)</h3>
+                            <p>Normal distribution tails. Standard amount of outliers expected in typical scenarios.</p>
+                            <div class="kurt-value">Kurtosis = 0</div>
+                        </div>
+                        <div class="kurt-card leptokurtic">
+                            <h3>Leptokurtic</h3>
+                            <p>Fat tails, more outliers. Higher chance of exceptional students (very high or very low scores).</p>
+                            <div class="kurt-value">Kurtosis > 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visualization-container">
+                    <div class="viz-controls">
+                        <h3>Interactive Kurtosis Explorer</h3>
+                        <div class="control-group">
+                            <label for="kurt-slider">Excess Kurtosis:</label>
+                            <input type="range" id="kurt-slider" min="-1.5" max="5" value="0" step="0.1">
+                            <span id="kurt-value">0.0</span>
+                        </div>
+                    </div>
+                    <canvas id="kurtosis-canvas" width="800" height="400"></canvas>
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <span class="stat-label">Mean:</span>
+                            <span class="stat-value">70</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Excess Kurtosis:</span>
+                            <span class="stat-value" id="current-kurt">0.0</span>
+                        </div>
+                        <div class="interpretation" id="kurt-interpretation">
+                            Normal distribution - standard tail thickness
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Practice Section -->
+        <section id="practice" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Practice & Apply Your Knowledge</h2>
+                    <p class="section-subtitle">Test your understanding with interactive exercises</p>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="quiz-question active" data-question="1">
+                        <h3>Question 1: Identifying Skewness</h3>
+                        <p>Look at this distribution and identify its skewness:</p>
+                        <canvas id="practice-canvas-1" width="600" height="300"></canvas>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-answer="negative">Negative Skewness</button>
+                            <button class="quiz-option" data-answer="normal">No Skewness</button>
+                            <button class="quiz-option" data-answer="positive">Positive Skewness</button>
+                        </div>
+                        <div class="quiz-feedback" id="feedback-1"></div>
+                    </div>
+
+                    <div class="quiz-question" data-question="2">
+                        <h3>Question 2: Kurtosis Recognition</h3>
+                        <p>Compare these distributions and identify which has higher kurtosis:</p>
+                        <canvas id="practice-canvas-2" width="600" height="300"></canvas>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-answer="red">Red Distribution</button>
+                            <button class="quiz-option" data-answer="blue">Blue Distribution</button>
+                            <button class="quiz-option" data-answer="same">They're the Same</button>
+                        </div>
+                        <div class="quiz-feedback" id="feedback-2"></div>
+                    </div>
+
+                    <div class="quiz-navigation">
+                        <button id="prev-question" class="btn btn--secondary" disabled>Previous</button>
+                        <span class="quiz-progress">Question <span id="current-question">1</span> of 2</span>
+                        <button id="next-question" class="btn btn--primary">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section id="summary" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Summary: The Four Statistical Moments</h2>
+                    <p class="section-subtitle">Your complete toolkit for understanding distributions</p>
+                </div>
+
+                <div class="moments-grid">
+                    <div class="moment-card">
+                        <div class="moment-number">1st</div>
+                        <h3>Mean</h3>
+                        <p>The center of your data</p>
+                        <div class="moment-formula">Σx/n</div>
+                    </div>
+                    <div class="moment-card">
+                        <div class="moment-number">2nd</div>
+                        <h3>Standard Deviation</h3>
+                        <p>The spread around the center</p>
+                        <div class="moment-formula">√(Σ(x-μ)²/n)</div>
+                    </div>
+                    <div class="moment-card">
+                        <div class="moment-number">3rd</div>
+                        <h3>Skewness</h3>
+                        <p>The asymmetry of the distribution</p>
+                        <div class="moment-formula">E[(X-μ)³]/σ³</div>
+                    </div>
+                    <div class="moment-card">
+                        <div class="moment-number">4th</div>
+                        <h3>Kurtosis</h3>
+                        <p>The tailedness of the distribution</p>
+                        <div class="moment-formula">E[(X-μ)⁴]/σ⁴ - 3</div>
+                    </div>
+                </div>
+
+                <div class="key-insights">
+                    <h3>Key Insights</h3>
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <strong>Beyond Averages:</strong> Mean and standard deviation only tell part of the story. Skewness and kurtosis reveal hidden patterns.
+                        </div>
+                        <div class="insight-item">
+                            <strong>Real-World Impact:</strong> In education, understanding these patterns helps identify teaching methods that work for different types of students.
+                        </div>
+                        <div class="insight-item">
+                            <strong>Decision Making:</strong> Two datasets with identical means and standard deviations can have completely different implications for decision-making.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="final-example">
+                    <h3>The Professor's Conclusion</h3>
+                    <p>By analyzing all four moments, the professor discovered that while both teaching methods achieved the same average score, Lecture B's positive skewness and higher kurtosis revealed it was better at producing exceptional students, making it the superior method for advanced coursework.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
