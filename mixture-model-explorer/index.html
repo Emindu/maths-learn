@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mixture Model Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>Mixture Model Explorer</h1>
+            <p class="subtitle">Interactive learning tool for understanding mixture models and the EM algorithm</p>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="concept">Concept</button>
+            <button class="tab-btn" data-tab="demo">Interactive Demo</button>
+            <button class="tab-btn" data-tab="em">EM Algorithm</button>
+            <button class="tab-btn" data-tab="simulation">Simulation</button>
+            <button class="tab-btn" data-tab="applications">Applications</button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Concept Tab -->
+            <div id="concept" class="tab-panel active">
+                <div class="concept-grid">
+                    <div class="concept-text">
+                        <h2>What are Mixture Models?</h2>
+                        <p>A mixture model is a probabilistic model that represents a population composed of multiple subpopulations. Each observation comes from one of several component distributions, but we don't know which one.</p>
+                        
+                        <h3>Mathematical Definition</h3>
+                        <div class="formula-box">
+                            $$f(x) = \sum_{i=1}^{k} \pi_i f_i(x|\theta_i)$$
+                        </div>
+                        <p>Where:</p>
+                        <ul>
+                            <li>$\pi_i$ are mixing weights (probabilities) with $\sum \pi_i = 1$</li>
+                            <li>$f_i(x|\theta_i)$ are component probability density functions</li>
+                            <li>$k$ is the number of components</li>
+                        </ul>
+
+                        <h3>Interactive Weight Demonstration</h3>
+                        <div class="weight-controls">
+                            <label>Component 1 Weight: <span id="weight1-value">0.5</span></label>
+                            <input type="range" id="weight1-slider" min="0.1" max="0.9" step="0.1" value="0.5">
+                            <label>Component 2 Weight: <span id="weight2-value">0.5</span></label>
+                        </div>
+                    </div>
+                    <div class="concept-viz">
+                        <canvas id="conceptCanvas" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Demo Tab -->
+            <div id="demo" class="tab-panel">
+                <div class="demo-layout">
+                    <div class="demo-controls">
+                        <h3>Mixture Configuration</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Number of Components</label>
+                            <select id="numComponents" class="form-control">
+                                <option value="2">2 Components</option>
+                                <option value="3">3 Components</option>
+                                <option value="4">4 Components</option>
+                            </select>
+                        </div>
+
+                        <div id="componentControls"></div>
+                        
+                        <div class="legend">
+                            <h4>Legend</h4>
+                            <div id="legendItems"></div>
+                        </div>
+                    </div>
+                    <div class="demo-viz">
+                        <canvas id="demoCanvas" width="600" height="400"></canvas>
+                        <div class="current-formula" id="currentFormula"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EM Algorithm Tab -->
+            <div id="em" class="tab-panel">
+                <div class="em-layout">
+                    <div class="em-controls">
+                        <h3>EM Algorithm Steps</h3>
+                        <div class="em-steps">
+                            <div class="step-info">
+                                <h4 id="currentStep">Initialization</h4>
+                                <p id="stepDescription">Start with initial guesses for parameters μ, σ, π</p>
+                            </div>
+                            <div class="step-controls">
+                                <button class="btn btn--primary" id="nextStep">Next Step</button>
+                                <button class="btn btn--secondary" id="autoRun">Auto Run</button>
+                                <button class="btn btn--outline" id="resetEM">Reset</button>
+                            </div>
+                        </div>
+                        
+                        <div class="em-parameters">
+                            <h4>Current Parameters</h4>
+                            <div id="parameterDisplay"></div>
+                        </div>
+                    </div>
+                    <div class="em-viz">
+                        <canvas id="emCanvas" width="600" height="300"></canvas>
+                        <div class="convergence-chart">
+                            <h4>Convergence</h4>
+                            <canvas id="convergenceCanvas" width="600" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Tab -->
+            <div id="simulation" class="tab-panel">
+                <div class="simulation-layout">
+                    <div class="simulation-controls">
+                        <h3>Data Generation</h3>
+                        <div class="form-group">
+                            <label class="form-label">Sample Size</label>
+                            <input type="number" id="sampleSize" class="form-control" value="200" min="50" max="1000">
+                        </div>
+                        <button class="btn btn--primary" id="generateData">Generate Data</button>
+                        
+                        <h3>Model Fitting</h3>
+                        <div class="form-group">
+                            <label class="form-label">Number of Components to Fit</label>
+                            <select id="fitComponents" class="form-control">
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <button class="btn btn--primary" id="fitModel">Fit Model</button>
+                        
+                        <div id="fittingResults"></div>
+                    </div>
+                    <div class="simulation-viz">
+                        <canvas id="simCanvas" width="600" height="400"></canvas>
+                        <div class="cluster-view">
+                            <h4>Clustering View</h4>
+                            <canvas id="clusterCanvas" width="600" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="applications" class="tab-panel">
+                <h2>Real-World Applications</h2>
+                <div class="applications-grid">
+                    <div class="card application-card">
+                        <div class="card__header">
+                            <h3>Financial Returns</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>Stock returns often behave differently during normal and crisis periods</p>
+                            <div class="app-details">
+                                <strong>Model:</strong> Two normal distributions<br>
+                                <strong>Parameters:</strong> Normal: μ₁=0.05, σ₁=0.1; Crisis: μ₂=-0.02, σ₂=0.3; π₁=0.8
+                            </div>
+                            <canvas class="app-canvas" id="financeCanvas" width="300" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card application-card">
+                        <div class="card__header">
+                            <h3>Human Height</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>Population height follows different distributions for males and females</p>
+                            <div class="app-details">
+                                <strong>Model:</strong> Two normal distributions<br>
+                                <strong>Parameters:</strong> Male: μ₁=178cm, σ₁=7cm; Female: μ₂=165cm, σ₂=6cm; π₁=0.5
+                            </div>
+                            <canvas class="app-canvas" id="heightCanvas" width="300" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card application-card">
+                        <div class="card__header">
+                            <h3>Customer Segmentation</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>Different customer groups have distinct purchasing behaviors</p>
+                            <div class="app-details">
+                                <strong>Model:</strong> Multiple normal distributions<br>
+                                <strong>Parameters:</strong> High: μ₁=500, σ₁=100; Medium: μ₂=200, σ₂=50; Low: μ₃=50, σ₃=20
+                            </div>
+                            <canvas class="app-canvas" id="customerCanvas" width="300" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
