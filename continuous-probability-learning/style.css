@@ -764,6 +764,7 @@ select.form-control {
   position: relative;
   height: 250px;
   margin: var(--space-12) 0;
+  overflow: hidden;
 }
 
 .chart-description {
@@ -1017,6 +1018,7 @@ select.form-control {
   height: 250px;
   min-height: 250px;
   max-height: 250px;
+  overflow: hidden;
 }
 
 .lln-chart {
@@ -1028,6 +1030,7 @@ select.form-control {
   height: 250px;
   min-height: 250px;
   max-height: 250px;
+  overflow: hidden;
 }
 
 .convergence-types {
@@ -1086,6 +1089,9 @@ select.form-control {
 .mc-chart .chart-container,
 .mc-convergence .chart-container {
   height: 250px;
+  min-height: 250px;
+  max-height: 250px;
+  overflow: hidden;
 }
 
 /* Assessment */
@@ -1138,6 +1144,45 @@ select.form-control {
   background: rgba(var(--color-success-rgb), 0.1);
   border-color: var(--color-success);
   color: var(--color-success);
+}
+
+#mcChart,
+#mcConvergenceChart,
+#llnChart,
+#cltResultChart,
+#cltSourceChart {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 400px;
+}
+
+/* Responsive Chart Adjustments */
+@media (max-width: 768px) {
+  .card__body {
+    height: 300px;
+  }
+  
+  #mcConvergenceChart,
+  #mcChart,
+  #llnChart,
+  #cltResultChart,
+  #cltSourceChart {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card__body {
+    height: 250px;
+  }
+  
+  #mcConvergenceChart,
+  #mcChart,
+  #llnChart,
+  #cltResultChart,
+  #cltSourceChart {
+    max-height: 250px;
+  }
 }
 
 .feedback.incorrect {
@@ -1269,6 +1314,8 @@ select.form-control {
   
   .chart-container {
     height: 200px;
+    min-height: 200px;
+    max-height: 200px;
   }
 }
 
@@ -1288,6 +1335,8 @@ select.form-control {
   
   .chart-container {
     height: 180px;
+    min-height: 180px;
+    max-height: 180px;
   }
   
   .dist-buttons {

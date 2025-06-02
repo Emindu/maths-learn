@@ -176,6 +176,9 @@ class ContinuousDistributionsApp {
                         beginAtZero: true,
                         max: 1
                     }
+                },
+                animation: {
+                    duration: 0 // Disable animations to prevent height issues
                 }
             }
         });
@@ -478,12 +481,18 @@ class ContinuousDistributionsApp {
         const dist = document.getElementById('llnDist').value;
         const maxSize = parseInt(document.getElementById('llnMaxSize').value);
 
+        // Set correct parameters for each distribution
+        let params = {};
+        if (dist === 'normal') params = { mean: 2, std: 1 };
+        if (dist === 'exponential') params = { rate: 0.5 };
+        if (dist === 'uniform') params = { min: 0, max: 4 };
+
         const samples = [];
         const runningAverages = [];
         let sum = 0;
 
         for (let i = 1; i <= maxSize; i++) {
-            const sample = this.generateRandom(dist);
+            const sample = this.generateRandom(dist, params);
             samples.push(sample);
             sum += sample;
             runningAverages.push(sum / i);
@@ -557,6 +566,9 @@ class ContinuousDistributionsApp {
                             text: 'Value'
                         }
                     }
+                },
+                animation: {
+                    duration: 0 // Disable animations to prevent height issues
                 }
             }
         });
@@ -614,6 +626,9 @@ class ContinuousDistributionsApp {
                             text: 'Sample Size'
                         }
                     }
+                },
+                animation: {
+                    duration: 0 // Disable animations to prevent height issues
                 }
             }
         });
@@ -627,6 +642,32 @@ class ContinuousDistributionsApp {
         });
 
         document.getElementById('runMC').addEventListener('click', () => this.runMonteCarloSimulation());
+
+        // Add description update for simulation type
+        const mcTypeSelect = document.getElementById('mcType');
+        const mcTypeDescription = document.getElementById('mcTypeDescription');
+        const descriptions = {
+            pi: {
+                desc: 'Estimate π using random points in a square and counting how many fall inside a quarter circle.',
+                eq: '<strong>Equation:</strong> \\( \\pi \\approx 4 \\times \\frac{N_{\\text{in}}}{N_{\\text{total}}} \\)'
+            },
+            integration: {
+                desc: 'Estimate the integral of f(x) = x² over [0, 1] using random sampling.',
+                eq: '<strong>Equation:</strong> \\( \\int_0^1 x^2 dx \\approx \\frac{1}{n} \\sum_{i=1}^n x_i^2 \\)'
+            },
+            probability: {
+                desc: 'Estimate the probability that X + Y > 1 where X, Y ~ U(0,1).',
+                eq: '<strong>Equation:</strong> \\( P(X + Y > 1) \\approx \\frac{N_{\\text{success}}}{n} \\)'
+            }
+        };
+        function updateDescription() {
+            const val = mcTypeSelect.value;
+            const d = descriptions[val];
+            mcTypeDescription.innerHTML = `<div>${d.desc}</div><div style="margin-top:4px;">${d.eq}</div>`;
+            if (window.MathJax) window.MathJax.typesetPromise && window.MathJax.typesetPromise();
+        }
+        mcTypeSelect.addEventListener('change', updateDescription);
+        updateDescription();
     }
 
     runMonteCarloSimulation() {
@@ -797,6 +838,9 @@ class ContinuousDistributionsApp {
                     y: {
                         type: 'linear'
                     }
+                },
+                animation: {
+                    duration: 0 // Disable animations to prevent height issues
                 }
             }
         });
@@ -1182,16 +1226,20 @@ class ContinuousDistributionsApp {
         }
     }
 
-    generateRandom(dist) {
+    generateRandom(dist, params = {}) {
         switch(dist) {
             case 'uniform':
-                return Math.random();
+                return params.min !== undefined && params.max !== undefined
+                    ? params.min + Math.random() * (params.max - params.min)
+                    : Math.random();
             case 'exponential':
-                return -Math.log(Math.random());
+                return -Math.log(Math.random()) / (params.rate || 1);
             case 'normal':
-                return this.boxMuller();
+                const mean = params.mean !== undefined ? params.mean : 0;
+                const std = params.std !== undefined ? params.std : 1;
+                return this.boxMuller() * std + mean;
             case 'gamma':
-                return this.gammaRandom(2, 1);
+                return this.gammaRandom(params.shape || 2, params.rate || 1);
         }
     }
 
