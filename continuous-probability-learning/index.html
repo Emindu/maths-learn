@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuous Probability Distributions Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            chtml: {
+                scale: 0.9
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>Continuous Probability Distributions Explorer</h1>
+            <p class="subtitle">Interactive learning platform for continuous distributions and convergence</p>
+        </header>
+
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="explorer">Distribution Explorer</button>
+            <button class="tab-btn" data-tab="convergence">Convergence Lab</button>
+            <button class="tab-btn" data-tab="montecarlo">Monte Carlo Studio</button>
+            <button class="tab-btn" data-tab="assessment">Assessment</button>
+        </nav>
+
+        <!-- Overview Section -->
+        <section id="overview" class="tab-content active">
+            <div class="content-grid">
+                <div class="theory-panel card">
+                    <div class="card__body">
+                        <h2>Continuous vs Discrete Distributions</h2>
+                        <p>Continuous probability distributions describe random variables that can take any value within a range, unlike discrete distributions which have countable outcomes.</p>
+                        
+                        <h3>Key Concepts</h3>
+                        <div class="concept-list">
+                            <div class="concept-item">
+                                <strong>Probability Density Function (PDF):</strong> $f(x)$ where $P(a \leq X \leq b) = \int_a^b f(x)dx$
+                            </div>
+                            <div class="concept-item">
+                                <strong>Cumulative Distribution Function (CDF):</strong> $F(x) = P(X \leq x) = \int_{-\infty}^x f(t)dt$
+                            </div>
+                            <div class="concept-item">
+                                <strong>Support:</strong> The set of values where $f(x) > 0$
+                            </div>
+                            <div class="concept-item">
+                                <strong>Parameters:</strong> Values that determine the shape and location of the distribution
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-panel card">
+                    <div class="card__body">
+                        <h3>PDF vs CDF Relationship</h3>
+                        <div class="chart-container">
+                            <canvas id="overviewChart"></canvas>
+                        </div>
+                        <p class="chart-description">The CDF is the integral of the PDF. Move the slider to see how they relate:</p>
+                        <div class="control-group">
+                            <label>Standard Deviation: <span id="overviewStdValue">1.0</span></label>
+                            <input type="range" id="overviewStdSlider" min="0.5" max="2.5" step="0.1" value="1.0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Distribution Explorer Section -->
+        <section id="explorer" class="tab-content">
+            <div class="explorer-layout">
+                <div class="distribution-selector">
+                    <h2>Distribution Explorer</h2>
+                    <div class="dist-buttons">
+                        <button class="dist-btn active" data-dist="normal">Normal</button>
+                        <button class="dist-btn" data-dist="exponential">Exponential</button>
+                        <button class="dist-btn" data-dist="uniform">Uniform</button>
+                        <button class="dist-btn" data-dist="gamma">Gamma</button>
+                        <button class="dist-btn" data-dist="beta">Beta</button>
+                        <button class="dist-btn" data-dist="lognormal">Log-Normal</button>
+                    </div>
+                </div>
+
+                <div class="distribution-content">
+                    <div class="dist-info card">
+                        <div class="card__body">
+                            <h3 id="distName">Normal Distribution</h3>
+                            <p><strong>Notation:</strong> <span id="distSymbol">N(μ,σ²)</span></p>
+                            <p><strong>Support:</strong> <span id="distSupport">(-∞, ∞)</span></p>
+                            <div id="distApplications">
+                                <strong>Applications:</strong>
+                                <ul id="appList"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="controls-panel card">
+                        <div class="card__body">
+                            <h4>Parameters</h4>
+                            <div id="parameterControls"></div>
+                        </div>
+                    </div>
+
+                    <div class="charts-panel card">
+                        <div class="card__body">
+                            <div class="chart-tabs">
+                                <button class="chart-tab-btn active" data-chart="pdf">PDF</button>
+                                <button class="chart-tab-btn" data-chart="cdf">CDF</button>
+                                <button class="chart-tab-btn" data-chart="both">Both</button>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="distributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="statistics-panel card">
+                        <div class="card__body">
+                            <h4>Statistics</h4>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <label>Mean:</label>
+                                    <span id="statMean">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <label>Variance:</label>
+                                    <span id="statVariance">1</span>
+                                </div>
+                                <div class="stat-item">
+                                    <label>Mode:</label>
+                                    <span id="statMode">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="probability-calc card">
+                        <div class="card__body">
+                            <h4>Probability Calculator</h4>
+                            <div class="prob-controls">
+                                <div class="control-group">
+                                    <label for="probA">P(X &lt; a) where a = </label>
+                                    <input type="number" id="probA" step="0.1" value="0">
+                                    <span class="result">= <span id="probAResult">0.500</span></span>
+                                </div>
+                                <div class="control-group">
+                                    <label>P(a &lt; X &lt; b) where a = </label>
+                                    <input type="number" id="probRangeA" step="0.1" value="-1">
+                                    <label> and b = </label>
+                                    <input type="number" id="probRangeB" step="0.1" value="1">
+                                    <span class="result">= <span id="probRangeResult">0.683</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Convergence Lab Section -->
+        <section id="convergence" class="tab-content">
+            <div class="convergence-layout">
+                <h2>Convergence Phenomena</h2>
+                
+                <div class="convergence-tabs">
+                    <button class="conv-tab-btn active" data-conv="clt">Central Limit Theorem</button>
+                    <button class="conv-tab-btn" data-conv="lln">Law of Large Numbers</button>
+                    <button class="conv-tab-btn" data-conv="types">Convergence Types</button>
+                </div>
+
+                <div id="clt-panel" class="conv-panel active">
+                    <div class="clt-controls card">
+                        <div class="card__body">
+                            <h3>Central Limit Theorem Demo</h3>
+                            <div class="control-row">
+                                <div class="control-group">
+                                    <label>Source Distribution:</label>
+                                    <select id="cltSourceDist">
+                                        <option value="uniform">Uniform(0,1)</option>
+                                        <option value="exponential">Exponential(λ=1)</option>
+                                        <option value="gamma">Gamma(α=2,β=1)</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label>Sample Size: <span id="cltSampleSizeValue">30</span></label>
+                                    <input type="range" id="cltSampleSize" min="1" max="100" value="30">
+                                </div>
+                                <div class="control-group">
+                                    <label>Number of Samples: <span id="cltNumSamplesValue">1000</span></label>
+                                    <input type="range" id="cltNumSamples" min="100" max="5000" step="100" value="1000">
+                                </div>
+                                <button id="runCLT" class="btn btn--primary">Run Simulation</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clt-charts">
+                        <div class="chart-panel card">
+                            <div class="card__body">
+                                <h4>Original Distribution</h4>
+                                <canvas id="cltSourceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel card">
+                            <div class="card__body">
+                                <h4>Distribution of Sample Means</h4>
+                                <canvas id="cltResultChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="lln-panel" class="conv-panel">
+                    <div class="lln-controls card">
+                        <div class="card__body">
+                            <h3>Law of Large Numbers Demo</h3>
+                            <div class="control-row">
+                                <div class="control-group">
+                                    <label>Distribution:</label>
+                                    <select id="llnDist">
+                                        <option value="normal">Normal(μ=2,σ=1)</option>
+                                        <option value="exponential">Exponential(λ=0.5)</option>
+                                        <option value="uniform">Uniform(0,4)</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label>Max Sample Size: <span id="llnMaxSizeValue">1000</span></label>
+                                    <input type="range" id="llnMaxSize" min="100" max="5000" step="100" value="1000">
+                                </div>
+                                <button id="runLLN" class="btn btn--primary">Run Simulation</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lln-chart card">
+                        <div class="card__body">
+                            <h4>Running Average Convergence</h4>
+                            <canvas id="llnChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="types-panel" class="conv-panel">
+                    <div class="convergence-theory card">
+                        <div class="card__body">
+                            <h3>Types of Convergence</h3>
+                            <div class="convergence-types">
+                                <div class="conv-type">
+                                    <h4>Convergence in Probability</h4>
+                                    <p><strong>Notation:</strong> $X_n \xrightarrow{P} X$</p>
+                                    <p><strong>Definition:</strong> $P(|X_n - X| \geq \epsilon) \to 0$ as $n \to \infty$</p>
+                                </div>
+                                <div class="conv-type">
+                                    <h4>Almost Sure Convergence</h4>
+                                    <p><strong>Notation:</strong> $X_n \xrightarrow{a.s.} X$</p>
+                                    <p><strong>Definition:</strong> $P(\lim_{n \to \infty} X_n = X) = 1$</p>
+                                </div>
+                                <div class="conv-type">
+                                    <h4>Convergence in Distribution</h4>
+                                    <p><strong>Notation:</strong> $X_n \xrightarrow{d} X$</p>
+                                    <p><strong>Definition:</strong> $F_n(x) \to F(x)$ at continuity points</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monte Carlo Studio Section -->
+        <section id="montecarlo" class="tab-content">
+            <div class="montecarlo-layout">
+                <h2>Monte Carlo Studio</h2>
+                
+                <div class="mc-controls card">
+                    <div class="card__body">
+                        <h3>Monte Carlo Simulation</h3>
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label>Simulation Type:</label>
+                                <select id="mcType">
+                                    <option value="pi">Estimate π</option>
+                                    <option value="integration">Numerical Integration</option>
+                                    <option value="probability">Complex Probability</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Sample Size: <span id="mcSampleSizeValue">10000</span></label>
+                                <input type="range" id="mcSampleSize" min="1000" max="100000" step="1000" value="10000">
+                            </div>
+                            <button id="runMC" class="btn btn--primary">Run Simulation</button>
+                        </div>
+                        <div class="mc-results">
+                            <div class="result-item">
+                                <label>Estimate:</label>
+                                <span id="mcEstimate">-</span>
+                            </div>
+                            <div class="result-item">
+                                <label>True Value:</label>
+                                <span id="mcTrueValue">-</span>
+                            </div>
+                            <div class="result-item">
+                                <label>Error:</label>
+                                <span id="mcError">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mc-visualization">
+                    <div class="mc-chart card">
+                        <div class="card__body">
+                            <h4>Simulation Visualization</h4>
+                            <canvas id="mcChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="mc-convergence card">
+                        <div class="card__body">
+                            <h4>Estimate Convergence</h4>
+                            <canvas id="mcConvergenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Assessment Section -->
+        <section id="assessment" class="tab-content">
+            <div class="assessment-layout">
+                <h2>Assessment & Practice</h2>
+                
+                <div class="quiz-progress card">
+                    <div class="card__body">
+                        <h3>Progress</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p>Question <span id="currentQuestion">1</span> of <span id="totalQuestions">10</span></p>
+                        <p>Score: <span id="currentScore">0</span>/<span id="maxScore">0</span></p>
+                    </div>
+                </div>
+
+                <div class="quiz-content card">
+                    <div class="card__body">
+                        <div id="questionPanel">
+                            <h3 id="questionTitle">Question 1</h3>
+                            <p id="questionText">Loading question...</p>
+                            <div id="questionOptions"></div>
+                            <div class="quiz-controls">
+                                <button id="submitAnswer" class="btn btn--primary" disabled>Submit Answer</button>
+                                <button id="nextQuestion" class="btn btn--secondary hidden">Next Question</button>
+                            </div>
+                            <div id="feedback" class="feedback hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

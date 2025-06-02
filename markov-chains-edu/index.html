@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markov Chains - Interactive Learning</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Markov Chains</h2>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% Complete</span>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-section="introduction">
+                    <div class="nav-link">
+                        <span class="nav-icon">📚</span>
+                        <span class="nav-text">Introduction</span>
+                        <span class="completion-indicator" id="intro-check"></span>
+                    </div>
+                </li>
+                <li class="nav-item" data-section="definition">
+                    <div class="nav-link">
+                        <span class="nav-icon">📖</span>
+                        <span class="nav-text">Definition</span>
+                        <span class="completion-indicator" id="def-check"></span>
+                    </div>
+                </li>
+                <li class="nav-item" data-section="discrete">
+                    <div class="nav-link">
+                        <span class="nav-icon">🎲</span>
+                        <span class="nav-text">Discrete Example</span>
+                        <span class="completion-indicator" id="discrete-check"></span>
+                    </div>
+                </li>
+                <li class="nav-item" data-section="continuous">
+                    <div class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-text">Continuous Example</span>
+                        <span class="completion-indicator" id="continuous-check"></span>
+                    </div>
+                </li>
+                <li class="nav-item" data-section="matrix">
+                    <div class="nav-link">
+                        <span class="nav-icon">🔢</span>
+                        <span class="nav-text">Transition Matrix</span>
+                        <span class="completion-indicator" id="matrix-check"></span>
+                    </div>
+                </li>
+                <li class="nav-item" data-section="stationary">
+                    <div class="nav-link">
+                        <span class="nav-icon">⚖️</span>
+                        <span class="nav-text">Stationary Distribution</span>
+                        <span class="completion-indicator" id="stationary-check"></span>
+                    </div>
+                </li>
+                <li class="nav-item" data-section="simulations">
+                    <div class="nav-link">
+                        <span class="nav-icon">🎮</span>
+                        <span class="nav-text">Interactive Simulations</span>
+                        <span class="completion-indicator" id="simulations-check"></span>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Introduction Section -->
+            <section class="content-section active" id="introduction">
+                <div class="section-header">
+                    <h1>Welcome to Markov Chains</h1>
+                    <p class="section-subtitle">Learn the fundamentals of Markov chains through interactive examples</p>
+                </div>
+                <div class="card">
+                    <div class="card__body">
+                        <h3>What You'll Learn</h3>
+                        <ul class="learning-objectives">
+                            <li>Understanding the Markov assumption and its mathematical foundation</li>
+                            <li>Working with discrete and continuous Markov chains</li>
+                            <li>Analyzing transition matrices and their properties</li>
+                            <li>Exploring stationary distributions and long-term behavior</li>
+                            <li>Running interactive simulations to see theory in action</li>
+                        </ul>
+                        
+                        <h3>What are Markov Chains?</h3>
+                        <p>Markov chains are mathematical systems that undergo transitions from one state to another according to certain probabilistic rules. The key insight is that the future state depends only on the current state, not on the sequence of events that led to it.</p>
+                        
+                        <div class="state-diagram-container">
+                            <h4>Simple State Diagram Example</h4>
+                            <div class="simple-states">
+                                <div class="state-node state-1">1</div>
+                                <div class="state-node state-2">2</div>
+                                <div class="state-node state-3">3</div>
+                                <div class="state-arrow">→</div>
+                                <div class="state-arrow">→</div>
+                            </div>
+                            <p class="diagram-caption">States transition based on probability rules</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-navigation">
+                    <button class="btn btn--primary" onclick="navigateToSection('definition')">Get Started →</button>
+                </div>
+            </section>
+
+            <!-- Definition Section -->
+            <section class="content-section" id="definition">
+                <div class="section-header">
+                    <h1>Mathematical Definition</h1>
+                    <p class="section-subtitle">Understanding the mathematical foundation of Markov chains</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Chain Rule of Probability</h3>
+                        <p>For a sequence of random variables $X_1, X_2, \ldots, X_n$, the joint probability is:</p>
+                        <div class="formula-display">
+                            $$p(X_1,X_2,\ldots X_n)=p(X_1)\cdot p(X_2|X_1)\cdot p(X_3|X_2,X_1)\cdot\ldots\cdot p(X_n|X_{n-1},X_{n-2},\ldots,X_2,X_1)$$
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>The Markov Assumption</h3>
+                        <p>The Markov assumption states that the probability of the next state depends only on the current state:</p>
+                        <div class="formula-display">
+                            $$p(X_{t+1}|X_t,X_{t-1},\ldots,X_2,X_1)=p(X_{t+1}|X_t)$$
+                        </div>
+                        <p>This dramatically simplifies the chain rule to:</p>
+                        <div class="formula-display">
+                            $$p(X_1,X_2,\ldots X_n)=p(X_1)\cdot p(X_2|X_1)\cdot p(X_3|X_2)\cdot p(X_4|X_3)\cdot\ldots\cdot p(X_n|X_{n-1})$$
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Key Components</h3>
+                        <ul>
+                            <li><strong>Initial Distribution:</strong> $p(X_1)$ - probability distribution of the first state</li>
+                            <li><strong>Transition Probabilities:</strong> $p(X_{t+1}|X_t)$ - how likely each state transition is</li>
+                            <li><strong>Time Homogeneity:</strong> Transition probabilities don't change with time</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section-navigation">
+                    <button class="btn btn--secondary" onclick="navigateToSection('introduction')">← Previous</button>
+                    <button class="btn btn--primary" onclick="navigateToSection('discrete')">Next: Discrete Example →</button>
+                </div>
+            </section>
+
+            <!-- Discrete Example Section -->
+            <section class="content-section" id="discrete">
+                <div class="section-header">
+                    <h1>Discrete Markov Chain</h1>
+                    <p class="section-subtitle">The secret number game with 5 states</p>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>The Secret Number Game</h3>
+                        <p>You have a secret number between 1 and 5. At each step:</p>
+                        <ul>
+                            <li>Flip a fair coin</li>
+                            <li>Heads: increase by 1 (5 wraps to 1)</li>
+                            <li>Tails: decrease by 1 (1 wraps to 5)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Interactive Simulation</h3>
+                        <div class="discrete-game">
+                            <div class="game-state">
+                                <h4>Current State: <span id="currentState">3</span></h4>
+                                <div class="state-visualization">
+                                    <div class="state-circle" data-state="1">1</div>
+                                    <div class="state-circle" data-state="2">2</div>
+                                    <div class="state-circle active" data-state="3">3</div>
+                                    <div class="state-circle" data-state="4">4</div>
+                                    <div class="state-circle" data-state="5">5</div>
+                                </div>
+                            </div>
+                            
+                            <div class="game-controls">
+                                <button class="btn btn--primary" id="flipCoin">Flip Coin</button>
+                                <button class="btn btn--secondary" id="resetGame">Reset Game</button>
+                            </div>
+
+                            <div class="coin-result" id="coinResult"></div>
+                            
+                            <div class="game-history">
+                                <h4>History:</h4>
+                                <div class="history-list" id="historyList">Starting at state 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>State Transition Diagram</h3>
+                        <div class="transition-diagram">
+                            <svg width="400" height="300" viewBox="0 0 400 300">
+                                <!-- States -->
+                                <circle cx="50" cy="150" r="25" class="state-node" id="state1"/>
+                                <text x="50" y="155" text-anchor="middle" class="state-label">1</text>
+                                
+                                <circle cx="150" cy="75" r="25" class="state-node" id="state2"/>
+                                <text x="150" y="80" text-anchor="middle" class="state-label">2</text>
+                                
+                                <circle cx="250" cy="50" r="25" class="state-node" id="state3"/>
+                                <text x="250" y="55" text-anchor="middle" class="state-label">3</text>
+                                
+                                <circle cx="350" cy="75" r="25" class="state-node" id="state4"/>
+                                <text x="350" y="80" text-anchor="middle" class="state-label">4</text>
+                                
+                                <circle cx="350" cy="225" r="25" class="state-node" id="state5"/>
+                                <text x="350" y="230" text-anchor="middle" class="state-label">5</text>
+                                
+                                <!-- Arrow definitions -->
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-primary)"/>
+                                    </marker>
+                                </defs>
+                                
+                                <!-- Transitions -->
+                                <!-- State 1 transitions -->
+                                <path d="M 75 150 Q 100 112 125 75" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="1" data-to="2"/>
+                                <text x="100" y="105" class="transition-label">0.5</text>
+                                
+                                <!-- State 2 transitions -->
+                                <path d="M 125 75 Q 100 112 75 150" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="2" data-to="1"/>
+                                <text x="100" y="105" class="transition-label">0.5</text>
+                                
+                                <path d="M 175 75 Q 200 112 225 50" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="2" data-to="3"/>
+                                <text x="200" y="60" class="transition-label">0.5</text>
+                                
+                                <!-- State 3 transitions -->
+                                <path d="M 225 50 Q 200 112 175 75" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="3" data-to="2"/>
+                                <text x="200" y="60" class="transition-label">0.5</text>
+                                
+                                <path d="M 275 50 Q 300 112 325 75" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="3" data-to="4"/>
+                                <text x="300" y="60" class="transition-label">0.5</text>
+                                
+                                <!-- State 4 transitions -->
+                                <path d="M 325 75 Q 300 112 275 50" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="4" data-to="3"/>
+                                <text x="300" y="60" class="transition-label">0.5</text>
+                                
+                                <path d="M 350 100 Q 350 150 350 200" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="4" data-to="5"/>
+                                <text x="360" y="150" class="transition-label">0.5</text>
+                                
+                                <!-- State 5 transitions -->
+                                <path d="M 350 200 Q 350 150 350 100" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="5" data-to="4"/>
+                                <text x="360" y="150" class="transition-label">0.5</text>
+                                
+                                <path d="M 325 225 Q 200 225 75 150" stroke="var(--color-primary)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" data-from="5" data-to="1"/>
+                                <text x="200" y="215" class="transition-label">0.5</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-navigation">
+                    <button class="btn btn--secondary" onclick="navigateToSection('definition')">← Previous</button>
+                    <button class="btn btn--primary" onclick="navigateToSection('continuous')">Next: Continuous Example →</button>
+                </div>
+            </section>
+
+            <!-- Continuous Example Section -->
+            <section class="content-section" id="continuous">
+                <div class="section-header">
+                    <h1>Continuous Markov Chain</h1>
+                    <p class="section-subtitle">Random walk examples</p>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Random Walk</h3>
+                        <p>In a continuous Markov chain, the transition is defined as:</p>
+                        <div class="formula-display">
+                            $$p(X_{t+1}|X_t=x_t)=N(x_t,1)$$
+                        </div>
+                        <p>The next state follows a normal distribution with mean equal to the current state and variance 1.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Interactive Random Walk</h3>
+                        <div class="random-walk-controls">
+                            <button class="btn btn--primary" id="startWalk">Start Walk</button>
+                            <button class="btn btn--secondary" id="pauseWalk">Pause</button>
+                            <button class="btn btn--secondary" id="resetWalk">Reset</button>
+                            <div class="walk-info">
+                                <span>Step: <span id="walkStep">0</span></span>
+                                <span>Value: <span id="walkValue">0.00</span></span>
+                            </div>
+                        </div>
+                        <canvas id="randomWalkChart" width="600" height="300"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Modified Random Walk</h3>
+                        <p>We can modify the transition to include a parameter φ:</p>
+                        <div class="formula-display">
+                            $$p(X_{t+1}|X_t=x_t)=N(\phi x_t,1)$$
+                        </div>
+                        <div class="phi-controls">
+                            <label for="phiSlider">φ value: <span id="phiValue">0.0</span></label>
+                            <input type="range" id="phiSlider" min="-0.9" max="0.9" step="0.1" value="0">
+                            <p class="phi-description">φ between -1 and 1 ensures stationarity</p>
+                        </div>
+                        <div class="random-walk-controls">
+                            <button class="btn btn--primary" id="startModWalk">Start Modified Walk</button>
+                            <button class="btn btn--secondary" id="pauseModWalk">Pause</button>
+                            <button class="btn btn--secondary" id="resetModWalk">Reset</button>
+                            <div class="walk-info">
+                                <span>Step: <span id="modWalkStep">0</span></span>
+                                <span>Value: <span id="modWalkValue">0.00</span></span>
+                            </div>
+                        </div>
+                        <canvas id="modifiedWalkChart" width="600" height="300"></canvas>
+                    </div>
+                </div>
+
+                <div class="section-navigation">
+                    <button class="btn btn--secondary" onclick="navigateToSection('discrete')">← Previous</button>
+                    <button class="btn btn--primary" onclick="navigateToSection('matrix')">Next: Transition Matrix →</button>
+                </div>
+            </section>
+
+            <!-- Transition Matrix Section -->
+            <section class="content-section" id="matrix">
+                <div class="section-header">
+                    <h1>Transition Matrix</h1>
+                    <p class="section-subtitle">Matrix representation of state transitions</p>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>5×5 Transition Matrix</h3>
+                        <p>For our discrete example, the transition matrix Q is:</p>
+                        <div class="matrix-container">
+                            <table class="transition-matrix" id="transitionMatrix">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>→1</th>
+                                        <th>→2</th>
+                                        <th>→3</th>
+                                        <th>→4</th>
+                                        <th>→5</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>1</th>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="0" data-col="0"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="0" data-col="1"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="0" data-col="2"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="0" data-col="3"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="0" data-col="4"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>2</th>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="1" data-col="0"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="1" data-col="1"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="1" data-col="2"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="1" data-col="3"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="1" data-col="4"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>3</th>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="2" data-col="0"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="2" data-col="1"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="2" data-col="2"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="2" data-col="3"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="2" data-col="4"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>4</th>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="3" data-col="0"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="3" data-col="1"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="3" data-col="2"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="3" data-col="3"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="3" data-col="4"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>5</th>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="4" data-col="0"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="4" data-col="1"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="4" data-col="2"></td>
+                                        <td><input type="number" value="0.5" step="0.1" min="0" max="1" data-row="4" data-col="3"></td>
+                                        <td><input type="number" value="0.0" step="0.1" min="0" max="1" data-row="4" data-col="4"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="matrix-controls">
+                            <button class="btn btn--primary" id="calculatePowers">Calculate Matrix Powers</button>
+                            <button class="btn btn--secondary" id="resetMatrix">Reset to Original</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Matrix Powers</h3>
+                        <div class="power-controls">
+                            <label for="powerSelect">Select Power:</label>
+                            <select id="powerSelect" class="form-control">
+                                <option value="1">Q¹ (Original)</option>
+                                <option value="2">Q²</option>
+                                <option value="5">Q⁵</option>
+                                <option value="10">Q¹⁰</option>
+                                <option value="30">Q³⁰</option>
+                            </select>
+                        </div>
+                        <div class="power-result" id="powerResult"></div>
+                    </div>
+                </div>
+
+                <div class="section-navigation">
+                    <button class="btn btn--secondary" onclick="navigateToSection('continuous')">← Previous</button>
+                    <button class="btn btn--primary" onclick="navigateToSection('stationary')">Next: Stationary Distribution →</button>
+                </div>
+            </section>
+
+            <!-- Stationary Distribution Section -->
+            <section class="content-section" id="stationary">
+                <div class="section-header">
+                    <h1>Stationary Distribution</h1>
+                    <p class="section-subtitle">Long-term behavior of Markov chains</p>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Convergence to Stationarity</h3>
+                        <p>As we raise the transition matrix to higher powers, the rows converge to the stationary distribution. The chart below shows how the probabilities evolve from an initial state.</p>
+                        <div class="initial-state-info">
+                            <p><strong>Initial State:</strong> Starting from State 1</p>
+                            <p><strong>Stationary Distribution:</strong> π = (0.2, 0.2, 0.2, 0.2, 0.2)</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="convergenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Stationary Property</h3>
+                        <p>The stationary distribution π satisfies: π = πQ</p>
+                        <p>For our example: π = (0.2, 0.2, 0.2, 0.2, 0.2)</p>
+                        <div class="stationary-verification">
+                            <button class="btn btn--primary" id="verifyStationary">Verify Stationary Property</button>
+                            <div class="verification-result" id="verificationResult"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-navigation">
+                    <button class="btn btn--secondary" onclick="navigateToSection('matrix')">← Previous</button>
+                    <button class="btn btn--primary" onclick="navigateToSection('simulations')">Next: Simulations →</button>
+                </div>
+            </section>
+
+            <!-- Interactive Simulations Section -->
+            <section class="content-section" id="simulations">
+                <div class="section-header">
+                    <h1>Interactive Simulations</h1>
+                    <p class="section-subtitle">See theory in action with long-run simulations</p>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Long-Run Simulation</h3>
+                        <div class="simulation-controls">
+                            <div class="control-group">
+                                <label for="simSteps">Number of Steps:</label>
+                                <input type="range" id="simSteps" min="100" max="10000" step="100" value="5000">
+                                <span id="simStepsValue">5000</span>
+                            </div>
+                            <div class="control-group">
+                                <label for="simSpeed">Speed:</label>
+                                <input type="range" id="simSpeed" min="1" max="10" value="5">
+                                <span id="simSpeedValue">5</span>
+                            </div>
+                            <div class="control-buttons">
+                                <button class="btn btn--primary" id="startSimulation">Start Simulation</button>
+                                <button class="btn btn--secondary" id="pauseSimulation">Pause</button>
+                                <button class="btn btn--secondary" id="resetSimulation">Reset</button>
+                            </div>
+                        </div>
+                        <div class="simulation-stats">
+                            <div class="stat">
+                                <span class="stat-label">Current Step:</span>
+                                <span class="stat-value" id="currentStep">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Current State:</span>
+                                <span class="stat-value" id="simCurrentState">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__body">
+                        <h3>State Visit Frequencies</h3>
+                        <div class="chart-container">
+                            <canvas id="frequencyChart"></canvas>
+                        </div>
+                        <div class="frequency-comparison">
+                            <h4>Theoretical vs Observed</h4>
+                            <table class="comparison-table" id="comparisonTable">
+                                <thead>
+                                    <tr>
+                                        <th>State</th>
+                                        <th>Theoretical</th>
+                                        <th>Observed</th>
+                                        <th>Difference</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>0.200</td><td id="obs1">0.000</td><td id="diff1">0.000</td></tr>
+                                    <tr><td>2</td><td>0.200</td><td id="obs2">0.000</td><td id="diff2">0.000</td></tr>
+                                    <tr><td>3</td><td>0.200</td><td id="obs3">0.000</td><td id="diff3">0.000</td></tr>
+                                    <tr><td>4</td><td>0.200</td><td id="obs4">0.000</td><td id="diff4">0.000</td></tr>
+                                    <tr><td>5</td><td>0.200</td><td id="obs5">0.000</td><td id="diff5">0.000</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-navigation">
+                    <button class="btn btn--secondary" onclick="navigateToSection('stationary')">← Previous</button>
+                    <button class="btn btn--primary" onclick="navigateToSection('introduction')">Start Over</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
