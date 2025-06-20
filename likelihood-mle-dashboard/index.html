@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Likelihood Function & Maximum Likelihood Estimation Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Likelihood Function & Maximum Likelihood Estimation</h1>
+            <p class="header-subtitle">Interactive Dashboard for Understanding MLE with Three Key Examples</p>
+        </header>
+
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="bernoulli">Hospital Mortality (Bernoulli)</button>
+            <button class="tab-btn" data-tab="exponential">Exponential Distribution</button>
+            <button class="tab-btn" data-tab="uniform">Uniform Distribution</button>
+        </nav>
+
+        <!-- Bernoulli/Hospital Mortality Tab -->
+        <div id="bernoulli-tab" class="tab-content active">
+            <div class="tab-header">
+                <h2>Hospital Mortality Example - Bernoulli Distribution</h2>
+                <p class="example-description">
+                    Consider a hospital where 400 patients are admitted for heart attacks. 
+                    After a month, 72 have died (18%) and 328 have survived (82%). 
+                    We want to estimate the mortality rate θ using maximum likelihood.
+                </p>
+            </div>
+
+            <div class="content-grid">
+                <div class="controls-section card">
+                    <h3>Interactive Controls</h3>
+                    <div class="form-group">
+                        <label class="form-label">Mortality Rate (θ): <span id="theta-value">0.18</span></label>
+                        <input type="range" id="theta-slider" class="form-control" min="0.01" max="0.99" step="0.01" value="0.18">
+                    </div>
+                    <div class="toggle-controls">
+                        <button id="bernoulli-likelihood-btn" class="btn btn--primary btn--sm active">Likelihood</button>
+                        <button id="bernoulli-log-likelihood-btn" class="btn btn--secondary btn--sm">Log-Likelihood</button>
+                    </div>
+                </div>
+
+                <div class="results-section card">
+                    <h3>Results</h3>
+                    <div class="result-item">
+                        <strong>Data:</strong> n = 400, successes = 72, failures = 328
+                    </div>
+                    <div class="result-item">
+                        <strong>MLE:</strong> θ̂ = 72/400 = <span class="mle-value">0.18</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Current L(θ):</strong> <span id="current-likelihood">--</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Fisher Information:</strong> I(θ̂) = <span id="fisher-info">--</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>95% CI:</strong> [<span id="ci-lower">--</span>, <span id="ci-upper">--</span>]
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section card">
+                <h3>Likelihood Function</h3>
+                <canvas id="bernoulli-chart" height="400"></canvas>
+            </div>
+
+            <div class="theory-section card">
+                <h3>Mathematical Theory</h3>
+                <div class="theory-content">
+                    <h4>Likelihood Function</h4>
+                    <p>For Bernoulli trials with n observations and k successes:</p>
+                    <p class="math-formula">$$L(\theta) = \theta^k (1-\theta)^{n-k} = \theta^{72} (1-\theta)^{328}$$</p>
+                    
+                    <h4>Log-Likelihood Function</h4>
+                    <p class="math-formula">$$\ell(\theta) = k \ln(\theta) + (n-k) \ln(1-\theta) = 72 \ln(\theta) + 328 \ln(1-\theta)$$</p>
+                    
+                    <h4>Maximum Likelihood Estimate</h4>
+                    <p>Taking the derivative and setting to zero:</p>
+                    <p class="math-formula">$$\frac{d\ell}{d\theta} = \frac{k}{\theta} - \frac{n-k}{1-\theta} = 0$$</p>
+                    <p>Solving gives us: $\hat{\theta} = \frac{k}{n} = \frac{72}{400} = 0.18$</p>
+                    
+                    <h4>Fisher Information</h4>
+                    <p class="math-formula">$$I(\theta) = \frac{n}{\theta(1-\theta)}$$</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exponential Tab -->
+        <div id="exponential-tab" class="tab-content">
+            <div class="tab-header">
+                <h2>Exponential Distribution Example</h2>
+                <p class="example-description">
+                    Sample data from exponential distribution with parameter λ. 
+                    The exponential distribution models waiting times between events.
+                </p>
+            </div>
+
+            <div class="content-grid">
+                <div class="controls-section card">
+                    <h3>Interactive Controls</h3>
+                    <div class="form-group">
+                        <label class="form-label">Rate Parameter (λ): <span id="lambda-value">0.62</span></label>
+                        <input type="range" id="lambda-slider" class="form-control" min="0.1" max="3.0" step="0.01" value="0.62">
+                    </div>
+                    <div class="toggle-controls">
+                        <button id="exp-likelihood-btn" class="btn btn--primary btn--sm active">Likelihood</button>
+                        <button id="exp-log-likelihood-btn" class="btn btn--secondary btn--sm">Log-Likelihood</button>
+                    </div>
+                </div>
+
+                <div class="results-section card">
+                    <h3>Results</h3>
+                    <div class="result-item">
+                        <strong>Sample Size:</strong> n = 15
+                    </div>
+                    <div class="result-item">
+                        <strong>Sample Mean:</strong> x̄ = <span id="sample-mean">1.61</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>MLE:</strong> λ̂ = 1/x̄ = <span class="mle-value" id="lambda-mle">0.62</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Current L(λ):</strong> <span id="current-likelihood-exp">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section card">
+                <h3>Likelihood Function</h3>
+                <canvas id="exponential-chart" height="400"></canvas>
+            </div>
+
+            <div class="data-section card">
+                <h3>Sample Data</h3>
+                <div id="sample-data-display"></div>
+            </div>
+
+            <div class="theory-section card">
+                <h3>Mathematical Theory</h3>
+                <div class="theory-content">
+                    <h4>Likelihood Function</h4>
+                    <p>For n independent exponential observations:</p>
+                    <p class="math-formula">$$L(\lambda) = \prod_{i=1}^n \lambda e^{-\lambda x_i} = \lambda^n e^{-\lambda \sum x_i}$$</p>
+                    
+                    <h4>Log-Likelihood Function</h4>
+                    <p class="math-formula">$$\ell(\lambda) = n \ln(\lambda) - \lambda \sum_{i=1}^n x_i$$</p>
+                    
+                    <h4>Maximum Likelihood Estimate</h4>
+                    <p>Taking the derivative:</p>
+                    <p class="math-formula">$$\frac{d\ell}{d\lambda} = \frac{n}{\lambda} - \sum x_i = 0$$</p>
+                    <p>Solving gives us: $\hat{\lambda} = \frac{n}{\sum x_i} = \frac{1}{\bar{x}}$</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uniform Tab -->
+        <div id="uniform-tab" class="tab-content">
+            <div class="tab-header">
+                <h2>Uniform Distribution Example</h2>
+                <p class="example-description">
+                    Sample data from uniform distribution on [0, θ]. This example shows 
+                    a case where calculus doesn't help us find the MLE.
+                </p>
+            </div>
+
+            <div class="content-grid">
+                <div class="controls-section card">
+                    <h3>Interactive Controls</h3>
+                    <div class="form-group">
+                        <label class="form-label">Upper Bound (θ): <span id="uniform-theta-value">4.20</span></label>
+                        <input type="range" id="uniform-theta-slider" class="form-control" min="4.2" max="8.0" step="0.01" value="4.20">
+                    </div>
+                </div>
+
+                <div class="results-section card">
+                    <h3>Results</h3>
+                    <div class="result-item">
+                        <strong>Sample Size:</strong> n = 15
+                    </div>
+                    <div class="result-item">
+                        <strong>Max Observation:</strong> max(x) = <span id="max-obs">4.20</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>MLE:</strong> θ̂ = max(x) = <span class="mle-value">4.20</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Current L(θ):</strong> <span id="current-likelihood-uniform">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section card">
+                <h3>Likelihood Function</h3>
+                <canvas id="uniform-chart" height="400"></canvas>
+            </div>
+
+            <div class="data-section card">
+                <h3>Sample Data</h3>
+                <div id="uniform-sample-data-display"></div>
+            </div>
+
+            <div class="theory-section card">
+                <h3>Mathematical Theory</h3>
+                <div class="theory-content">
+                    <h4>Likelihood Function</h4>
+                    <p>For uniform distribution on [0, θ]:</p>
+                    <p class="math-formula">$$L(\theta) = \frac{1}{\theta^n} \mathbf{1}_{[\max(x_i) \leq \theta]}$$</p>
+                    
+                    <h4>Why Calculus Doesn't Work</h4>
+                    <p>The derivative is:</p>
+                    <p class="math-formula">$$\frac{dL}{d\theta} = -\frac{n}{\theta^{n+1}} \mathbf{1}_{[\max(x_i) \leq \theta]}$$</p>
+                    <p>This is always negative for θ > max(x), so L(θ) is decreasing.</p>
+                    
+                    <h4>Maximum Likelihood Estimate</h4>
+                    <p>Since L(θ) decreases as θ increases, the MLE is the smallest possible value:</p>
+                    <p class="math-formula">$$\hat{\theta} = \max(x_1, x_2, \ldots, x_n)$$</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
