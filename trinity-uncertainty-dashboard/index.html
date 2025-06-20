@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Trinity of Uncertainty - Educational Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="flex items-center justify-between">
+                    <h1 class="header__title">The Trinity of Uncertainty</h1>
+                    <div class="flex items-center gap-16">
+                        <div class="progress-indicator">
+                            <span class="progress-indicator__label">Progress:</span>
+                            <div class="progress-indicator__bar">
+                                <div class="progress-indicator__fill" id="progressFill"></div>
+                            </div>
+                            <span class="progress-indicator__text" id="progressText">0%</span>
+                        </div>
+                        <button class="btn btn--secondary btn--sm" id="themeToggle">🌙</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="container">
+                <div class="nav__tabs">
+                    <button class="nav__tab nav__tab--active" data-tab="overview">Overview</button>
+                    <button class="nav__tab" data-tab="aleatory">Aleatory</button>
+                    <button class="nav__tab" data-tab="epistemic">Epistemic</button>
+                    <button class="nav__tab" data-tab="ontological">Ontological</button>
+                    <button class="nav__tab" data-tab="monty-hall">Monty Hall Lab</button>
+                    <button class="nav__tab" data-tab="ml-applications">ML Applications</button>
+                    <button class="nav__tab" data-tab="quiz">Quiz</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Overview Tab -->
+                <div class="tab-content tab-content--active" id="overview">
+                    <div class="section">
+                        <h2>Understanding the Three Types of Uncertainty</h2>
+                        <p>Uncertainty is classified into three fundamental types based on their source and nature. Each plays a crucial role in decision-making, machine learning, and our understanding of complex systems.</p>
+                        
+                        <div class="uncertainty-grid">
+                            <div class="uncertainty-card" data-type="aleatory">
+                                <div class="uncertainty-card__header" style="background-color: #3B82F6;">
+                                    <h3 class="uncertainty-card__title">Aleatory Uncertainty</h3>
+                                </div>
+                                <div class="uncertainty-card__body">
+                                    <p class="uncertainty-card__definition">Irreducible randomness of outcomes - uncertainty that cannot be eliminated even with perfect knowledge.</p>
+                                    <div class="uncertainty-card__examples">
+                                        <h4>Examples:</h4>
+                                        <ul>
+                                            <li>Random car placement in Monty Hall</li>
+                                            <li>Measurement uncertainty in sensors</li>
+                                            <li>Sampling uncertainty in data</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="uncertainty-card" data-type="epistemic">
+                                <div class="uncertainty-card__header" style="background-color: #10B981;">
+                                    <h3 class="uncertainty-card__title">Epistemic Uncertainty</h3>
+                                </div>
+                                <div class="uncertainty-card__body">
+                                    <p class="uncertainty-card__definition">Uncertainty from lack of knowledge - can be reduced through acquiring more information.</p>
+                                    <div class="uncertainty-card__examples">
+                                        <h4>Examples:</h4>
+                                        <ul>
+                                            <li>Model selection uncertainty</li>
+                                            <li>Feature selection choices</li>
+                                            <li>Algorithm parameter tuning</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="uncertainty-card" data-type="ontological">
+                                <div class="uncertainty-card__header" style="background-color: #8B5CF6;">
+                                    <h3 class="uncertainty-card__title">Ontological Uncertainty</h3>
+                                </div>
+                                <div class="uncertainty-card__body">
+                                    <p class="uncertainty-card__definition">Uncertainty about the fundamental nature of reality - structural changes that are inherently unpredictable.</p>
+                                    <div class="uncertainty-card__examples">
+                                        <h4>Examples:</h4>
+                                        <ul>
+                                            <li>Market regime changes</li>
+                                            <li>Technological breakthroughs</li>
+                                            <li>Political policy shifts</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aleatory Tab -->
+                <div class="tab-content" id="aleatory">
+                    <div class="section">
+                        <h2>Aleatory Uncertainty: Irreducible Randomness</h2>
+                        <p>From Latin "aleatory" meaning "of dice" - this represents the fundamental randomness that cannot be eliminated regardless of our knowledge.</p>
+
+                        <div class="demo-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Coin Flip Simulator</h3>
+                                    <div class="simulator">
+                                        <div class="coin-display" id="coinDisplay">🪙</div>
+                                        <div class="controls">
+                                            <label class="form-label">Bias (Probability of Heads):</label>
+                                            <input type="range" class="form-control" id="coinBias" min="0" max="1" step="0.01" value="0.5">
+                                            <span id="biasValue">0.5</span>
+                                            <button class="btn btn--primary" id="flipCoin">Flip Coin</button>
+                                            <button class="btn btn--outline" id="resetCoin">Reset</button>
+                                        </div>
+                                        <div class="stats">
+                                            <div class="stat">
+                                                <span class="stat__label">Flips:</span>
+                                                <span class="stat__value" id="totalFlips">0</span>
+                                            </div>
+                                            <div class="stat">
+                                                <span class="stat__label">Heads:</span>
+                                                <span class="stat__value" id="headsCount">0</span>
+                                            </div>
+                                            <div class="stat">
+                                                <span class="stat__label">Rate:</span>
+                                                <span class="stat__value" id="headsRate">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Dice Simulator</h3>
+                                    <div class="simulator">
+                                        <div class="dice-display" id="diceDisplay">🎲</div>
+                                        <div class="controls">
+                                            <label class="form-label">Number of Sides:</label>
+                                            <select class="form-control" id="diceSides">
+                                                <option value="6">6-sided</option>
+                                                <option value="8">8-sided</option>
+                                                <option value="12">12-sided</option>
+                                                <option value="20">20-sided</option>
+                                            </select>
+                                            <button class="btn btn--primary" id="rollDice">Roll Dice</button>
+                                            <button class="btn btn--outline" id="resetDice">Reset</button>
+                                        </div>
+                                        <div class="dice-result">
+                                            <span class="result-value" id="diceResult">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-8">
+                            <div class="card__body">
+                                <h3>Frequency Distribution</h3>
+                                <canvas id="frequencyChart" style="height: 300px !important; max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Epistemic Tab -->
+                <div class="tab-content" id="epistemic">
+                    <div class="section">
+                        <h2>Epistemic Uncertainty: Knowledge-Based Uncertainty</h2>
+                        <p>From Greek "episteme" meaning knowledge - uncertainty that can be reduced through learning and information acquisition.</p>
+
+                        <div class="demo-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Information Revelation Demo</h3>
+                                    <div class="revelation-demo">
+                                        <div class="mystery-boxes">
+                                            <div class="mystery-box" data-value="A">?</div>
+                                            <div class="mystery-box" data-value="B">?</div>
+                                            <div class="mystery-box" data-value="C">?</div>
+                                        </div>
+                                        <button class="btn btn--primary" id="revealInfo">Reveal Information</button>
+                                        <div class="uncertainty-level">
+                                            <span>Uncertainty Level: </span>
+                                            <div class="uncertainty-bar">
+                                                <div class="uncertainty-fill" id="uncertaintyFill"></div>
+                                            </div>
+                                            <span id="uncertaintyPercent">100%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Bias-Variance Tradeoff</h3>
+                                    <div class="bias-variance-demo">
+                                        <div class="controls">
+                                            <label class="form-label">Model Complexity:</label>
+                                            <input type="range" class="form-control" id="complexitySlider" min="1" max="10" value="5">
+                                            <div class="complexity-indicators">
+                                                <span>Simple</span>
+                                                <span>Complex</span>
+                                            </div>
+                                        </div>
+                                        <div class="tradeoff-display">
+                                            <div class="tradeoff-bars">
+                                                <div class="tradeoff-bar">
+                                                    <label>Bias:</label>
+                                                    <div class="bar">
+                                                        <div class="bar-fill bias-fill" id="biasFill"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="tradeoff-bar">
+                                                    <label>Variance:</label>
+                                                    <div class="bar">
+                                                        <div class="bar-fill variance-fill" id="varianceFill"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="tradeoff-bar">
+                                                    <label>Total Error:</label>
+                                                    <div class="bar">
+                                                        <div class="bar-fill error-fill" id="totalErrorFill"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-8">
+                            <div class="card__body">
+                                <h3>ML Uncertainty Sources</h3>
+                                <div class="uncertainty-sources">
+                                    <div class="source-item">
+                                        <h4>Data Uncertainty</h4>
+                                        <p>Unrepresentative samples that don't reflect the true population</p>
+                                    </div>
+                                    <div class="source-item">
+                                        <h4>Model Uncertainty</h4>
+                                        <p>Uncertainty about which model architecture to choose</p>
+                                    </div>
+                                    <div class="source-item">
+                                        <h4>Parameter Uncertainty</h4>
+                                        <p>Uncertainty in model parameter values and hyperparameters</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ontological Tab -->
+                <div class="tab-content" id="ontological">
+                    <div class="section">
+                        <h2>Ontological Uncertainty: Reality's Fundamental Nature</h2>
+                        <p>Uncertainty about the nature of being and reality itself - arising from structural changes that are inherently unpredictable.</p>
+
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Regime Change Simulator</h3>
+                                <div class="regime-simulator">
+                                    <div class="timeline">
+                                        <div class="timeline-track">
+                                            <div class="regime-period" id="regime1" style="background-color: #3B82F6;">Stable Period</div>
+                                            <div class="regime-change" id="changePoint">⚡</div>
+                                            <div class="regime-period" id="regime2" style="background-color: #EF4444;">New Regime</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn--primary" id="triggerChange">Trigger Regime Change</button>
+                                    <div class="regime-info">
+                                        <div class="info-item">
+                                            <strong>Current State:</strong>
+                                            <span id="currentRegime">Stable Market</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <strong>Predictability:</strong>
+                                            <span id="predictability">High</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-8">
+                            <div class="card__body">
+                                <h3>Black Swan Events in Finance</h3>
+                                <div class="black-swan-examples">
+                                    <div class="event-card">
+                                        <h4>2008 Financial Crisis</h4>
+                                        <p>Structural change in financial markets that existing models failed to predict</p>
+                                    </div>
+                                    <div class="event-card">
+                                        <h4>COVID-19 Pandemic</h4>
+                                        <p>Global event that fundamentally altered economic behavior and market dynamics</p>
+                                    </div>
+                                    <div class="event-card">
+                                        <h4>Cryptocurrency Emergence</h4>
+                                        <p>Technological breakthrough creating entirely new asset classes and market behaviors</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monty Hall Lab -->
+                <div class="tab-content" id="monty-hall">
+                    <div class="section">
+                        <h2>Monty Hall Laboratory</h2>
+                        <p>Experience all three types of uncertainty in the classic Monty Hall problem.</p>
+
+                        <div class="monty-hall-game">
+                            <div class="game-area">
+                                <h3>Choose a Door</h3>
+                                <div class="doors">
+                                    <div class="door" data-door="1" id="door1">
+                                        <div class="door-number">1</div>
+                                        <div class="door-content"></div>
+                                    </div>
+                                    <div class="door" data-door="2" id="door2">
+                                        <div class="door-number">2</div>
+                                        <div class="door-content"></div>
+                                    </div>
+                                    <div class="door" data-door="3" id="door3">
+                                        <div class="door-number">3</div>
+                                        <div class="door-content"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="game-controls">
+                                    <div class="game-status" id="gameStatus">Click a door to start!</div>
+                                    <div class="game-buttons">
+                                        <button class="btn btn--primary" id="stayButton" style="display: none;">Stay</button>
+                                        <button class="btn btn--secondary" id="switchButton" style="display: none;">Switch</button>
+                                        <button class="btn btn--outline" id="resetGame">New Game</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="game-stats">
+                                <h3>Statistics</h3>
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="totalGames">0</div>
+                                        <div class="stat-label">Total Games</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="stayWins">0</div>
+                                        <div class="stat-label">Stay Wins</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="switchWins">0</div>
+                                        <div class="stat-label">Switch Wins</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="stayRate">0%</div>
+                                        <div class="stat-label">Stay Win Rate</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="switchRate">67%</div>
+                                        <div class="stat-label">Switch Win Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-8">
+                            <div class="card__body">
+                                <h3>Uncertainty Analysis</h3>
+                                <div class="uncertainty-analysis">
+                                    <div class="analysis-item">
+                                        <div class="analysis-type" style="color: #3B82F6;">Aleatory</div>
+                                        <div class="analysis-description">The car's random placement behind doors creates irreducible uncertainty</div>
+                                    </div>
+                                    <div class="analysis-item">
+                                        <div class="analysis-type" style="color: #10B981;">Epistemic</div>
+                                        <div class="analysis-description">Your uncertainty decreases when the host reveals a goat</div>
+                                    </div>
+                                    <div class="analysis-item">
+                                        <div class="analysis-type" style="color: #8B5CF6;">Ontological</div>
+                                        <div class="analysis-description">The host is uncertain about your switching strategy</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ML Applications Tab -->
+                <div class="tab-content" id="ml-applications">
+                    <div class="section">
+                        <h2>Machine Learning Applications</h2>
+                        <p>How the trinity of uncertainty manifests in machine learning systems.</p>
+
+                        <div class="ml-examples">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Uncertainty in Predictions</h3>
+                                    <div class="prediction-demo">
+                                        <canvas id="predictionChart" style="height: 300px !important; max-height: 300px;"></canvas>
+                                        <div class="prediction-controls">
+                                            <label class="form-label">Model Confidence:</label>
+                                            <input type="range" class="form-control" id="confidenceSlider" min="0.1" max="0.9" step="0.1" value="0.5">
+                                            <span id="confidenceValue">0.5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mt-8">
+                                <div class="card__body">
+                                    <h3>No Free Lunch Theorem</h3>
+                                    <p>The NFL theorem proves that no single machine learning algorithm is universally superior across all possible problems.</p>
+                                    <div class="nfl-demo">
+                                        <div class="algorithm-performance">
+                                            <div class="performance-item">
+                                                <span class="algorithm-name">Linear Regression</span>
+                                                <div class="performance-bars">
+                                                    <div class="performance-bar">
+                                                        <span class="dataset-name">Dataset A</span>
+                                                        <div class="bar"><div class="bar-fill" style="width: 90%;"></div></div>
+                                                    </div>
+                                                    <div class="performance-bar">
+                                                        <span class="dataset-name">Dataset B</span>
+                                                        <div class="bar"><div class="bar-fill" style="width: 30%;"></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="performance-item">
+                                                <span class="algorithm-name">Neural Network</span>
+                                                <div class="performance-bars">
+                                                    <div class="performance-bar">
+                                                        <span class="dataset-name">Dataset A</span>
+                                                        <div class="bar"><div class="bar-fill" style="width: 40%;"></div></div>
+                                                    </div>
+                                                    <div class="performance-bar">
+                                                        <span class="dataset-name">Dataset B</span>
+                                                        <div class="bar"><div class="bar-fill" style="width: 85%;"></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Tab -->
+                <div class="tab-content" id="quiz">
+                    <div class="section">
+                        <h2>Knowledge Assessment</h2>
+                        <p>Test your understanding of uncertainty types with these scenario-based questions.</p>
+
+                        <div class="quiz-container">
+                            <div class="quiz-progress">
+                                <div class="quiz-progress__bar">
+                                    <div class="quiz-progress__fill" id="quizProgressFill"></div>
+                                </div>
+                                <span class="quiz-progress__text" id="quizProgressText">Question 1 of 3</span>
+                            </div>
+
+                            <div class="quiz-question" id="quizQuestion">
+                                <h3 class="question-text" id="questionText">Loading question...</h3>
+                                <div class="question-options" id="questionOptions">
+                                    <!-- Options will be populated by JavaScript -->
+                                </div>
+                                <div class="question-feedback" id="questionFeedback" style="display: none;">
+                                    <!-- Feedback will be shown here -->
+                                </div>
+                                <div class="question-controls">
+                                    <button class="btn btn--primary" id="submitAnswer" disabled>Submit Answer</button>
+                                    <button class="btn btn--secondary" id="nextQuestion" style="display: none;">Next Question</button>
+                                </div>
+                            </div>
+
+                            <div class="quiz-results" id="quizResults" style="display: none;">
+                                <h3>Quiz Complete!</h3>
+                                <div class="results-summary">
+                                    <div class="result-item">
+                                        <span class="result-label">Score:</span>
+                                        <span class="result-value" id="finalScore">0/3</span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Percentage:</span>
+                                        <span class="result-value" id="finalPercentage">0%</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn--primary" id="retakeQuiz">Retake Quiz</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
