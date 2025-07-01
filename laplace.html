@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laplace Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #8e44ad;
+            --accent-color: #e67e22;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+            margin-bottom: 20px;
+        }
+        .slider-container {
+            margin: 10px 0 0 0;
+            padding: 10px 0 0 0;
+        }
+        label {
+            font-size: 1em;
+            margin-bottom: 0;
+        }
+        input[type="range"] {
+            width: 80%;
+            margin: 0 10px 0 0;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .parameter-display {
+            display: inline;
+            font-size: 0.95em;
+            font-weight: 400;
+            margin-left: 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .stats-container {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 0 0;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 7px;
+            text-align: center;
+            min-width: 110px;
+        }
+        .stat-box h3 {
+            font-size: 1em;
+            margin: 0 0 2px 0;
+        }
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        #laplace-plot {
+            width: 100%;
+            height: 50vh;
+            margin: 20px 0;
+        }
+        section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        a {
+            text-decoration: none;
+            color: var(--secondary-color);
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .resource-links {
+            margin-top: 18px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Laplace Distribution</h1>
+    <div class="container">
+        <p style="margin-bottom: 10px;">The Laplace distribution, also known as the double exponential distribution, is a continuous probability distribution with location parameter <b>μ</b> and scale parameter <b>b</b> (b &gt; 0). It is often used in signal processing, Bayesian statistics, and as a model for data with sharp peaks at the mean.</p>
+        <div class="slider-container">
+            <div class="slider-row">
+                <label for="mu-slider">Location (μ):</label>
+                <input type="range" id="mu-slider" min="-5" max="5" step="0.01" value="0">
+                <span class="parameter-display" id="mu-value">μ = 0.00</span>
+            </div>
+            <div class="slider-row">
+                <label for="b-slider">Scale (b):</label>
+                <input type="range" id="b-slider" min="0.1" max="3" step="0.01" value="1">
+                <span class="parameter-display" id="b-value">b = 1.00</span>
+            </div>
+        </div>
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3>Mean (μ)</h3>
+                <div class="stat-value" id="mean-value">0.00</div>
+            </div>
+            <div class="stat-box">
+                <h3>Variance (σ²)</h3>
+                <div class="stat-value" id="variance-value">2.00</div>
+            </div>
+            <div class="stat-box">
+                <h3>Median</h3>
+                <div class="stat-value" id="median-value">0.00</div>
+            </div>
+            <div class="stat-box">
+                <h3>Mode</h3>
+                <div class="stat-value" id="mode-value">0.00</div>
+            </div>
+        </div>
+        <div id="laplace-plot"></div>
+        <div id="laplace-cdf-plot"></div>
+    </div>
+    <section>
+        <h2>PDF (Probability Density Function)</h2>
+        <div style="font-size:1.1em; background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:10px;">
+            \[
+            f(x;\mu, b) = \frac{1}{2b} \exp\left(-\frac{|x-\mu|}{b}\right)
+            \]
+        </div>
+        <h2>CDF (Cumulative Distribution Function)</h2>
+        <div style="font-size:1.1em; background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:10px;">
+            \[
+            F(x;\mu, b) = \begin{cases}
+            \frac{1}{2} \exp\left(\frac{x-\mu}{b}\right) & x < \mu \\
+            1 - \frac{1}{2} \exp\left(-\frac{x-\mu}{b}\right) & x \geq \mu
+            \end{cases}
+            \]
+        </div>
+        <h2>Parameters</h2>
+        <ul>
+            <li><b>μ</b>: Location parameter (real number)</li>
+            <li><b>b</b>: Scale parameter (b &gt; 0)</li>
+        </ul>
+        <h2>Mean, Median, Mode, and Variance</h2>
+        <ul>
+            <li><b>Mean:</b> \( \mu \)</li>
+            <li><b>Median:</b> \( \mu \)</li>
+            <li><b>Mode:</b> \( \mu \)</li>
+            <li><b>Variance:</b> \( 2b^2 \)</li>
+        </ul>
+        <h2>Example</h2>
+        <p>For μ = 0, b = 1, the PDF is:</p>
+        <div style="font-size:1.1em; background:#f8f9fa; padding:12px; border-radius:8px;">
+            \[
+            f(x; 0, 1) = \frac{1}{2} \exp(-|x|)
+            \]
+        </div>
+        <div class="resource-links">
+            <b>Resources:</b>
+            <ul>
+                <li><a href="https://en.wikipedia.org/wiki/Laplace_distribution" target="_blank">Laplace distribution - Wikipedia</a></li>
+                <li><a href="https://www.youtube.com/watch?v=5mMgYN89CAA" target="_blank">Laplace Distribution (YouTube)</a></li>
+            </ul>
+        </div>
+        <p><a href="index.html">&larr; Back to Main Page</a></p>
+    </section>
+    <script>
+        function laplacePDF(x, mu, b) {
+            return (1 / (2 * b)) * Math.exp(-Math.abs(x - mu) / b);
+        }
+        function laplaceCDF(x, mu, b) {
+            if (x < mu) {
+                return 0.5 * Math.exp((x - mu) / b);
+            } else {
+                return 1 - 0.5 * Math.exp(-(x - mu) / b);
+            }
+        }
+        function plotLaplace(mu, b) {
+            const x = [];
+            const y = [];
+            const cdf = [];
+            for (let i = -10; i <= 10; i += 0.05) {
+                x.push(i);
+                y.push(laplacePDF(i, mu, b));
+                cdf.push(laplaceCDF(i, mu, b));
+            }
+            const trace = {
+                x: x,
+                y: y,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#8e44ad' },
+                name: 'Laplace PDF'
+            };
+            const cdfTrace = {
+                x: x,
+                y: cdf,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#27ae60' },
+                name: 'Laplace CDF'
+            };
+            const layout = {
+                title: `Laplace Distribution (μ = ${mu}, b = ${b})`,
+                xaxis: { title: 'x', range: [-10, 10] },
+                yaxis: { title: 'Probability Density', range: [0, Math.max(...y) * 1.1] },
+                template: 'plotly_white'
+            };
+            const cdfLayout = {
+                title: `Laplace CDF (μ = ${mu}, b = ${b})`,
+                xaxis: { title: 'x', range: [-10, 10] },
+                yaxis: { title: 'Cumulative Probability', range: [0, 1.05] },
+                template: 'plotly_white'
+            };
+            Plotly.newPlot('laplace-plot', [trace], layout, {displayModeBar: false});
+            Plotly.newPlot('laplace-cdf-plot', [cdfTrace], cdfLayout, {displayModeBar: false});
+        }
+        const muSlider = document.getElementById('mu-slider');
+        const muValue = document.getElementById('mu-value');
+        const bSlider = document.getElementById('b-slider');
+        const bValue = document.getElementById('b-value');
+        const meanValue = document.getElementById('mean-value');
+        const varianceValue = document.getElementById('variance-value');
+        const medianValue = document.getElementById('median-value');
+        const modeValue = document.getElementById('mode-value');
+        function updateLaplace() {
+            const mu = parseFloat(muSlider.value);
+            const b = parseFloat(bSlider.value);
+            muValue.textContent = `μ = ${mu.toFixed(2)}`;
+            bValue.textContent = `b = ${b.toFixed(2)}`;
+            meanValue.textContent = mu.toFixed(2);
+            varianceValue.textContent = (2 * b * b).toFixed(2);
+            medianValue.textContent = mu.toFixed(2);
+            modeValue.textContent = mu.toFixed(2);
+            plotLaplace(mu, b);
+            if (window.MathJax) window.MathJax.typesetPromise && window.MathJax.typesetPromise();
+        }
+        muSlider.addEventListener('input', updateLaplace);
+        bSlider.addEventListener('input', updateLaplace);
+        updateLaplace();
+    </script>
+</body>
+</html> 
