@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gibbs Sampling Tutor - Interactive Learning Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <h1 class="header__title">Gibbs Sampling Tutor</h1>
+                <nav class="nav">
+                    <ul class="nav__list">
+                        <li><a href="#introduction" class="nav__link">Introduction</a></li>
+                        <li><a href="#theory" class="nav__link">Theory</a></li>
+                        <li><a href="#demo" class="nav__link">Interactive Demo</a></li>
+                        <li><a href="#calculations" class="nav__link">Calculations</a></li>
+                        <li><a href="#practice" class="nav__link">Practice</a></li>
+                        <li><a href="#resources" class="nav__link">Resources</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="introduction" class="section section--intro">
+            <div class="container">
+                <div class="intro__content">
+                    <h2>Welcome to Gibbs Sampling</h2>
+                    <p class="intro__lead">Learn one of the most powerful techniques in Bayesian statistics through interactive demonstrations and step-by-step calculations.</p>
+                    
+                    <div class="intro__grid">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>What is Gibbs Sampling?</h3>
+                                <p>Gibbs sampling is a Markov Chain Monte Carlo (MCMC) algorithm used to sample from multivariate probability distributions when direct sampling is difficult but conditional sampling is feasible.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Why Learn It?</h3>
+                                <p>Essential for Bayesian inference, machine learning, and statistical modeling. Used in applications from medical research to artificial intelligence.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Prerequisites</h3>
+                                <ul>
+                                    <li>Basic probability theory</li>
+                                    <li>Understanding of Bayes' theorem</li>
+                                    <li>Familiarity with normal distributions</li>
+                                    <li>Basic calculus</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="theory" class="section">
+            <div class="container">
+                <h2>Mathematical Theory</h2>
+                
+                <div class="theory__content">
+                    <div class="card theory__card">
+                        <div class="card__body">
+                            <h3>Definition and Algorithm</h3>
+                            <p>Gibbs sampling generates samples from a joint distribution $p(\theta, \phi | y)$ by alternately sampling from full conditional distributions:</p>
+                            
+                            <div class="math-block">
+                                $$p(\theta, \phi | y) \propto g(\theta, \phi)$$
+                            </div>
+                            
+                            <div class="algorithm">
+                                <h4>Algorithm Steps:</h4>
+                                <ol>
+                                    <li>Initialize parameters $\theta_0, \phi_0$</li>
+                                    <li>For $i = 1$ to $m$ iterations:
+                                        <ul>
+                                            <li>Sample $\theta_i \sim p(\theta | \phi_{i-1}, y)$</li>
+                                            <li>Sample $\phi_i \sim p(\phi | \theta_i, y)$</li>
+                                        </ul>
+                                    </li>
+                                    <li>Repeat until convergence</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card theory__card">
+                        <div class="card__body">
+                            <h3>Normal Example with Unknown Mean and Variance</h3>
+                            <p>Consider data $y_1, \ldots, y_n$ from a normal distribution with unknown mean $\mu$ and variance $\sigma^2$:</p>
+                            
+                            <div class="math-block">
+                                $$y_i | \mu, \sigma^2 \sim N(\mu, \sigma^2) \text{ for } i = 1, \ldots, n$$
+                            </div>
+                            
+                            <h4>Prior Specifications:</h4>
+                            <div class="math-block">
+                                $$\mu \sim N(\mu_0, \sigma_0^2)$$
+                                $$\sigma^2 \sim \text{InverseGamma}(\nu_0, \beta_0)$$
+                            </div>
+                            
+                            <h4>Full Conditional Distributions:</h4>
+                            <div class="math-block">
+                                $$\mu | \sigma^2, y \sim N\left(\frac{n\bar{y}/\sigma^2 + \mu_0/\sigma_0^2}{n/\sigma^2 + 1/\sigma_0^2}, \frac{1}{n/\sigma^2 + 1/\sigma_0^2}\right)$$
+                            </div>
+                            
+                            <div class="math-block">
+                                $$\sigma^2 | \mu, y \sim \text{InverseGamma}\left(\nu_0 + \frac{n}{2}, \beta_0 + \frac{\sum_{i=1}^n (y_i - \mu)^2}{2}\right)$$
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="demo" class="section section--demo">
+            <div class="container">
+                <h2>Interactive Demonstration</h2>
+                
+                <div class="demo__content">
+                    <div class="demo__controls">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Simulation Parameters</h3>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="iterations">Number of Iterations:</label>
+                                    <input type="range" id="iterations" class="form-control" min="10" max="1000" value="100" step="10">
+                                    <span id="iterations-value">100</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="mu0">Prior Mean (μ₀):</label>
+                                    <input type="number" id="mu0" class="form-control" value="0" step="0.1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="sig0">Prior Variance (σ₀²):</label>
+                                    <input type="number" id="sig0" class="form-control" value="1" step="0.1" min="0.1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="nu0">Prior ν₀:</label>
+                                    <input type="number" id="nu0" class="form-control" value="1" step="0.1" min="0.1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="beta0">Prior β₀:</label>
+                                    <input type="number" id="beta0" class="form-control" value="1" step="0.1" min="0.1">
+                                </div>
+                                
+                                <button id="run-simulation" class="btn btn--primary btn--full-width">Run Simulation</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo__visualization">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Parameter Evolution</h3>
+                                <div class="chart-container">
+                                    <canvas id="trace-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="demo__stats">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Summary Statistics</h3>
+                                    <div id="stats-output">
+                                        <p>Run simulation to see results...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="calculations" class="section">
+            <div class="container">
+                <h2>Step-by-Step Calculations</h2>
+                
+                <div class="calculations__content">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Sample Data</h3>
+                            <p>We'll work with the following dataset:</p>
+                            <div class="data-display">
+                                <code id="sample-data">[1.2, 1.4, -0.5, 0.3, 0.9, 2.3, 1.0, 0.1, 1.3, 1.9]</code>
+                            </div>
+                            <p>Sample size: <strong>n = 10</strong></p>
+                            <p>Sample mean: <strong>ȳ = 0.99</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Interactive Calculator</h3>
+                            
+                            <div class="calculator">
+                                <h4>Calculate Full Conditional Parameters</h4>
+                                
+                                <div class="calc-inputs">
+                                    <div class="form-group">
+                                        <label class="form-label">Current σ² value:</label>
+                                        <input type="number" id="calc-sig2" class="form-control" value="1" step="0.1" min="0.1">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Current μ value:</label>
+                                        <input type="number" id="calc-mu" class="form-control" value="0" step="0.1">
+                                    </div>
+                                    
+                                    <button id="calculate-step" class="btn btn--secondary">Calculate Next Step</button>
+                                </div>
+                                
+                                <div id="calculation-results" class="calc-results">
+                                    <h4>Results will appear here...</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="practice" class="section section--practice">
+            <div class="container">
+                <h2>Practice Exercises</h2>
+                
+                <div class="practice__content">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Multiple Choice Questions</h3>
+                            
+                            <div class="question" id="question-1">
+                                <h4>Question 1: What is the key characteristic of Gibbs sampling?</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q1" value="a"> Direct sampling from joint distribution</label>
+                                    <label><input type="radio" name="q1" value="b"> Alternating sampling from conditional distributions</label>
+                                    <label><input type="radio" name="q1" value="c"> Rejection sampling method</label>
+                                    <label><input type="radio" name="q1" value="d"> Grid-based approximation</label>
+                                </div>
+                                <div class="question-feedback" id="feedback-1"></div>
+                            </div>
+                            
+                            <div class="question" id="question-2">
+                                <h4>Question 2: In the normal example, what happens to the posterior precision of μ?</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q2" value="a"> It decreases with more data</label>
+                                    <label><input type="radio" name="q2" value="b"> It stays constant</label>
+                                    <label><input type="radio" name="q2" value="c"> It increases with more data</label>
+                                    <label><input type="radio" name="q2" value="d"> It becomes zero</label>
+                                </div>
+                                <div class="question-feedback" id="feedback-2"></div>
+                            </div>
+                            
+                            <button id="check-answers" class="btn btn--primary">Check Answers</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Numerical Exercise</h3>
+                            <p>Given the sample data and priors from our example, calculate the first iteration manually:</p>
+                            
+                            <div class="exercise">
+                                <h4>Step 1: Calculate μ | σ² = 1</h4>
+                                <p>Fill in the blanks:</p>
+                                <div class="exercise-input">
+                                    <p>Posterior mean = <input type="number" id="exercise-mean" class="form-control inline-input" step="0.01"></p>
+                                    <p>Posterior variance = <input type="number" id="exercise-var" class="form-control inline-input" step="0.01"></p>
+                                </div>
+                                
+                                <button id="check-exercise" class="btn btn--secondary">Check Answer</button>
+                                <div id="exercise-feedback" class="exercise-feedback"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="resources" class="section">
+            <div class="container">
+                <h2>Additional Resources</h2>
+                
+                <div class="resources__grid">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Key Papers</h3>
+                            <ul>
+                                <li><a href="https://doi.org/10.2307/2334118" target="_blank">Geman & Geman (1984) - Original Gibbs sampling paper</a></li>
+                                <li><a href="https://doi.org/10.1214/ss/1177011136" target="_blank">Casella & George (1992) - Explaining the Gibbs sampler</a></li>
+                                <li><a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x" target="_blank">Gilks et al. (1995) - Adaptive rejection sampling</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Further Reading</h3>
+                            <ul>
+                                <li><strong>Books:</strong>
+                                    <ul>
+                                        <li>Gelman et al. - Bayesian Data Analysis</li>
+                                        <li>Robert & Casella - Monte Carlo Statistical Methods</li>
+                                        <li>Brooks et al. - Handbook of Markov Chain Monte Carlo</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Software Implementations</h3>
+                            <ul>
+                                <li><strong>R:</strong> MCMCpack, rjags, rstanarm</li>
+                                <li><strong>Python:</strong> PyMC3, emcee, PyStan</li>
+                                <li><strong>Julia:</strong> Turing.jl, MCMCChains.jl</li>
+                                <li><strong>MATLAB:</strong> Statistics and Machine Learning Toolbox</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Related Topics</h3>
+                            <ul>
+                                <li>Metropolis-Hastings Algorithm</li>
+                                <li>Hamiltonian Monte Carlo</li>
+                                <li>Variational Inference</li>
+                                <li>Bayesian Model Selection</li>
+                                <li>Convergence Diagnostics</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Gibbs Sampling Tutor. Educational content for learning Bayesian statistics.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
