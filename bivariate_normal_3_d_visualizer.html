@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bivariate Normal 3D Visualizer — Robust (Plotly fallback)</title>
+  <!-- Try loading Plotly from CDN; if it fails we'll fall back to the built-in renderer below -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    :root{--accent:#5b8cff}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:#f7fafc;color:#0b1220}
+    header{padding:14px 18px;border-bottom:1px solid #e6eef8;display:flex;align-items:center;gap:12px;background:#fff}
+    h1{font-size:18px;margin:0}
+    .container{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px}
+    .panel{background:#fff;border-radius:10px;padding:14px;box-shadow:0 6px 18px rgba(12,30,60,0.04)}
+    .controls{display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;gap:8px;align-items:center}
+    label{font-size:13px;min-width:120px;color:#334155}
+    input[type=number],input[type=range]{flex:1}
+    input[type=number]{width:92px;padding:6px;border-radius:6px;border:1px solid #e6eef8}
+    #plotWrapper{position:relative;min-height:520px}
+    #plot{width:100%;height:520px}
+    canvas#plotCanvas{width:100%;height:520px;display:block;border-radius:8px}
+    .meta{font-size:13px;color:#475569}
+    .notice{background:#fff7ed;border:1px solid #ffecd1;padding:8px;border-radius:8px;font-size:13px}
+    .small{font-size:12px;color:#64748b}
+    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn-secondary{background:#f1f5f9;color:#0b1220}
+    @media (max-width:900px){.container{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bivariate Normal Distribution — 3D Density (robust)</h1>
+  </header>
+
+  <main class="container">
+    <aside class="panel">
+      <div class="controls">
+        <div class="row"><label>Mean (μₓ)</label><input type="number" id="meanX" value="0" step="0.1"></div>
+        <div class="row"><label>Mean (μᵧ)</label><input type="number" id="meanY" value="0" step="0.1"></div>
+        <div class="row"><label>Std dev (σₓ)</label><input type="number" id="sdX" value="1" min="0.05" step="0.05"></div>
+        <div class="row"><label>Std dev (σᵧ)</label><input type="number" id="sdY" value="1" min="0.05" step="0.05"></div>
+        <div class="row"><label>Correlation (ρ)</label><input type="range" id="rho" min="-0.99" max="0.99" step="0.01" value="0"><div id="rhoVal">0.00</div></div>
+        <div class="row"><label>Grid extent (±)</label><input type="range" id="extent" min="1" max="6" step="0.5" value="3"><div id="extentVal">±3</div></div>
+        <div class="row"><label>Resolution</label><input type="range" id="resolution" min="20" max="100" step="4" value="44"><div id="resVal">44</div></div>
+        <div class="row"><label>Renderer</label>
+          <select id="renderer">
+            <option value="auto">Auto (Plotly if available)</option>
+            <option value="plotly">Plotly</option>
+            <option value="canvas">Built-in Canvas</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="update">Update Plot</button>
+          <button class="btn-secondary" id="reset">Reset</button>
+        </div>
+
+        <div style="margin-top:8px" class="meta">
+          <div id="status" class="small">Status: initialising...</div>
+          <div class="small">Tip: drag on the plot to rotate (built-in renderer). Use mouse wheel to zoom.</div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <div id="plotWrapper">
+        <!-- Plotly will use #plot (div). Built-in canvas fallback uses #plotCanvas. We show/hide accordingly. -->
+        <div id="plot" style="display:none"></div>
+        <canvas id="plotCanvas" width="800" height="520" style="display:none"></canvas>
+      </div>
+      <div style="margin-top:10px" class="notice" id="notice" hidden></div>
+    </section>
+  </main>
+
+  <script>
+    // ---------- Math: bivariate PDF and surface generator ----------
+    function bivariatePDF(x,y,muX,muY,sx,sy,rho){
+      const z1=(x-muX)/sx, z2=(y-muY)/sy;
+      const denom=2*Math.PI*sx*sy*Math.sqrt(1-rho*rho);
+      const exponent = -1/(2*(1-rho*rho))*(z1*z1 - 2*rho*z1*z2 + z2*z2);
+      return Math.exp(exponent)/denom;
+    }
+
+    function generateSurface(muX,muY,sx,sy,rho,extent,res){n=res||40; const xs=new Array(n), ys=new Array(n), z=new Array(n); for(let i=0;i<n;i++){ xs[i]=muX-extent + 2*extent*i/(n-1); ys[i]=muY-extent + 2*extent*i/(n-1); }
+      for(let j=0;j<n;j++){ const row=new Array(n); for(let i=0;i<n;i++){ row[i]=bivariatePDF(xs[i], ys[j], muX, muY, sx, sy, rho); } z[j]=row; }
+      return {x:xs,y:ys,z:z}; }
+
+    // ---------- Utilities ----------
+    function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+    function lerp(a,b,t){return a + (b-a)*t}
+    function colorMap(t){ // t in [0,1] -> return 'rgb(r,g,b)'
+      t = clamp(t,0,1);
+      // use a perceptual-ish diverging colormap: from blue (240) to red (0)
+      const h = lerp(220, 10, t); // hue
+      const s = lerp(60, 90, t);
+      const l = lerp(55, 45, t);
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+
+    // ---------- Fallback Canvas 3D Renderer ----------
+    const canvas = document.getElementById('plotCanvas');
+    const ctx = canvas.getContext('2d');
+    let DPR = window.devicePixelRatio || 1;
+    function resizeCanvas(){
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(300, Math.floor(rect.width * DPR));
+      canvas.height = Math.max(200, Math.floor(rect.height * DPR));
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+
+    // camera / interaction state
+    let cam = {rx: -0.8, ry: -0.6, zoom: 1.0, tx:0, ty:0};
+    let dragging = false, lastX=0, lastY=0;
+
+    canvas.addEventListener('mousedown', (e)=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; canvas.style.cursor='grabbing'; });
+    window.addEventListener('mouseup', ()=>{ dragging=false; canvas.style.cursor='default'; });
+    window.addEventListener('mousemove', (e)=>{ if(!dragging) return; const dx = e.clientX - lastX; const dy = e.clientY - lastY; lastX=e.clientX; lastY=e.clientY; cam.ry += dx*0.01; cam.rx += dy*0.01; requestRender(); });
+    canvas.addEventListener('wheel', (e)=>{ e.preventDefault(); cam.zoom *= (1 - e.deltaY*0.0015); cam.zoom = clamp(cam.zoom, 0.3, 4); requestRender(); }, {passive:false});
+
+    // render queue
+    let needRender = false;
+    function requestRender(){ needRender=true; }
+
+    // main draw for canvas renderer
+    function drawCanvasSurface(surface){
+      if(!surface) return;
+      resizeCanvas();
+      const W = canvas.width / DPR; const H = canvas.height / DPR;
+      ctx.clearRect(0,0,W,H);
+
+      // build vertex positions in 3D
+      const nx = surface.x.length, ny = surface.y.length;
+      // find z range for coloring
+      let zmin = Infinity, zmax = -Infinity;
+      for(let j=0;j<ny;j++){ for(let i=0;i<nx;i++){ const v = surface.z[j][i]; if(v<zmin) zmin=v; if(v>zmax) zmax=v; }}
+
+      // camera transform
+      const rx = cam.rx, ry = cam.ry; const cosx=Math.cos(rx), sinx=Math.sin(rx); const cosy=Math.cos(ry), siny=Math.sin(ry);
+      // projection params
+      const scale = Math.min(W,H) * 0.12 * cam.zoom; const perspective = 700;
+
+      // compute transformed vertices and store for reuse
+      const proj = new Array(ny);
+      for(let j=0;j<ny;j++){ proj[j]=new Array(nx); for(let i=0;i<nx;i++){
+        const x = surface.x[i], y = surface.y[j], z = surface.z[j][i];
+        // center around means -> surface.x/y already centered around mu
+        // 3D coordinate: X=x, Y=z*scaleZ, Z=y  (note: use z-value as height)
+        const X = x; const Y = (z - zmin); const Z = y;
+        // apply rotations: first around X (pitch), then Y (yaw)
+        // rotateX
+        let ry1 = cosx*Y - sinx*Z;
+        let rz1 = sinx*Y + cosx*Z;
+        // rotateY
+        let rx1 = cosy*X + siny*rz1;
+        let rz2 = -siny*X + cosy*rz1;
+        // camera-space coordinates
+        const camX = rx1; const camY = ry1; const camZ = rz2;
+        // perspective projection
+        const zToCamera = camZ + 6; // shift to avoid z near zero
+        const px = (W/2) + (camX * scale) / zToCamera + cam.tx;
+        const py = (H/2) - (camY * scale * 4) / zToCamera + cam.ty; // amplify vertical
+        proj[j][i] = {px,py,camZ,worldZ:z};
+      }}
+
+      // build triangles (two per grid cell) and sort by depth
+      const tris = [];
+      for(let j=0;j<ny-1;j++){
+        for(let i=0;i<nx-1;i++){
+          const a = proj[j][i]; const b = proj[j][i+1]; const c = proj[j+1][i+1]; const d = proj[j+1][i];
+          // triangle 1: a,b,c
+          tris.push({p:[a,b,c], avgZ:(a.camZ+b.camZ+c.camZ)/3, zAvgWorld:(a.worldZ+b.worldZ+c.worldZ)/3});
+          // triangle 2: a,c,d
+          tris.push({p:[a,c,d], avgZ:(a.camZ+c.camZ+d.camZ)/3, zAvgWorld:(a.worldZ+c.worldZ+d.worldZ)/3});
+        }
+      }
+
+      // sort far to near (smaller camZ is farther if camZ increasing towards camera?), we'll sort by avgZ ascending (far first)
+      tris.sort((t1,t2)=> t1.avgZ - t2.avgZ );
+
+      // lighting vector in camera space
+      const L = {x:0.3, y:0.7, z:0.6}; // approximate directional light
+      const Ln = Math.sqrt(L.x*L.x + L.y*L.y + L.z*L.z);
+      L.x/=Ln; L.y/=Ln; L.z/=Ln;
+
+      // draw triangles
+      for(const tri of tris){
+        const p0 = tri.p[0], p1 = tri.p[1], p2 = tri.p[2];
+        // compute normal in screen space using world coordinates for decent shading
+        // convert back to approximate 3D world positions (not exact inverse, but ok for lighting): use worldZ as height
+        const A = {x: p0.px, y:p0.py, z:p0.camZ};
+        const B = {x: p1.px, y:p1.py, z:p1.camZ};
+        const C = {x: p2.px, y:p2.py, z:p2.camZ};
+        // compute normal via cross product of (B-A) x (C-A) in camera space
+        const ux = B.x - A.x, uy = B.y - A.y, uz = B.z - A.z;
+        const vx = C.x - A.x, vy = C.y - A.y, vz = C.z - A.z;
+        const nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx;
+        const nlen = Math.sqrt(nx*nx + ny*ny + nz*nz) + 1e-9;
+        const ndot = (nx*L.x + ny*L.y + nz*L.z)/nlen;
+        const intensity = clamp(0.2 + 0.9 * ndot, 0.0, 1.0);
+
+        // color by world z-average
+        const t = (tri.zAvgWorld - zmin) / (zmax - zmin + 1e-12);
+        // apply intensity
+        // parse hsl and adjust lightness
+        // we'll compute color via HSL directly
+        const h = lerp(220,10, clamp(t,0,1));
+        const s = 75; const l = clamp(30 + intensity*40, 15, 85);
+        ctx.fillStyle = `hsl(${h} ${s}% ${l}%)`;
+        ctx.beginPath(); ctx.moveTo(p0.px, p0.py); ctx.lineTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py); ctx.closePath(); ctx.fill();
+        // optional stroke for mesh lines
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 0.3; ctx.stroke();
+      }
+
+      // overlay axes labels
+      ctx.fillStyle = '#0b1220'; ctx.font = '12px system-ui, Arial'; ctx.fillText('X', 12, 18); ctx.fillText('Y (density)', 12, 34); ctx.fillText('Z', 12, 50);
+      needRender=false;
+    }
+
+    // ---------- Plotly plot (if available) ----------
+    function tryPlotly(surface){
+      try{
+        const plotDiv = document.getElementById('plot');
+        plotDiv.style.display = 'block'; document.getElementById('plotCanvas').style.display='none';
+        const data = [{ type:'surface', x: surface.x, y: surface.y, z: surface.z, colorscale:'Viridis', contours:{z:{show:false}} }];
+        const layout = { title:'Bivariate Normal PDF', autosize:true, scene:{xaxis:{title:'X'}, yaxis:{title:'Y'}, zaxis:{title:'Density'}} };
+        Plotly.react(plotDiv, data, layout, {responsive:true});
+        document.getElementById('status').textContent = 'Status: plotted with Plotly.';
+        document.getElementById('notice').hidden=true;
+        return true;
+      }catch(err){
+        console.warn('Plotly plot failed:',err);
+        return false;
+      }
+    }
+
+    // ---------- Orchestrator: choose renderer and draw ----------
+    function updatePlot(){
+      const muX=parseFloat(document.getElementById('meanX').value);
+      const muY=parseFloat(document.getElementById('meanY').value);
+      const sx=parseFloat(document.getElementById('sdX').value);
+      const sy=parseFloat(document.getElementById('sdY').value);
+      const rho=parseFloat(document.getElementById('rho').value);
+      const extent=parseFloat(document.getElementById('extent').value);
+      const res = parseInt(document.getElementById('resolution').value,10);
+      const renderer = document.getElementById('renderer').value;
+
+      document.getElementById('rhoVal').textContent = rho.toFixed(2);
+      document.getElementById('extentVal').textContent = `±${extent}`;
+      document.getElementById('resVal').textContent = res;
+
+      const surface = generateSurface(muX,muY,sx,sy,rho,extent,res);
+
+      // Choose renderer
+      const preferPlotly = (renderer==='plotly' || (renderer==='auto'));
+      if(preferPlotly && typeof Plotly !== 'undefined'){
+        // try Plotly, if it fails fall back
+        const ok = tryPlotly(surface);
+        if(ok) return;
+      }
+
+      // fallback to built-in canvas renderer
+      document.getElementById('plot').style.display='none'; document.getElementById('plotCanvas').style.display='block';
+      document.getElementById('status').textContent = 'Status: using built-in canvas renderer (fallback).';
+      const notice = document.getElementById('notice'); notice.hidden=false; notice.textContent = (typeof Plotly === 'undefined') ? 'Notice: Plotly failed to load — using built-in renderer.' : 'Notice: Using built-in renderer.';
+      // store surface for animation loop
+      currentSurface = surface;
+      requestRender();
+    }
+
+    // event wiring
+    document.getElementById('update').addEventListener('click', ()=>{ updatePlot(); });
+    document.getElementById('reset').addEventListener('click', ()=>{
+      document.getElementById('meanX').value=0; document.getElementById('meanY').value=0; document.getElementById('sdX').value=1; document.getElementById('sdY').value=1;
+      document.getElementById('rho').value=0; document.getElementById('extent').value=3; document.getElementById('resolution').value=44; document.getElementById('renderer').value='auto';
+      cam = {rx:-0.8, ry:-0.6, zoom:1.0, tx:0, ty:0}; updatePlot();
+    });
+    document.getElementById('rho').addEventListener('input', ()=>{ document.getElementById('rhoVal').textContent = parseFloat(document.getElementById('rho').value).toFixed(2); });
+    document.getElementById('resolution').addEventListener('input', ()=>{ document.getElementById('resVal').textContent = document.getElementById('resolution').value; });
+    window.addEventListener('resize', ()=>{ DPR = window.devicePixelRatio || 1; resizeCanvas(); requestRender(); });
+
+    // animation loop
+    let currentSurface = null;
+    function loop(){ if(needRender && currentSurface) drawCanvasSurface(currentSurface); requestAnimationFrame(loop); }
+    loop();
+
+    // initial attempt: try Plotly if available, otherwise fallback
+    function init(){
+      resizeCanvas();
+      DPR = window.devicePixelRatio || 1;
+      // If Plotly didn't load, let user know in status
+      if(typeof Plotly === 'undefined'){
+        document.getElementById('status').textContent = 'Status: Plotly not found — will use built-in renderer.';
+      } else {
+        document.getElementById('status').textContent = 'Status: Plotly loaded — using Plotly when selected.';
+      }
+      updatePlot();
+    }
+
+    // run init after DOM ready
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+  </script>
+</body>
+</html>
