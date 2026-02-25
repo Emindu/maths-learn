@@ -18,53 +18,185 @@
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <link rel="stylesheet" href="theme.css">
     <style>
-        /* Custom styles for SVG plots */
-        .plot-svg {
-            background-color: #f8f9fa; /* Light background for the plot */
-            border: 1px solid #dee2e6; /* Border for the plot area */
-            border-radius: 0.25rem; /* Rounded corners */
-            display: block; /* Ensure block display */
+        /* ── Page-specific styles (complement theme.css) ── */
+        body {
+            padding-top: 0;
+        }
+        .page-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: var(--space-32) var(--space-24);
+        }
+        .page-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text);
+            text-align: center;
+            margin-bottom: var(--space-24);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        .viz-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: var(--space-24);
+            box-shadow: var(--shadow-sm);
+        }
+        /* Generic controls container */
+        .controls, .slider-container {
+            margin: var(--space-16) 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            margin-bottom: var(--space-12);
+            flex-wrap: wrap;
+        }
+        .slider-row label {
+            min-width: 180px;
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-base);
+            color: var(--color-text);
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        /* Labels inside controls */
+        .controls label {
+            display: block;
+            margin-bottom: var(--space-4);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        /* Generic inputs inside controls (number, text) */
+        .controls input[type="number"],
+        .controls input[type="text"],
+        .controls select {
             width: 100%;
-            height: 100%;
+            padding: var(--space-8) var(--space-12);
+            margin-bottom: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            box-sizing: border-box;
         }
-        #trajectoryPath {
-            stroke: #007bff; /* Blue line for the path */
-            stroke-width: 1.5;
-            fill: none;
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: var(--focus-ring);
         }
-         #zeroLine {
-            stroke: #adb5bd; /* Gray line for the zero axis */
-            stroke-width: 0.5;
-            stroke-dasharray: 4 2; /* Dashed line */
+        .parameter-display {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            min-width: 80px;
         }
-        .hist-bar {
-            fill: #28a745; /* Green bars for histogram */
-            stroke: #1c7430; /* Darker green border */
-            stroke-width: 0.5;
-            transition: height 0.1s ease-out, y 0.1s ease-out; /* Smooth transitions */
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-12);
+            margin: var(--space-16) 0;
         }
-        /* Ensure SVG scales correctly */
-        svg {
-             display: block;
-             width: 100%;
-             height: 100%;
+        .stat-box {
+            background: var(--color-background);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-base);
+            padding: var(--space-12) var(--space-16);
+            text-align: center;
+            min-width: 120px;
         }
-        /* Style range input */
-        input[type=range] {
-            cursor: pointer;
+        .stat-box h3 {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-4) 0;
+            font-weight: var(--font-weight-medium);
         }
-        /* Style for math equations */
-        .math-equation {
-            font-size: 1rem; /* Base font size */
-            display: inline-block; /* Ensure proper inline rendering */
-            transform: scale(0.8); /* Scale down the equation */
-            transform-origin: center; /* Scale from the center */
-            vertical-align: middle; /* Align with surrounding text */
+        .stat-value {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+        }
+        .info-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-24);
+        }
+        .info-section h2 {
+            color: var(--color-primary);
+            font-size: var(--font-size-xl);
+            margin-top: var(--space-24);
+            margin-bottom: var(--space-12);
+            padding-bottom: var(--space-8);
+            border-bottom: 1px solid var(--color-border);
+        }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section h3 {
+            color: var(--color-text);
+            font-size: var(--font-size-lg);
+            margin-top: var(--space-16);
+            margin-bottom: var(--space-8);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-6);
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            margin-top: var(--space-16);
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        /* Example/output sections */
+        .example-section, .example-output {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-top: var(--space-24);
+        }
+        .example-section h2, .example-section h3 {
+            color: var(--color-primary);
+        }
+        /* Ensure chart/plot containers have reasonable height */
+        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
+            width: 100% !important;
+            min-height: 300px;
+        }
+        #chart {
+            width: 100%;
+            min-height: 60vh;
         }
     </style>
+
 </head>
 <body class="bg-gray-100 font-sans p-4 md:p-8">
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="index.html" class="site-header__brand">
+                <div class="site-header__logo">∑</div>
+                <span class="site-header__site-name">Maths Learn</span>
+            </a>
+            <div class="site-header__actions">
+                <a href="index.html" class="site-header__back">← Back to Home</a>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-content">
+
 
     <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6 md:p-8">
         <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Continuous Markov Process: AR(1) Model</h1>
@@ -437,5 +569,34 @@
         });
     </script>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'934c2b1e499eb0c9',t:'MTc0NTM5ODgwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'934c2b1e499eb0c9',t:'MTc0NTM5ODgwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    </div>
+
+    <footer class="site-footer">
+        <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
+    </footer>
+
+
+    <script>
+        (function() {
+            var toggle = document.getElementById('themeToggle');
+            var html = document.documentElement;
+            function applyTheme(t) {
+                html.setAttribute('data-color-scheme', t);
+                if (toggle) toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+            }
+            var stored = localStorage.getItem('ml-theme');
+            if (stored) { applyTheme(stored); }
+            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { applyTheme('dark'); }
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    var cur = html.getAttribute('data-color-scheme') || 'light';
+                    var next = cur === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('ml-theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
+    </script>
+</body>
 </html>
