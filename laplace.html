@@ -3,171 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laplace Distribution</title>
+    <title>Laplace Distribution — Maths Learn</title>
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="stylesheet" href="theme.css">
     <style>
-        /* ── Page-specific styles (complement theme.css) ── */
-        body {
-            padding-top: 0;
-        }
+        body { padding-top: 0; }
         .page-content {
-            max-width: 960px;
+            font-family: var(--font-family-mono);
+            max-width: 780px;
             margin: 0 auto;
-            padding: var(--space-32) var(--space-24);
+            padding: var(--space-32) var(--space-24) var(--space-48);
         }
-        .page-title {
-            font-size: var(--font-size-4xl);
-            font-weight: var(--font-weight-bold);
-            color: var(--color-text);
-            text-align: center;
-            margin-bottom: var(--space-24);
-            letter-spacing: var(--letter-spacing-tight);
-        }
-        .viz-panel {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            margin-bottom: var(--space-24);
-            box-shadow: var(--shadow-sm);
-        }
-        /* Generic controls container */
-        .controls, .slider-container {
-            margin: var(--space-16) 0;
-        }
-        .slider-row {
-            display: flex;
-            align-items: center;
-            gap: var(--space-8);
-            margin-bottom: var(--space-12);
-            flex-wrap: wrap;
-        }
-        .slider-row label {
-            min-width: 180px;
-            font-weight: var(--font-weight-medium);
-            font-size: var(--font-size-base);
-            color: var(--color-text);
-        }
-        .slider-row input[type="range"] {
-            flex: 1;
-            min-width: 120px;
-        }
-        /* Labels inside controls */
-        .controls label {
-            display: block;
-            margin-bottom: var(--space-4);
-            font-weight: var(--font-weight-medium);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-sm);
-        }
-        /* Generic inputs inside controls (number, text) */
-        .controls input[type="number"],
-        .controls input[type="text"],
-        .controls select {
-            width: 100%;
-            padding: var(--space-8) var(--space-12);
-            margin-bottom: var(--space-12);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            font-family: var(--font-family-base);
-            font-size: var(--font-size-base);
-            background: var(--color-surface);
-            color: var(--color-text);
-            box-sizing: border-box;
-        }
-        .controls input:focus, .controls select:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: var(--focus-ring);
-        }
-        .parameter-display {
-            color: var(--color-primary);
-            font-weight: var(--font-weight-medium);
-            min-width: 80px;
-        }
-        .stats-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-12);
-            margin: var(--space-16) 0;
-        }
-        .stat-box {
-            background: var(--color-background);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-12) var(--space-16);
-            text-align: center;
-            min-width: 120px;
-        }
-        .stat-box h3 {
-            font-size: var(--font-size-sm);
-            color: var(--color-text-secondary);
-            margin: 0 0 var(--space-4) 0;
-            font-weight: var(--font-weight-medium);
-        }
-        .stat-value {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-bold);
-            color: var(--color-primary);
-        }
-        .info-section {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--space-24);
-        }
-        .info-section h2 {
-            color: var(--color-primary);
-            font-size: var(--font-size-xl);
-            margin-top: var(--space-24);
-            margin-bottom: var(--space-12);
-            padding-bottom: var(--space-8);
-            border-bottom: 1px solid var(--color-border);
-        }
-        .info-section h2:first-child { margin-top: 0; }
-        .info-section h3 {
-            color: var(--color-text);
-            font-size: var(--font-size-lg);
-            margin-top: var(--space-16);
-            margin-bottom: var(--space-8);
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-6);
-            color: var(--color-primary);
-            font-weight: var(--font-weight-medium);
-            margin-top: var(--space-16);
-            text-decoration: none;
-        }
-        .back-link:hover { text-decoration: underline; }
-        /* Example/output sections */
-        .example-section, .example-output {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-top: var(--space-24);
-        }
-        .example-section h2, .example-section h3 {
-            color: var(--color-primary);
-        }
-        /* Ensure chart/plot containers have reasonable height */
-        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
-            width: 100% !important;
-            min-height: 300px;
-        }
-        #chart {
-            width: 100%;
-            min-height: 60vh;
-        }
+        .term-title { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text); letter-spacing: -0.02em; margin: 0 0 4px 0; }
+        .term-rule { border: none; border-top: 2px solid var(--color-border); margin: 6px 0 12px 0; }
+        .term-tagline { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-32) 0; line-height: 1.6; }
+        .term-divider { display: flex; align-items: center; gap: 10px; margin: var(--space-24) 0 var(--space-16) 0; }
+        .term-divider__label { font-size: var(--font-size-xs); color: var(--color-text-secondary); white-space: nowrap; letter-spacing: 0.04em; }
+        .term-divider__label::before { content: '── '; }
+        .term-divider__line { flex: 1; height: 1px; background: var(--color-border); }
+        .term-param { display: flex; align-items: center; gap: 14px; padding: 6px 0; }
+        .term-param__prompt { font-size: var(--font-size-sm); color: var(--color-primary); min-width: 44px; flex-shrink: 0; }
+        .term-param__slider { flex: 1; -webkit-appearance: none; appearance: none; height: 3px; border-radius: 0; outline: none; cursor: pointer; background: var(--color-border); }
+        .term-param__slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; background: var(--color-primary); border-radius: 2px; cursor: pointer; }
+        .term-param__slider::-moz-range-thumb { width: 13px; height: 13px; background: var(--color-primary); border-radius: 2px; border: none; cursor: pointer; }
+        .term-param__value { font-size: var(--font-size-sm); color: var(--color-primary); min-width: 56px; text-align: right; cursor: text; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+        .term-param__value:focus { outline: none; border-bottom-color: var(--color-primary); }
+        .term-output { display: grid; grid-template-columns: 140px 1fr; gap: 5px 0; padding: 4px 0; }
+        .term-output__key { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+        .term-output__val { font-size: var(--font-size-sm); color: var(--color-primary); font-weight: var(--font-weight-medium); }
+        .term-output__val::before { content: '=  '; color: var(--color-text-secondary); }
+        .term-chart-wrap { width: 100%; }
+        .term-formula { border-left: 2px solid var(--color-primary); padding: var(--space-16) 0 var(--space-16) var(--space-16); margin: var(--space-8) 0; overflow-x: auto; }
+        .term-formula p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 6px 0; }
+        .term-formula__line { font-size: var(--font-size-sm); color: var(--color-text); margin: 0 0 14px 0; display: block; }
+        .term-prose p { font-size: var(--font-size-sm); color: var(--color-text); line-height: 1.8; margin: 0 0 12px 0; }
+        .term-prose p:last-child { margin-bottom: 0; }
+        .term-props { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .term-props td { padding: 7px 0; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+        .term-props tr:last-child td { border-bottom: none; }
+        .term-props td:first-child { color: var(--color-text-secondary); width: 140px; padding-right: 24px; }
+        .term-props td:last-child { color: var(--color-text); }
+        .term-related { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 7px; }
+        .term-related li { font-size: var(--font-size-sm); color: var(--color-text); display: flex; gap: 10px; }
+        .term-related__arrow { color: var(--color-primary); flex-shrink: 0; }
+        .term-related__note { color: var(--color-text-secondary); }
+        .term-presets { display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 4px 0; }
+        .term-preset { background: none; border: none; font-family: var(--font-family-mono); font-size: var(--font-size-sm); color: var(--color-primary); cursor: pointer; padding: 0; }
+        .term-preset::before { content: '['; }
+        .term-preset::after { content: ']'; }
+        .term-preset:hover { text-decoration: underline; }
+        .term-preset.active { color: var(--color-text); font-weight: var(--font-weight-medium); }
     </style>
-
 </head>
 <body>
     <header class="site-header">
@@ -185,189 +71,293 @@
 
     <div class="page-content">
 
-    <h1 class="page-title">Laplace Distribution</h1>
-    <div class="viz-panel">
-        <p style="margin-bottom: 10px;">The Laplace distribution, also known as the double exponential distribution, is a continuous probability distribution with location parameter <b>μ</b> and scale parameter <b>b</b> (b &gt; 0). It is often used in signal processing, Bayesian statistics, and as a model for data with sharp peaks at the mean.</p>
-        <div class="slider-container">
-            <div class="slider-row">
-                <label for="mu-slider">Location (μ):</label>
-                <input type="range" id="mu-slider" min="-5" max="5" step="0.01" value="0">
-                <span class="parameter-display" id="mu-value">μ = 0.00</span>
-            </div>
-            <div class="slider-row">
-                <label for="b-slider">Scale (b):</label>
-                <input type="range" id="b-slider" min="0.1" max="3" step="0.01" value="1">
-                <span class="parameter-display" id="b-value">b = 1.00</span>
-            </div>
+        <h1 class="term-title">laplace_distribution</h1>
+        <hr class="term-rule">
+        <p class="term-tagline">continuous  ·  support: (−∞, ∞)  ·  parameters: μ ∈ ℝ (location), b &gt; 0 (scale)</p>
+
+        <div class="term-divider">
+            <span class="term-divider__label">PARAMETERS</span>
+            <div class="term-divider__line"></div>
         </div>
-        <div class="stats-container">
-            <div class="stat-box">
-                <h3>Mean (μ)</h3>
-                <div class="stat-value" id="mean-value">0.00</div>
-            </div>
-            <div class="stat-box">
-                <h3>Variance (σ²)</h3>
-                <div class="stat-value" id="variance-value">2.00</div>
-            </div>
-            <div class="stat-box">
-                <h3>Median</h3>
-                <div class="stat-value" id="median-value">0.00</div>
-            </div>
-            <div class="stat-box">
-                <h3>Mode</h3>
-                <div class="stat-value" id="mode-value">0.00</div>
-            </div>
+
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; μ</span>
+            <input class="term-param__slider" type="range" id="mu-slider" min="-5" max="5" step="0.1" value="0">
+            <span class="term-param__value" id="mu-val" contenteditable="true" spellcheck="false">0</span>
         </div>
-        <div id="laplace-plot"></div>
-        <div id="laplace-cdf-plot"></div>
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; b</span>
+            <input class="term-param__slider" type="range" id="b-slider" min="0.1" max="5" step="0.1" value="1">
+            <span class="term-param__value" id="b-val" contenteditable="true" spellcheck="false">1</span>
+        </div>
+
+        <div class="term-divider">
+            <span class="term-divider__label">PRESETS</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-presets">
+            <button class="term-preset active" data-mu="0" data-b="1">standard</button>
+            <button class="term-preset" data-mu="0" data-b="0.5">narrow</button>
+            <button class="term-preset" data-mu="0" data-b="2">wide</button>
+            <button class="term-preset" data-mu="2" data-b="1">shifted</button>
+        </div>
+
+        <div class="term-divider">
+            <span class="term-divider__label">OUTPUT</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-output">
+            <span class="term-output__key">mean</span>
+            <span class="term-output__val" id="out-mean">0</span>
+            <span class="term-output__key">variance</span>
+            <span class="term-output__val" id="out-var">2</span>
+            <span class="term-output__key">std_dev</span>
+            <span class="term-output__val" id="out-std">1.4142</span>
+            <span class="term-output__key">median</span>
+            <span class="term-output__val" id="out-median">0</span>
+            <span class="term-output__key">mode</span>
+            <span class="term-output__val" id="out-mode">0</span>
+            <span class="term-output__key">b</span>
+            <span class="term-output__val" id="out-b">1</span>
+        </div>
+
+        <div class="term-divider">
+            <span class="term-divider__label">PDF</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-chart-wrap">
+            <div id="laplace-plot" style="width:100%;min-height:300px;"></div>
+        </div>
+
+        <div class="term-divider">
+            <span class="term-divider__label">FORMULA</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-formula">
+            <p>PDF</p>
+            <span class="term-formula__line">f(x; μ, b) = (1/2b) · exp(−|x − μ|/b)</span>
+            <p>CDF</p>
+            <span class="term-formula__line">F(x) = (1/2)exp((x−μ)/b)          for x &lt; μ</span>
+            <span class="term-formula__line">F(x) = 1 − (1/2)exp(−(x−μ)/b)   for x ≥ μ</span>
+            <p>MGF</p>
+            <span class="term-formula__line" style="margin-bottom:0;">M(t) = e^(μt) / (1 − b²t²)  for |t| &lt; 1/b</span>
+        </div>
+
+        <div class="term-divider">
+            <span class="term-divider__label">ABOUT</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-prose">
+            <p>The Laplace distribution (also called the double exponential) is the continuous analogue of the geometric distribution and resembles the Normal distribution but with heavier, exponential tails. It is defined by its sharp peak at the mode μ and tails that decay as e^(−|x−μ|/b) rather than the faster Gaussian decay.</p>
+            <p>In statistics, the Laplace distribution is the maximum likelihood model for absolute deviations: it is to L1 regression what the Normal is to L2 regression. In signal processing and machine learning, Laplace priors (via LASSO / L1 regularisation) promote sparsity in parameter estimates — a Laplace prior on coefficients produces exactly the LASSO solution when combined with a least-squares likelihood.</p>
+        </div>
+
+        <div class="term-divider">
+            <span class="term-divider__label">PROPERTIES</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <table class="term-props">
+            <tr><td>support</td><td>(−∞, ∞)</td></tr>
+            <tr><td>parameters</td><td>μ ∈ ℝ (location),  b &gt; 0 (scale)</td></tr>
+            <tr><td>PDF</td><td>(1/2b) exp(−|x−μ|/b)</td></tr>
+            <tr><td>mean</td><td>μ</td></tr>
+            <tr><td>median</td><td>μ</td></tr>
+            <tr><td>mode</td><td>μ</td></tr>
+            <tr><td>variance</td><td>2b²</td></tr>
+            <tr><td>std dev</td><td>b√2</td></tr>
+            <tr><td>skewness</td><td>0</td></tr>
+            <tr><td>kurtosis</td><td>6  (excess = 3)</td></tr>
+            <tr><td>entropy</td><td>ln(2be) nats</td></tr>
+            <tr><td>MGF</td><td>e^(μt)/(1−b²t²)  for |t|&lt;1/b</td></tr>
+        </table>
+
+        <div class="term-divider">
+            <span class="term-divider__label">RELATED</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <ul class="term-related">
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Normal</span>
+                <span class="term-related__note">— similar bell shape but Laplace has heavier exponential tails</span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Exponential</span>
+                <span class="term-related__note">— the half-Laplace (|X−μ| follows Exponential(1/b))</span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>LASSO</span>
+                <span class="term-related__note">— Laplace prior on regression coefficients yields L1 penalised estimates</span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Cauchy</span>
+                <span class="term-related__note">— even heavier tails; undefined mean and variance</span>
+            </li>
+        </ul>
+
     </div>
-    <section class="info-section">
-        <h2>PDF (Probability Density Function)</h2>
-        <div style="font-size:1.1em; background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:10px;">
-            \[
-            f(x;\mu, b) = \frac{1}{2b} \exp\left(-\frac{|x-\mu|}{b}\right)
-            \]
-        </div>
-        <h2>CDF (Cumulative Distribution Function)</h2>
-        <div style="font-size:1.1em; background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:10px;">
-            \[
-            F(x;\mu, b) = \begin{cases}
-            \frac{1}{2} \exp\left(\frac{x-\mu}{b}\right) & x < \mu \\
-            1 - \frac{1}{2} \exp\left(-\frac{x-\mu}{b}\right) & x \geq \mu
-            \end{cases}
-            \]
-        </div>
-        <h2>Parameters</h2>
-        <ul>
-            <li><b>μ</b>: Location parameter (real number)</li>
-            <li><b>b</b>: Scale parameter (b &gt; 0)</li>
-        </ul>
-        <h2>Mean, Median, Mode, and Variance</h2>
-        <ul>
-            <li><b>Mean:</b> \( \mu \)</li>
-            <li><b>Median:</b> \( \mu \)</li>
-            <li><b>Mode:</b> \( \mu \)</li>
-            <li><b>Variance:</b> \( 2b^2 \)</li>
-        </ul>
-        <h2>Example</h2>
-        <p>For μ = 0, b = 1, the PDF is:</p>
-        <div style="font-size:1.1em; background:#f8f9fa; padding:12px; border-radius:8px;">
-            \[
-            f(x; 0, 1) = \frac{1}{2} \exp(-|x|)
-            \]
-        </div>
-        <div class="resource-links">
-            <b>Resources:</b>
-            <ul>
-                <li><a href="https://en.wikipedia.org/wiki/Laplace_distribution" target="_blank">Laplace distribution - Wikipedia</a></li>
-                <li><a href="https://www.youtube.com/watch?v=5mMgYN89CAA" target="_blank">Laplace Distribution (YouTube)</a></li>
-            </ul>
-        </div>
-        <p><a href="index.html" class="back-link">←  Back to Main Page</a></p>
-    </section>
+
+    <footer class="site-footer"><p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p></footer>
+
     <script>
-        function laplacePDF(x, mu, b) {
-            return (1 / (2 * b)) * Math.exp(-Math.abs(x - mu) / b);
+    function setFill(slider) {
+        const min = parseFloat(slider.min), max = parseFloat(slider.max);
+        const pct = ((parseFloat(slider.value) - min) / (max - min) * 100).toFixed(1) + '%';
+        slider.style.background = `linear-gradient(to right, var(--color-primary) ${pct}, var(--color-border) ${pct})`;
+    }
+    function themeColors() {
+        const isDark = document.documentElement.getAttribute('data-color-scheme') === 'dark';
+        return {
+            bg: 'rgba(0,0,0,0)',
+            grid: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            font: isDark ? '#e2e8f0' : '#13343b',
+            primary: isDark ? '#32b8c6' : '#21808d'
+        };
+    }
+
+    const muSlider = document.getElementById('mu-slider');
+    const bSlider  = document.getElementById('b-slider');
+    const muVal    = document.getElementById('mu-val');
+    const bVal     = document.getElementById('b-val');
+
+    function laplacePDF(x, mu, b) {
+        return (1 / (2 * b)) * Math.exp(-Math.abs(x - mu) / b);
+    }
+
+    function fmt(n, d) { return n.toFixed(d !== undefined ? d : 4); }
+
+    function updateOutputs(mu, b) {
+        document.getElementById('out-mean').textContent   = fmt(mu);
+        document.getElementById('out-var').textContent    = fmt(2 * b * b);
+        document.getElementById('out-std').textContent    = fmt(b * Math.SQRT2);
+        document.getElementById('out-median').textContent = fmt(mu);
+        document.getElementById('out-mode').textContent   = fmt(mu);
+        document.getElementById('out-b').textContent      = fmt(b);
+    }
+
+    function buildPlot(mu, b) {
+        const c = themeColors();
+        const xMin = mu - 6 * b;
+        const xMax = mu + 6 * b;
+        const N = 500;
+        const xs = [], ys = [];
+        for (let i = 0; i <= N; i++) {
+            const x = xMin + (xMax - xMin) * i / N;
+            xs.push(x);
+            ys.push(laplacePDF(x, mu, b));
         }
-        function laplaceCDF(x, mu, b) {
-            if (x < mu) {
-                return 0.5 * Math.exp((x - mu) / b);
-            } else {
-                return 1 - 0.5 * Math.exp(-(x - mu) / b);
+
+        const sigma = b * Math.SQRT2;
+        const fillXs = [], fillYs = [];
+        for (let i = 0; i <= N; i++) {
+            const x = xMin + (xMax - xMin) * i / N;
+            if (x >= mu - sigma && x <= mu + sigma) {
+                fillXs.push(x);
+                fillYs.push(laplacePDF(x, mu, b));
             }
         }
-        function plotLaplace(mu, b) {
-            const x = [];
-            const y = [];
-            const cdf = [];
-            for (let i = -10; i <= 10; i += 0.05) {
-                x.push(i);
-                y.push(laplacePDF(i, mu, b));
-                cdf.push(laplaceCDF(i, mu, b));
-            }
-            const trace = {
-                x: x,
-                y: y,
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#8e44ad' },
-                name: 'Laplace PDF'
-            };
-            const cdfTrace = {
-                x: x,
-                y: cdf,
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#27ae60' },
-                name: 'Laplace CDF'
-            };
-            const layout = {
-                title: `Laplace Distribution (μ = ${mu}, b = ${b})`,
-                xaxis: { title: 'x', range: [-10, 10] },
-                yaxis: { title: 'Probability Density', range: [0, Math.max(...y) * 1.1] },
-                template: 'plotly_white'
-            };
-            const cdfLayout = {
-                title: `Laplace CDF (μ = ${mu}, b = ${b})`,
-                xaxis: { title: 'x', range: [-10, 10] },
-                yaxis: { title: 'Cumulative Probability', range: [0, 1.05] },
-                template: 'plotly_white'
-            };
-            Plotly.newPlot('laplace-plot', [trace], layout, {displayModeBar: false});
-            Plotly.newPlot('laplace-cdf-plot', [cdfTrace], cdfLayout, {displayModeBar: false});
-        }
-        const muSlider = document.getElementById('mu-slider');
-        const muValue = document.getElementById('mu-value');
-        const bSlider = document.getElementById('b-slider');
-        const bValue = document.getElementById('b-value');
-        const meanValue = document.getElementById('mean-value');
-        const varianceValue = document.getElementById('variance-value');
-        const medianValue = document.getElementById('median-value');
-        const modeValue = document.getElementById('mode-value');
-        function updateLaplace() {
-            const mu = parseFloat(muSlider.value);
-            const b = parseFloat(bSlider.value);
-            muValue.textContent = `μ = ${mu.toFixed(2)}`;
-            bValue.textContent = `b = ${b.toFixed(2)}`;
-            meanValue.textContent = mu.toFixed(2);
-            varianceValue.textContent = (2 * b * b).toFixed(2);
-            medianValue.textContent = mu.toFixed(2);
-            modeValue.textContent = mu.toFixed(2);
-            plotLaplace(mu, b);
-            if (window.MathJax) window.MathJax.typesetPromise && window.MathJax.typesetPromise();
-        }
-        muSlider.addEventListener('input', updateLaplace);
-        bSlider.addEventListener('input', updateLaplace);
-        updateLaplace();
+
+        const fillAlpha = themeColors() === c ? (document.documentElement.getAttribute('data-color-scheme') === 'dark' ? '0.18' : '0.12') : '0.12';
+
+        const pdfTrace = {
+            x: xs, y: ys,
+            type: 'scatter', mode: 'lines',
+            line: { color: c.primary, width: 2 },
+            name: 'PDF',
+            hovertemplate: 'x=%{x:.3f}<br>f(x)=%{y:.4f}<extra></extra>'
+        };
+
+        const fillColor = c.primary.startsWith('#')
+            ? c.primary + '22'
+            : c.primary.replace('rgb(', 'rgba(').replace(')', ', 0.13)');
+
+        const fillTrace = {
+            x: fillXs, y: fillYs,
+            type: 'scatter', mode: 'lines',
+            fill: 'tozeroy',
+            fillcolor: fillColor,
+            line: { color: 'transparent' },
+            name: '±1σ', hoverinfo: 'skip', showlegend: false
+        };
+
+        const meanLine = {
+            x: [mu, mu], y: [0, laplacePDF(mu, mu, b)],
+            type: 'scatter', mode: 'lines',
+            line: { color: '#e05555', dash: 'dot', width: 1.5 },
+            name: 'mean', hoverinfo: 'skip'
+        };
+
+        const layout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { t: 16, r: 16, b: 48, l: 52 },
+            xaxis: { title: 'x', color: c.font, gridcolor: c.grid, zerolinecolor: c.grid, tickfont: { color: c.font } },
+            yaxis: { title: 'f(x)', color: c.font, gridcolor: c.grid, zerolinecolor: c.grid, tickfont: { color: c.font } },
+            legend: { font: { color: c.font }, bgcolor: 'rgba(0,0,0,0)', x: 0.75, y: 0.95 },
+            font: { family: 'Berkeley Mono, ui-monospace, monospace', color: c.font, size: 11 }
+        };
+
+        Plotly.react('laplace-plot', [fillTrace, pdfTrace, meanLine], layout, { displayModeBar: false, responsive: true });
+    }
+
+    function getMu() { return parseFloat(muSlider.value); }
+    function getB()  { return parseFloat(bSlider.value); }
+
+    function refresh() {
+        const mu = getMu(), b = getB();
+        muVal.textContent = fmt(mu, 1);
+        bVal.textContent  = fmt(b, 1);
+        setFill(muSlider);
+        setFill(bSlider);
+        updateOutputs(mu, b);
+        buildPlot(mu, b);
+    }
+
+    muSlider.addEventListener('input', refresh);
+    bSlider.addEventListener('input', refresh);
+
+    function makeEditable(span, slider) {
+        span.addEventListener('blur', () => {
+            let v = parseFloat(span.textContent);
+            if (isNaN(v)) v = parseFloat(slider.value);
+            v = Math.min(parseFloat(slider.max), Math.max(parseFloat(slider.min), v));
+            slider.value = v;
+            refresh();
+        });
+        span.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); span.blur(); } });
+    }
+    makeEditable(muVal, muSlider);
+    makeEditable(bVal,  bSlider);
+
+    document.querySelectorAll('.term-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.term-preset').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            muSlider.value = btn.dataset.mu;
+            bSlider.value  = btn.dataset.b;
+            refresh();
+        });
+    });
+
+    const obs = new MutationObserver(refresh);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-color-scheme'] });
+
+    refresh();
     </script>
 
-    </div>
-
-    <footer class="site-footer">
-        <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
-    </footer>
-
-
     <script>
-        (function() {
-            var toggle = document.getElementById('themeToggle');
-            var html = document.documentElement;
-            function applyTheme(t) {
-                html.setAttribute('data-color-scheme', t);
-                if (toggle) toggle.textContent = t === 'dark' ? '☀️' : '🌙';
-            }
-            var stored = localStorage.getItem('ml-theme');
-            if (stored) { applyTheme(stored); }
-            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { applyTheme('dark'); }
-            if (toggle) {
-                toggle.addEventListener('click', function() {
-                    var cur = html.getAttribute('data-color-scheme') || 'light';
-                    var next = cur === 'dark' ? 'light' : 'dark';
-                    localStorage.setItem('ml-theme', next);
-                    applyTheme(next);
-                });
-            }
-        })();
+    (function() {
+        var toggle = document.getElementById('themeToggle');
+        var html = document.documentElement;
+        function applyTheme(t) { html.setAttribute('data-color-scheme', t); if (toggle) toggle.textContent = t === 'dark' ? '☀️' : '🌙'; }
+        var stored = localStorage.getItem('ml-theme');
+        if (stored) { applyTheme(stored); }
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { applyTheme('dark'); }
+        if (toggle) { toggle.addEventListener('click', function() { var cur = html.getAttribute('data-color-scheme') || 'light'; var next = cur === 'dark' ? 'light' : 'dark'; localStorage.setItem('ml-theme', next); applyTheme(next); }); }
+    })();
     </script>
 </body>
-</html> 
+</html>

@@ -3,171 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binomial Distribution</title>
+    <title>Binomial Distribution — Maths Learn</title>
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
-    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <link rel="stylesheet" href="theme.css">
     <style>
-        /* ── Page-specific styles (complement theme.css) ── */
-        body {
-            padding-top: 0;
-        }
+        body { padding-top: 0; }
         .page-content {
-            max-width: 960px;
+            font-family: var(--font-family-mono);
+            max-width: 780px;
             margin: 0 auto;
-            padding: var(--space-32) var(--space-24);
+            padding: var(--space-32) var(--space-24) var(--space-48);
         }
-        .page-title {
-            font-size: var(--font-size-4xl);
-            font-weight: var(--font-weight-bold);
-            color: var(--color-text);
-            text-align: center;
-            margin-bottom: var(--space-24);
-            letter-spacing: var(--letter-spacing-tight);
-        }
-        .viz-panel {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            margin-bottom: var(--space-24);
-            box-shadow: var(--shadow-sm);
-        }
-        /* Generic controls container */
-        .controls, .slider-container {
-            margin: var(--space-16) 0;
-        }
-        .slider-row {
-            display: flex;
-            align-items: center;
-            gap: var(--space-8);
-            margin-bottom: var(--space-12);
-            flex-wrap: wrap;
-        }
-        .slider-row label {
-            min-width: 180px;
-            font-weight: var(--font-weight-medium);
-            font-size: var(--font-size-base);
-            color: var(--color-text);
-        }
-        .slider-row input[type="range"] {
-            flex: 1;
-            min-width: 120px;
-        }
-        /* Labels inside controls */
-        .controls label {
-            display: block;
-            margin-bottom: var(--space-4);
-            font-weight: var(--font-weight-medium);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-sm);
-        }
-        /* Generic inputs inside controls (number, text) */
-        .controls input[type="number"],
-        .controls input[type="text"],
-        .controls select {
-            width: 100%;
-            padding: var(--space-8) var(--space-12);
-            margin-bottom: var(--space-12);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            font-family: var(--font-family-base);
-            font-size: var(--font-size-base);
-            background: var(--color-surface);
-            color: var(--color-text);
-            box-sizing: border-box;
-        }
-        .controls input:focus, .controls select:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: var(--focus-ring);
-        }
-        .parameter-display {
-            color: var(--color-primary);
-            font-weight: var(--font-weight-medium);
-            min-width: 80px;
-        }
-        .stats-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-12);
-            margin: var(--space-16) 0;
-        }
-        .stat-box {
-            background: var(--color-background);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-12) var(--space-16);
-            text-align: center;
-            min-width: 120px;
-        }
-        .stat-box h3 {
-            font-size: var(--font-size-sm);
-            color: var(--color-text-secondary);
-            margin: 0 0 var(--space-4) 0;
-            font-weight: var(--font-weight-medium);
-        }
-        .stat-value {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-bold);
-            color: var(--color-primary);
-        }
-        .info-section {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--space-24);
-        }
-        .info-section h2 {
-            color: var(--color-primary);
-            font-size: var(--font-size-xl);
-            margin-top: var(--space-24);
-            margin-bottom: var(--space-12);
-            padding-bottom: var(--space-8);
-            border-bottom: 1px solid var(--color-border);
-        }
-        .info-section h2:first-child { margin-top: 0; }
-        .info-section h3 {
-            color: var(--color-text);
-            font-size: var(--font-size-lg);
-            margin-top: var(--space-16);
-            margin-bottom: var(--space-8);
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-6);
-            color: var(--color-primary);
-            font-weight: var(--font-weight-medium);
-            margin-top: var(--space-16);
-            text-decoration: none;
-        }
-        .back-link:hover { text-decoration: underline; }
-        /* Example/output sections */
-        .example-section, .example-output {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-top: var(--space-24);
-        }
-        .example-section h2, .example-section h3 {
-            color: var(--color-primary);
-        }
-        /* Ensure chart/plot containers have reasonable height */
-        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
-            width: 100% !important;
-            min-height: 300px;
-        }
-        #chart {
-            width: 100%;
-            min-height: 60vh;
-        }
+        .term-title { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text); letter-spacing: -0.02em; margin: 0 0 4px 0; }
+        .term-rule { border: none; border-top: 2px solid var(--color-border); margin: 6px 0 12px 0; }
+        .term-tagline { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-32) 0; line-height: 1.6; }
+        .term-divider { display: flex; align-items: center; gap: 10px; margin: var(--space-24) 0 var(--space-16) 0; }
+        .term-divider__label { font-size: var(--font-size-xs); color: var(--color-text-secondary); white-space: nowrap; letter-spacing: 0.04em; }
+        .term-divider__label::before { content: '── '; }
+        .term-divider__line { flex: 1; height: 1px; background: var(--color-border); }
+        .term-param { display: flex; align-items: center; gap: 14px; padding: 6px 0; }
+        .term-param__prompt { font-size: var(--font-size-sm); color: var(--color-primary); min-width: 44px; flex-shrink: 0; }
+        .term-param__slider { flex: 1; -webkit-appearance: none; appearance: none; height: 3px; border-radius: 0; outline: none; cursor: pointer; background: var(--color-border); }
+        .term-param__slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; background: var(--color-primary); border-radius: 2px; cursor: pointer; }
+        .term-param__slider::-moz-range-thumb { width: 13px; height: 13px; background: var(--color-primary); border-radius: 2px; border: none; cursor: pointer; }
+        .term-param__value { font-size: var(--font-size-sm); color: var(--color-primary); min-width: 56px; text-align: right; cursor: text; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+        .term-param__value:focus { outline: none; border-bottom-color: var(--color-primary); }
+        .term-output { display: grid; grid-template-columns: 140px 1fr; gap: 5px 0; padding: 4px 0; }
+        .term-output__key { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+        .term-output__val { font-size: var(--font-size-sm); color: var(--color-primary); font-weight: var(--font-weight-medium); }
+        .term-output__val::before { content: '=  '; color: var(--color-text-secondary); }
+        .term-chart-wrap { width: 100%; }
+        .term-formula { border-left: 2px solid var(--color-primary); padding: var(--space-16) 0 var(--space-16) var(--space-16); margin: var(--space-8) 0; overflow-x: auto; }
+        .term-formula p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 6px 0; }
+        .term-formula__line { font-size: var(--font-size-sm); color: var(--color-text); margin: 0 0 14px 0; display: block; }
+        .term-prose p { font-size: var(--font-size-sm); color: var(--color-text); line-height: 1.8; margin: 0 0 12px 0; }
+        .term-prose p:last-child { margin-bottom: 0; }
+        .term-props { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .term-props td { padding: 7px 0; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+        .term-props tr:last-child td { border-bottom: none; }
+        .term-props td:first-child { color: var(--color-text-secondary); width: 140px; padding-right: 24px; }
+        .term-props td:last-child { color: var(--color-text); }
+        .term-related { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 7px; }
+        .term-related li { font-size: var(--font-size-sm); color: var(--color-text); display: flex; gap: 10px; }
+        .term-related__arrow { color: var(--color-primary); flex-shrink: 0; }
+        .term-related__note { color: var(--color-text-secondary); }
+        .term-presets { display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 4px 0; }
+        .term-preset { background: none; border: none; font-family: var(--font-family-mono); font-size: var(--font-size-sm); color: var(--color-primary); cursor: pointer; padding: 0; }
+        .term-preset::before { content: '['; }
+        .term-preset::after { content: ']'; }
+        .term-preset:hover { text-decoration: underline; }
+        .term-preset.active { color: var(--color-text); font-weight: var(--font-weight-medium); }
     </style>
-
 </head>
 <body>
     <header class="site-header">
@@ -185,155 +71,367 @@
 
     <div class="page-content">
 
-    <h1 class="page-title">Binomial Distribution</h1>
-    <div class="viz-panel">
-        <p style="margin-bottom: 10px;">The Binomial Distribution models the number of successes in <b>n</b> independent Bernoulli trials, each with a probability of success <b>p</b>.</p>
-        <div class="slider-container">
-            <div class="slider-row">
-                <label for="trials-slider">Number of Trials (n):</label>
-                <input type="range" id="trials-slider" min="1" max="50" step="1" value="10">
-                <span class="parameter-display" id="trials-value">n = 10</span>
-            </div>
-        </div>
-        <div class="slider-container">
-            <div class="slider-row">
-                <label for="probability-slider">Probability of Success (p):</label>
-                <input type="range" id="probability-slider" min="0" max="1" step="0.01" value="0.5">
-                <span class="parameter-display" id="probability-value">p = 0.5</span>
-            </div>
-        </div>
-        <div class="stats-container">
-            <div class="stat-box">
-                <h3>Mean (μ)</h3>
-                <div class="stat-value" id="mean-value">5.00</div>
-            </div>
-            <div class="stat-box">
-                <h3>Variance (σ²)</h3>
-                <div class="stat-value" id="variance-value">2.50</div>
-            </div>
-        </div>
-        <div id="binomial-plot"></div>
-    </div>
-    <section class="info-section">
-        <h2>PMF (Probability Mass Function)</h2>
-        <pre>
-P(X = k) = C(n, k) p^k (1-p)^{n-k},   k ∈ {0, 1, ..., n}
-        </pre>
-        <h2>Parameters</h2>
-        <ul>
-            <li><b>n</b>: Number of trials (positive integer)</li>
-            <li><b>p</b>: Probability of success (0 ≤ p ≤ 1)</li>
-        </ul>
-        <h2>Mean and Variance</h2>
-        <ul>
-            <li><b>Mean:</b> μ = n·p</li>
-            <li><b>Variance:</b> σ² = n·p·(1 - p)</li>
-        </ul>
-        <h2>Example</h2>
-        <p>For n = 10, p = 0.5, the PMF for k = 5 is:</p>
-        <pre>
-P(X = 5) = C(10, 5) (0.5)^5 (0.5)^5 = C(10, 5) (0.5)^{10} ≈ 0.2461
-        </pre>
-        <p><a href="index.html" class="back-link">←  Back to Main Page</a></p>
-    </section>
-    <script>
-        // Function to calculate binomial PMF
-        const calculateBinomialPMF = (n, p) => {
-            const factorial = (num) => (num <= 1 ? 1 : num * factorial(num - 1));
-            const comb = (n, k) => factorial(n) / (factorial(k) * factorial(n - k));
-            const pmf = Array.from({ length: n + 1 }, (_, k) => comb(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k));
-            return pmf;
-        };
-        function plotBinomial(n, p) {
-            const x = Array.from({ length: n + 1 }, (_, i) => i);
-            const y = calculateBinomialPMF(n, p);
-            // Find the most likely outcome (mode)
-            const maxY = Math.max(...y);
-            const modeIndices = y.reduce((arr, val, idx) => val === maxY ? arr.concat(idx) : arr, []);
-            const barColors = x.map((_, i) => modeIndices.includes(i) ? '#2ecc71' : '#3498db');
-            const data = [{
-                x: x,
-                y: y,
-                type: 'bar',
-                marker: { color: barColors },
-                text: y.map(val => val.toFixed(4)),
-                textposition: 'outside',
-                hovertemplate: 'P(X=%{x}) = %{y:.4f}<extra></extra>',
-            }];
-            // Mean line
-            const mean = n * p;
-            const variance = n * p * (1 - p);
-            const meanLine = {
-                x: [mean, mean],
-                y: [0, Math.max(...y)],
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Mean',
-                line: { color: '#e74c3c', width: 2, dash: 'dash' },
-                hoverinfo: 'skip',
-                showlegend: false
-            };
-            // Annotations for mean and variance
-            const annotations = [
-                {
-                    x: mean,
-                    y: Math.max(...y) + 0.04,
-                    xref: 'x',
-                    yref: 'y',
-                    text: `μ = ${mean.toFixed(2)}`,
-                    showarrow: false,
-                    font: { color: '#e74c3c', size: 14 }
-                },
-                {
-                    x: mean,
-                    y: Math.max(...y) + 0.12,
-                    xref: 'x',
-                    yref: 'y',
-                    text: `σ² = ${variance.toFixed(2)}`,
-                    showarrow: false,
-                    font: { color: '#3498db', size: 14 }
-                }
-            ];
-            const layout = {
-                title: `Binomial Distribution (n = ${n}, p = ${p})`,
-                xaxis: { title: 'Number of Successes (k)', dtick: 1 },
-                yaxis: { title: 'Probability', range: [0, Math.max(...y) + 0.2], gridcolor: '#ddd' },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: false,
-                barmode: 'group',
-                annotations: annotations,
-                margin: { t: 60, b: 60, l: 60, r: 30 }
-            };
-            Plotly.newPlot('binomial-plot', [data[0], meanLine], layout, {displayModeBar: false});
-        }
-        // Use the sliders and value spans already present in the HTML
-        const trialsSlider = document.getElementById('trials-slider');
-        const probabilitySlider = document.getElementById('probability-slider');
-        const trialsValue = document.getElementById('trials-value');
-        const probabilityValue = document.getElementById('probability-value');
-        const meanValue = document.getElementById('mean-value');
-        const varianceValue = document.getElementById('variance-value');
-        function updateBinomial() {
-            const n = parseInt(trialsSlider.value, 10);
-            const p = parseFloat(probabilitySlider.value);
-            trialsValue.textContent = `n = ${n}`;
-            probabilityValue.textContent = `p = ${p}`;
-            meanValue.textContent = (n * p).toFixed(2);
-            varianceValue.textContent = (n * p * (1 - p)).toFixed(2);
-            plotBinomial(n, p);
-        }
-        trialsSlider.addEventListener('input', updateBinomial);
-        probabilitySlider.addEventListener('input', updateBinomial);
-        updateBinomial();
-    </script>
+        <h1 class="term-title">binomial_distribution</h1>
+        <hr class="term-rule">
+        <p class="term-tagline">discrete &nbsp;·&nbsp; support: {0, 1, ..., n} &nbsp;·&nbsp; parameters: n ∈ ℕ, p ∈ [0, 1]</p>
 
-    </div>
+        <!-- Parameters -->
+        <div class="term-divider">
+            <span class="term-divider__label">PARAMETERS</span>
+            <div class="term-divider__line"></div>
+        </div>
+
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; n</span>
+            <input class="term-param__slider" type="range" id="n-slider" min="1" max="50" step="1" value="10">
+            <span class="term-param__value" id="n-val" contenteditable="true" spellcheck="false">10</span>
+        </div>
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; p</span>
+            <input class="term-param__slider" type="range" id="p-slider" min="0.01" max="0.99" step="0.01" value="0.5">
+            <span class="term-param__value" id="p-val" contenteditable="true" spellcheck="false">0.50</span>
+        </div>
+
+        <!-- Presets -->
+        <div class="term-divider">
+            <span class="term-divider__label">PRESETS</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-presets">
+            <button class="term-preset active" data-n="10" data-p="0.5">fair</button>
+            <button class="term-preset" data-n="20" data-p="0.7">heavy</button>
+            <button class="term-preset" data-n="30" data-p="0.5">coin</button>
+            <button class="term-preset" data-n="50" data-p="0.05">rare</button>
+            <button class="term-preset" data-n="50" data-p="0.3">large</button>
+        </div>
+
+        <!-- Output -->
+        <div class="term-divider">
+            <span class="term-divider__label">OUTPUT</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-output">
+            <span class="term-output__key">mean</span>
+            <span class="term-output__val" id="out-mean">5.0000</span>
+            <span class="term-output__key">variance</span>
+            <span class="term-output__val" id="out-var">2.5000</span>
+            <span class="term-output__key">std_dev</span>
+            <span class="term-output__val" id="out-std">1.5811</span>
+            <span class="term-output__key">mode</span>
+            <span class="term-output__val" id="out-mode">5</span>
+            <span class="term-output__key">skewness</span>
+            <span class="term-output__val" id="out-skew">0.0000</span>
+        </div>
+
+        <!-- Chart -->
+        <div class="term-divider">
+            <span class="term-divider__label">PMF CHART</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-chart-wrap">
+            <div id="binomial-plot" style="width:100%;min-height:300px;"></div>
+        </div>
+
+        <!-- Formula -->
+        <div class="term-divider">
+            <span class="term-divider__label">FORMULA</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-formula">
+            <p>PMF</p>
+            <span class="term-formula__line">P(X = k) = C(n, k) · p^k · (1−p)^(n−k),&nbsp;&nbsp;&nbsp;k ∈ {0, 1, ..., n}</span>
+            <p>CDF</p>
+            <span class="term-formula__line">F(k) = Σ_{i=0}^{k} C(n,i) · p^i · (1−p)^(n−i)</span>
+            <p>MGF</p>
+            <span class="term-formula__line" style="margin-bottom:0;">M(t) = (1 − p + p·e^t)^n</span>
+        </div>
+
+        <!-- About -->
+        <div class="term-divider">
+            <span class="term-divider__label">ABOUT</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-prose">
+            <p>The Binomial distribution counts the number of successes in n independent Bernoulli(p) trials. It is the fundamental model for repeated binary experiments — every time you run an experiment with two outcomes a fixed number of times, the count of successes follows a Binomial distribution.</p>
+            <p>The shape depends on p and n. When p = 0.5 the distribution is symmetric; when p &lt; 0.5 it is right-skewed (more probability mass near 0); when p &gt; 0.5 it is left-skewed. As n grows large, the Central Limit Theorem ensures the distribution converges to a Normal shape regardless of p — a fact exploited in many approximations.</p>
+            <p>When np and n(1−p) are both large (&gt; 5 is a rule of thumb), the Binomial(n, p) is well approximated by Normal(np, np(1−p)). For rare events with large n and small p, the Poisson(np) approximation is more accurate.</p>
+        </div>
+
+        <!-- Properties -->
+        <div class="term-divider">
+            <span class="term-divider__label">PROPERTIES</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <table class="term-props">
+            <tbody>
+                <tr><td>support</td><td>k ∈ {0, 1, ..., n}</td></tr>
+                <tr><td>parameters</td><td>n ∈ ℕ (trials),&nbsp;&nbsp;p ∈ [0,1] (success probability)</td></tr>
+                <tr><td>PMF</td><td>C(n,k) · p^k · (1−p)^(n−k)</td></tr>
+                <tr><td>mean</td><td>n·p</td></tr>
+                <tr><td>mode</td><td>floor((n+1)p)&nbsp;&nbsp;or&nbsp;&nbsp;floor((n+1)p)−1</td></tr>
+                <tr><td>variance</td><td>n·p·(1−p)</td></tr>
+                <tr><td>std dev</td><td>√(n·p·(1−p))</td></tr>
+                <tr><td>skewness</td><td>(1−2p) / √(n·p·(1−p))</td></tr>
+                <tr><td>kurtosis</td><td>(1−6p(1−p)) / (n·p·(1−p))</td></tr>
+                <tr><td>MGF</td><td>(1−p+p·e^t)^n</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Related -->
+        <div class="term-divider">
+            <span class="term-divider__label">RELATED</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <ul class="term-related">
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Bernoulli(p)</span>
+                <span class="term-related__note">— special case n = 1; Binomial is n independent Bernoulli trials summed</span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Poisson(np)</span>
+                <span class="term-related__note">— limiting approximation when n is large and p is small (rare events)</span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Normal(np, np(1−p))</span>
+                <span class="term-related__note">— CLT approximation for large n·p and n·(1−p)</span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Negative Binomial</span>
+                <span class="term-related__note">— counts trials until r successes; generalises Geometric</span>
+            </li>
+        </ul>
+
+    </div><!-- /.page-content -->
 
     <footer class="site-footer">
         <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
     </footer>
 
+    <script>
+        // ── Shared helpers ──────────────────────────────────────────────────────
+        function setFill(slider) {
+            const min = parseFloat(slider.min), max = parseFloat(slider.max);
+            const pct = ((parseFloat(slider.value) - min) / (max - min) * 100).toFixed(1) + '%';
+            slider.style.background = `linear-gradient(to right, var(--color-primary) ${pct}, var(--color-border) ${pct})`;
+        }
+
+        function themeColors() {
+            const isDark = document.documentElement.getAttribute('data-color-scheme') === 'dark';
+            return {
+                bg: 'rgba(0,0,0,0)',
+                grid: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                font: isDark ? '#e2e8f0' : '#13343b',
+                primary: isDark ? '#32b8c6' : '#21808d',
+                secondary: isDark ? '#8a9ba8' : '#626c71'
+            };
+        }
+
+        // ── Math helpers ────────────────────────────────────────────────────────
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        }
+
+        function binomCoeff(n, k) {
+            if (k < 0 || k > n) return 0;
+            if (k === 0 || k === n) return 1;
+            // Use logarithms to avoid overflow for large n
+            let logResult = 0;
+            for (let i = 0; i < k; i++) {
+                logResult += Math.log(n - i) - Math.log(i + 1);
+            }
+            return Math.round(Math.exp(logResult));
+        }
+
+        function binomPMF(k, n, p) {
+            if (k < 0 || k > n) return 0;
+            if (p === 0) return k === 0 ? 1 : 0;
+            if (p === 1) return k === n ? 1 : 0;
+            // Use log scale for numerical stability
+            let logC = 0;
+            for (let i = 0; i < k; i++) {
+                logC += Math.log(n - i) - Math.log(i + 1);
+            }
+            const logP = k * Math.log(p) + (n - k) * Math.log(1 - p);
+            return Math.exp(logC + logP);
+        }
+
+        // ── DOM refs ────────────────────────────────────────────────────────────
+        const nSlider  = document.getElementById('n-slider');
+        const pSlider  = document.getElementById('p-slider');
+        const nVal     = document.getElementById('n-val');
+        const pVal     = document.getElementById('p-val');
+        const outMean  = document.getElementById('out-mean');
+        const outVar   = document.getElementById('out-var');
+        const outStd   = document.getElementById('out-std');
+        const outMode  = document.getElementById('out-mode');
+        const outSkew  = document.getElementById('out-skew');
+
+        // ── Plot ────────────────────────────────────────────────────────────────
+        function plotBinomial(n, p) {
+            const c = themeColors();
+            const ks = [];
+            const pmfVals = [];
+            for (let k = 0; k <= n; k++) {
+                ks.push(k);
+                pmfVals.push(binomPMF(k, n, p));
+            }
+            const maxPMF = Math.max(...pmfVals);
+            const mean = n * p;
+
+            const barTrace = {
+                x: ks,
+                y: pmfVals,
+                type: 'bar',
+                marker: {
+                    color: c.primary,
+                    opacity: 0.85
+                },
+                hovertemplate: 'k = %{x}<br>P(X=k) = %{y:.4f}<extra></extra>',
+                name: 'PMF'
+            };
+
+            const meanLine = {
+                x: [mean, mean],
+                y: [0, maxPMF * 1.08],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'mean',
+                line: { color: '#e05252', width: 1.5, dash: 'dot' },
+                hovertemplate: 'mean = %{x:.3f}<extra></extra>'
+            };
+
+            const layout = {
+                paper_bgcolor: c.bg,
+                plot_bgcolor: c.bg,
+                font: { family: 'monospace', size: 11, color: c.font },
+                margin: { t: 16, r: 16, b: 48, l: 56 },
+                xaxis: {
+                    title: { text: 'k', font: { color: c.secondary } },
+                    tickfont: { color: c.secondary },
+                    gridcolor: c.grid,
+                    zeroline: false,
+                    fixedrange: true
+                },
+                yaxis: {
+                    title: { text: 'P(X = k)', font: { color: c.secondary } },
+                    tickfont: { color: c.secondary },
+                    gridcolor: c.grid,
+                    zeroline: false,
+                    fixedrange: true,
+                    rangemode: 'tozero'
+                },
+                showlegend: false,
+                bargap: 0.18
+            };
+
+            Plotly.react('binomial-plot', [barTrace, meanLine], layout, {
+                displayModeBar: false,
+                responsive: true
+            });
+        }
+
+        // ── Core update ─────────────────────────────────────────────────────────
+        function updateAll(n, p) {
+            n = Math.max(1, Math.min(50, Math.round(n)));
+            p = Math.max(0.01, Math.min(0.99, p));
+
+            const mean     = n * p;
+            const variance = n * p * (1 - p);
+            const std      = Math.sqrt(variance);
+            const skewness = variance > 0 ? (1 - 2 * p) / std : 0;
+
+            // Mode: floor((n+1)*p), clamp to [0, n]
+            // When (n+1)*p is an exact integer, there are two modes
+            const modeRaw = (n + 1) * p;
+            let modeHigh  = Math.floor(modeRaw);
+            if (modeHigh > n) modeHigh = n;
+            const isDouble = (modeRaw === Math.floor(modeRaw)) && modeHigh > 0;
+            const modeStr  = isDouble ? `${modeHigh - 1}, ${modeHigh}` : `${modeHigh}`;
+
+            // Update output spans
+            outMean.textContent = mean.toFixed(4);
+            outVar.textContent  = variance.toFixed(4);
+            outStd.textContent  = std.toFixed(4);
+            outMode.textContent = modeStr;
+            outSkew.textContent = skewness.toFixed(4);
+
+            // Sync sliders and editable value displays
+            nSlider.value = n;
+            pSlider.value = p.toFixed(2);
+            nVal.textContent = n;
+            pVal.textContent = p.toFixed(2);
+
+            setFill(nSlider);
+            setFill(pSlider);
+
+            plotBinomial(n, p);
+        }
+
+        // ── Slider input events ─────────────────────────────────────────────────
+        nSlider.addEventListener('input', function() {
+            updateAll(parseInt(this.value), parseFloat(pSlider.value));
+        });
+
+        pSlider.addEventListener('input', function() {
+            updateAll(parseInt(nSlider.value), parseFloat(this.value));
+        });
+
+        // ── Editable value span — n ─────────────────────────────────────────────
+        nVal.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
+        });
+        nVal.addEventListener('blur', function() {
+            const v = parseInt(this.textContent.trim());
+            if (!isNaN(v) && v >= 1 && v <= 50) {
+                updateAll(v, parseFloat(pSlider.value));
+            } else {
+                this.textContent = nSlider.value;
+            }
+        });
+
+        // ── Editable value span — p ─────────────────────────────────────────────
+        pVal.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
+        });
+        pVal.addEventListener('blur', function() {
+            const v = parseFloat(this.textContent.trim());
+            if (!isNaN(v) && v >= 0.01 && v <= 0.99) {
+                updateAll(parseInt(nSlider.value), v);
+            } else {
+                this.textContent = parseFloat(pSlider.value).toFixed(2);
+            }
+        });
+
+        // ── Preset buttons ──────────────────────────────────────────────────────
+        document.querySelectorAll('.term-preset').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.term-preset').forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+                updateAll(parseInt(this.dataset.n), parseFloat(this.dataset.p));
+            });
+        });
+
+        // ── Theme observer — re-render chart on scheme change ───────────────────
+        new MutationObserver(function() {
+            plotBinomial(parseInt(nSlider.value), parseFloat(pSlider.value));
+        }).observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-color-scheme']
+        });
+
+        // ── Initialise ──────────────────────────────────────────────────────────
+        updateAll(10, 0.5);
+    </script>
 
     <script>
         (function() {
