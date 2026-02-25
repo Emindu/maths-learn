@@ -121,6 +121,8 @@
             <span class="term-output__val" id="out-mode">5</span>
             <span class="term-output__key">skewness</span>
             <span class="term-output__val" id="out-skew">0.0000</span>
+            <span class="term-output__key">kurtosis</span>
+            <span class="term-output__val" id="out-kurt">2.9800</span>
         </div>
 
         <!-- Chart -->
@@ -130,6 +132,22 @@
         </div>
         <div class="term-chart-wrap">
             <div id="binomial-plot" style="width:100%;min-height:300px;"></div>
+        </div>
+
+        <!-- Query -->
+        <div class="term-divider">
+            <span class="term-divider__label">QUERY</span>
+            <div class="term-divider__line"></div>
+        </div>
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; k</span>
+            <input class="term-param__slider" type="range" id="k-slider" min="0" max="10" step="1" value="5">
+            <span class="term-param__value" id="k-val" contenteditable="true" spellcheck="false">5</span>
+        </div>
+        <div class="term-output">
+            <span class="term-output__key">P(X = k)</span><span class="term-output__val" id="q-pmf">—</span>
+            <span class="term-output__key">P(X ≤ k)</span><span class="term-output__val" id="q-cdf">—</span>
+            <span class="term-output__key">P(X ≥ k)</span><span class="term-output__val" id="q-sf">—</span>
         </div>
 
         <!-- Formula -->
@@ -268,11 +286,17 @@
         const pSlider  = document.getElementById('p-slider');
         const nVal     = document.getElementById('n-val');
         const pVal     = document.getElementById('p-val');
+        const kSlider  = document.getElementById('k-slider');
+        const kVal     = document.getElementById('k-val');
         const outMean  = document.getElementById('out-mean');
         const outVar   = document.getElementById('out-var');
         const outStd   = document.getElementById('out-std');
         const outMode  = document.getElementById('out-mode');
         const outSkew  = document.getElementById('out-skew');
+        const outKurt  = document.getElementById('out-kurt');
+        const qPMF     = document.getElementById('q-pmf');
+        const qCDF     = document.getElementById('q-cdf');
+        const qSF      = document.getElementById('q-sf');
 
         // ── Plot ────────────────────────────────────────────────────────────────
         function plotBinomial(n, p) {
@@ -338,6 +362,28 @@
             });
         }
 
+        // ── Query compute ────────────────────────────────────────────────────────
+        var queryK = 5;
+
+        function computeQuery(n, p, k) {
+            k = Math.max(0, Math.min(n, Math.round(k)));
+            queryK = k;
+            kSlider.max   = n;
+            kSlider.value = k;
+            kVal.textContent = k;
+            setFill(kSlider);
+
+            const pmf = binomPMF(k, n, p);
+            let cdf = 0;
+            for (let i = 0; i <= k; i++) cdf += binomPMF(i, n, p);
+            cdf = Math.min(1, cdf); // guard floating-point overshoot
+            const sf = Math.max(0, 1 - cdf + pmf); // P(X >= k) = 1 - F(k-1)
+
+            qPMF.textContent = pmf.toFixed(6);
+            qCDF.textContent = cdf.toFixed(6);
+            qSF.textContent  = sf.toFixed(6);
+        }
+
         // ── Core update ─────────────────────────────────────────────────────────
         function updateAll(n, p) {
             n = Math.max(1, Math.min(50, Math.round(n)));
@@ -347,6 +393,7 @@
             const variance = n * p * (1 - p);
             const std      = Math.sqrt(variance);
             const skewness = variance > 0 ? (1 - 2 * p) / std : 0;
+            const kurtosis = variance > 0 ? 3 + (1 - 6 * p * (1 - p)) / variance : 3;
 
             // Mode: floor((n+1)*p), clamp to [0, n]
             // When (n+1)*p is an exact integer, there are two modes
@@ -362,6 +409,7 @@
             outStd.textContent  = std.toFixed(4);
             outMode.textContent = modeStr;
             outSkew.textContent = skewness.toFixed(4);
+            outKurt.textContent = kurtosis.toFixed(4);
 
             // Sync sliders and editable value displays
             nSlider.value = n;
@@ -371,6 +419,9 @@
 
             setFill(nSlider);
             setFill(pSlider);
+
+            // Keep query k clamped within new n
+            computeQuery(n, p, Math.min(queryK, n));
 
             plotBinomial(n, p);
         }
@@ -382,6 +433,10 @@
 
         pSlider.addEventListener('input', function() {
             updateAll(parseInt(nSlider.value), parseFloat(this.value));
+        });
+
+        kSlider.addEventListener('input', function() {
+            computeQuery(parseInt(nSlider.value), parseFloat(pSlider.value), parseInt(this.value));
         });
 
         // ── Editable value span — n ─────────────────────────────────────────────
@@ -407,6 +462,20 @@
                 updateAll(parseInt(nSlider.value), v);
             } else {
                 this.textContent = parseFloat(pSlider.value).toFixed(2);
+            }
+        });
+
+        // ── Editable value span — k ─────────────────────────────────────────────
+        kVal.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
+        });
+        kVal.addEventListener('blur', function() {
+            const n = parseInt(nSlider.value);
+            const v = parseInt(this.textContent.trim());
+            if (!isNaN(v) && v >= 0 && v <= n) {
+                computeQuery(n, parseFloat(pSlider.value), v);
+            } else {
+                this.textContent = queryK;
             }
         });
 
