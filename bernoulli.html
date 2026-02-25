@@ -7,166 +7,254 @@
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
     <link rel="stylesheet" href="theme.css">
     <style>
-        /* ── Page-specific styles (complement theme.css) ── */
-        body {
-            padding-top: 0;
-        }
+        body { padding-top: 0; }
+
         .page-content {
-            max-width: 960px;
+            font-family: var(--font-family-mono);
+            max-width: 780px;
             margin: 0 auto;
-            padding: var(--space-32) var(--space-24);
+            padding: var(--space-32) var(--space-24) var(--space-48);
         }
-        .page-title {
-            font-size: var(--font-size-4xl);
+
+        /* ── Title block ── */
+        .term-title {
+            font-size: var(--font-size-xl);
             font-weight: var(--font-weight-bold);
             color: var(--color-text);
-            text-align: center;
-            margin-bottom: var(--space-24);
-            letter-spacing: var(--letter-spacing-tight);
+            letter-spacing: -0.02em;
+            margin: 0 0 4px 0;
         }
-        .viz-panel {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            margin-bottom: var(--space-24);
-            box-shadow: var(--shadow-sm);
+        .term-rule {
+            border: none;
+            border-top: 2px solid var(--color-border);
+            margin: 6px 0 12px 0;
         }
-        /* Generic controls container */
-        .controls, .slider-container {
-            margin: var(--space-16) 0;
+        .term-tagline {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-32) 0;
+            line-height: 1.6;
         }
-        .slider-row {
+
+        /* ── Section divider ── */
+        .term-divider {
             display: flex;
             align-items: center;
-            gap: var(--space-8);
-            margin-bottom: var(--space-12);
-            flex-wrap: wrap;
+            gap: 10px;
+            margin: var(--space-24) 0 var(--space-16) 0;
         }
-        .slider-row label {
-            min-width: 180px;
-            font-weight: var(--font-weight-medium);
-            font-size: var(--font-size-base);
-            color: var(--color-text);
+        .term-divider__label {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+            letter-spacing: 0.04em;
         }
-        .slider-row input[type="range"] {
+        .term-divider__label::before { content: '── '; }
+        .term-divider__line {
             flex: 1;
-            min-width: 120px;
+            height: 1px;
+            background: var(--color-border);
         }
-        /* Labels inside controls */
-        .controls label {
-            display: block;
-            margin-bottom: var(--space-4);
-            font-weight: var(--font-weight-medium);
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-sm);
-        }
-        /* Generic inputs inside controls (number, text) */
-        .controls input[type="number"],
-        .controls input[type="text"],
-        .controls select {
-            width: 100%;
-            padding: var(--space-8) var(--space-12);
-            margin-bottom: var(--space-12);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            font-family: var(--font-family-base);
-            font-size: var(--font-size-base);
-            background: var(--color-surface);
-            color: var(--color-text);
-            box-sizing: border-box;
-        }
-        .controls input:focus, .controls select:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: var(--focus-ring);
-        }
-        .parameter-display {
-            color: var(--color-primary);
-            font-weight: var(--font-weight-medium);
-            min-width: 80px;
-        }
-        .stats-container {
+
+        /* ── Parameter sliders ── */
+        .term-param {
             display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-12);
-            margin: var(--space-16) 0;
+            align-items: center;
+            gap: 14px;
+            padding: 6px 0;
         }
-        .stat-box {
-            background: var(--color-background);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-12) var(--space-16);
-            text-align: center;
-            min-width: 120px;
+        .term-param__prompt {
+            font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            min-width: 28px;
+            flex-shrink: 0;
         }
-        .stat-box h3 {
+        .term-param__slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 3px;
+            border-radius: 0;
+            outline: none;
+            cursor: pointer;
+            background: var(--color-border);
+            position: relative;
+        }
+        .term-param__slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px;
+            height: 13px;
+            background: var(--color-primary);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .term-param__slider::-moz-range-thumb {
+            width: 13px;
+            height: 13px;
+            background: var(--color-primary);
+            border-radius: 2px;
+            border: none;
+            cursor: pointer;
+        }
+        .term-param__value {
+            font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            min-width: 48px;
+            text-align: right;
+            cursor: text;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.15s;
+        }
+        .term-param__value:focus {
+            outline: none;
+            border-bottom-color: var(--color-primary);
+        }
+
+        /* ── Output block ── */
+        .term-output {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 5px 0;
+            padding: 4px 0;
+        }
+        .term-output__key {
             font-size: var(--font-size-sm);
             color: var(--color-text-secondary);
-            margin: 0 0 var(--space-4) 0;
-            font-weight: var(--font-weight-medium);
         }
-        .stat-value {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-bold);
-            color: var(--color-primary);
-        }
-        .info-section {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--space-24);
-        }
-        .info-section h2 {
-            color: var(--color-primary);
-            font-size: var(--font-size-xl);
-            margin-top: var(--space-24);
-            margin-bottom: var(--space-12);
-            padding-bottom: var(--space-8);
-            border-bottom: 1px solid var(--color-border);
-        }
-        .info-section h2:first-child { margin-top: 0; }
-        .info-section h3 {
-            color: var(--color-text);
-            font-size: var(--font-size-lg);
-            margin-top: var(--space-16);
-            margin-bottom: var(--space-8);
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-6);
+        .term-output__val {
+            font-size: var(--font-size-sm);
             color: var(--color-primary);
             font-weight: var(--font-weight-medium);
-            margin-top: var(--space-16);
-            text-decoration: none;
         }
-        .back-link:hover { text-decoration: underline; }
-        /* Example/output sections */
-        .example-section, .example-output {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-top: var(--space-24);
+        .term-output__val::before { content: '=  '; color: var(--color-text-secondary); }
+
+        /* ── Chart ── */
+        .term-chart-wrap {
+            width: 100%;
+            margin: 0;
         }
-        .example-section h2, .example-section h3 {
-            color: var(--color-primary);
-        }
-        /* Ensure chart/plot containers have reasonable height */
-        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
-            width: 100% !important;
+        #bernoulli-plot {
+            width: 100%;
             min-height: 300px;
         }
-        #chart {
+
+        /* ── Coverage bars ── */
+        .term-coverage {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 4px 0;
+        }
+        .term-coverage__row {
+            display: grid;
+            grid-template-columns: 200px 60px 1fr;
+            align-items: center;
+            gap: 10px;
+            font-size: var(--font-size-sm);
+        }
+        .term-coverage__label { color: var(--color-text-secondary); }
+        .term-coverage__val { color: var(--color-primary); font-weight: var(--font-weight-medium); }
+        .term-coverage__track {
+            height: 8px;
+            background: var(--color-border);
+            border-radius: 0;
+            overflow: hidden;
+        }
+        .term-coverage__fill {
+            height: 100%;
+            background: var(--color-primary);
+            transition: width 0.25s var(--ease-standard);
+            border-radius: 0;
+        }
+
+        /* ── Formula block ── */
+        .term-formula {
+            padding: var(--space-16) 0;
+            border-left: 2px solid var(--color-primary);
+            padding-left: var(--space-16);
+            margin: var(--space-8) 0;
+            overflow-x: auto;
+        }
+        .term-formula p {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 8px 0;
+        }
+
+        /* ── Prose ── */
+        .term-prose {
+            padding: 4px 0;
+        }
+        .term-prose p {
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            line-height: 1.8;
+            margin: 0 0 12px 0;
+        }
+        .term-prose p:last-child { margin-bottom: 0; }
+
+        /* ── Properties table ── */
+        .term-props {
             width: 100%;
-            min-height: 60vh;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+        .term-props td {
+            padding: 7px 0;
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: top;
+        }
+        .term-props tr:last-child td { border-bottom: none; }
+        .term-props td:first-child {
+            color: var(--color-text-secondary);
+            width: 140px;
+            padding-right: 24px;
+        }
+        .term-props td:last-child { color: var(--color-text); }
+
+        /* ── Related ── */
+        .term-related {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .term-related li {
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            display: flex;
+            gap: 10px;
+        }
+        .term-related__arrow { color: var(--color-primary); flex-shrink: 0; }
+        .term-related__note { color: var(--color-text-secondary); }
+
+        /* ── Presets ── */
+        .term-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 20px;
+            padding: 4px 0;
+        }
+        .term-preset {
+            background: none;
+            border: none;
+            font-family: var(--font-family-mono);
+            font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            cursor: pointer;
+            padding: 0;
+            transition: opacity 0.15s;
+        }
+        .term-preset::before { content: '['; }
+        .term-preset::after  { content: ']'; }
+        .term-preset:hover { text-decoration: underline; }
+        .term-preset.active {
+            color: var(--color-text);
+            font-weight: var(--font-weight-medium);
         }
     </style>
-
 </head>
 <body>
     <header class="site-header">
@@ -184,131 +272,307 @@
 
     <div class="page-content">
 
-    <h1 class="page-title">Bernoulli Distribution</h1>
-    <div class="viz-panel">
-        <p style="margin-bottom: 10px;">The Bernoulli distribution is a discrete probability distribution that models a single experiment with only two possible outcomes: success (1) and failure (0). The probability of success is denoted as <b>p</b>, and the probability of failure is <b>1-p</b>.</p>
-        <div class="slider-container">
-            <div class="slider-row">
-                <label for="probability-slider">Probability of Success (p):</label>
-                <input type="range" id="probability-slider" min="0" max="1" step="0.01" value="0.5">
-                <span class="parameter-display" id="probability-value">p = 0.5</span>
-            </div>
-        </div>
-        <div class="stats-container">
-            <div class="stat-box">
-                <h3>Mean (μ)</h3>
-                <div class="stat-value" id="mean-value">0.50</div>
-            </div>
-            <div class="stat-box">
-                <h3>Variance (σ²)</h3>
-                <div class="stat-value" id="variance-value">0.25</div>
-            </div>
-        </div>
-        <div id="bernoulli-plot"></div>
-    </div>
-    <section class="info-section">
-        <h2>PMF (Probability Mass Function)</h2>
-        <pre>
-P(X = x) = p^x (1-p)^{1-x},   x ∈ {0, 1}
-        </pre>
-        <h2>Parameters</h2>
-        <ul>
-            <li><b>p</b>: Probability of success (0 ≤ p ≤ 1)</li>
-        </ul>
-        <h2>Mean and Variance</h2>
-        <ul>
-            <li><b>Mean:</b> μ = p</li>
-            <li><b>Variance:</b> σ² = p(1 - p)</li>
-        </ul>
-        <h2>Example</h2>
-        <p>For p = 0.5, the PMF is:</p>
-        <pre>
-P(X = 0) = 1 - 0.5 = 0.5
-P(X = 1) = 0.5
-        </pre>
-        <p><a href="index.html" class="back-link">←  Back to Main Page</a></p>
-    </section>
-    <script>
-        function plotBernoulli(p) {
-            const x = [0, 1];
-            const y = [1 - p, p];
-            // Highlight the most likely outcome
-            const highlightColor = p > 0.5 ? ['#FF5733', '#2ecc71'] : p < 0.5 ? ['#2ecc71', '#FF5733'] : ['#FFB347', '#FFB347'];
-            const data = [{
-                x: x,
-                y: y,
-                type: 'bar',
-                marker: { color: highlightColor },
-                text: y.map(v => v.toFixed(2)),
-                textposition: 'outside',
-                hovertemplate: 'P(X=%{x}) = %{y:.2f}<extra></extra>',
-            }];
-            // Mean line
-            const meanLine = {
-                x: [p, p],
-                y: [0, 1],
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Mean',
-                line: { color: '#e74c3c', width: 2, dash: 'dash' },
-                hoverinfo: 'skip',
-                showlegend: false
-            };
-            // Annotations for mean and variance
-            const annotations = [
-                {
-                    x: p,
-                    y: 1.02,
-                    xref: 'x',
-                    yref: 'paper',
-                    text: `μ = ${p.toFixed(2)}`,
-                    showarrow: false,
-                    font: { color: '#e74c3c', size: 14 }
-                },
-                {
-                    x: 1 - p > p ? 0 : 1,
-                    y: Math.max(...y) + 0.08,
-                    xref: 'x',
-                    yref: 'y',
-                    text: `σ² = ${(p * (1 - p)).toFixed(2)}`,
-                    showarrow: false,
-                    font: { color: '#3498db', size: 14 }
-                }
-            ];
-            const layout = {
-                title: `Bernoulli Distribution (p = ${p})`,
-                xaxis: { title: 'Outcome (X)', tickvals: [0, 1] },
-                yaxis: { title: 'Probability', range: [0, 1.15], gridcolor: '#ddd' },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: false,
-                barmode: 'group',
-                annotations: annotations,
-                margin: { t: 60, b: 60, l: 60, r: 30 }
-            };
-            Plotly.newPlot('bernoulli-plot', [data[0], meanLine], layout, {displayModeBar: false});
-        }
-        const probabilitySlider = document.getElementById('probability-slider');
-        const probabilityValue = document.getElementById('probability-value');
-        const meanValue = document.getElementById('mean-value');
-        const varianceValue = document.getElementById('variance-value');
-        function updateBernoulli() {
-            const p = parseFloat(probabilitySlider.value);
-            probabilityValue.textContent = `p = ${p}`;
-            meanValue.textContent = p.toFixed(2);
-            varianceValue.textContent = (p * (1 - p)).toFixed(2);
-            plotBernoulli(p);
-        }
-        probabilitySlider.addEventListener('input', updateBernoulli);
-        updateBernoulli();
-    </script>
+        <h1 class="term-title">bernoulli_distribution</h1>
+        <hr class="term-rule">
+        <p class="term-tagline">discrete &nbsp;·&nbsp; support: {0, 1} &nbsp;·&nbsp; parameter: p ∈ [0, 1]</p>
 
-    </div>
+        <!-- Parameters -->
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; p</span>
+            <input class="term-param__slider" type="range" id="p-slider" min="0.01" max="0.99" step="0.01" value="0.5">
+            <span class="term-param__value" id="p-val" contenteditable="true" spellcheck="false">0.50</span>
+        </div>
+
+        <!-- Output -->
+        <div class="term-divider">
+            <span class="term-divider__label">output</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-output">
+            <span class="term-output__key">mean</span>
+            <span class="term-output__val" id="out-mean">0.5000</span>
+            <span class="term-output__key">variance</span>
+            <span class="term-output__val" id="out-var">0.2500</span>
+            <span class="term-output__key">std_dev</span>
+            <span class="term-output__val" id="out-std">0.5000</span>
+            <span class="term-output__key">mode</span>
+            <span class="term-output__val" id="out-mode">0 and 1</span>
+            <span class="term-output__key">entropy</span>
+            <span class="term-output__val" id="out-entropy">1.0000 bits</span>
+            <span class="term-output__key">shape</span>
+            <span class="term-output__val" id="out-shape">symmetric</span>
+        </div>
+
+        <!-- Chart -->
+        <div class="term-divider">
+            <span class="term-divider__label">chart</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-chart-wrap">
+            <div id="bernoulli-plot"></div>
+        </div>
+
+        <!-- PMF values -->
+        <div class="term-divider">
+            <span class="term-divider__label">pmf values</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-coverage">
+            <div class="term-coverage__row">
+                <span class="term-coverage__label">P(X = 0)  failure</span>
+                <span class="term-coverage__val" id="cov-0">0.500</span>
+                <div class="term-coverage__track">
+                    <div class="term-coverage__fill" id="bar-0" style="width:50%;background:var(--color-text-secondary)"></div>
+                </div>
+            </div>
+            <div class="term-coverage__row">
+                <span class="term-coverage__label">P(X = 1)  success</span>
+                <span class="term-coverage__val" id="cov-1">0.500</span>
+                <div class="term-coverage__track">
+                    <div class="term-coverage__fill" id="bar-1" style="width:50%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formula -->
+        <div class="term-divider">
+            <span class="term-divider__label">formula</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-formula">
+            <p>PMF</p>
+            <div>P(X = k; p) = p<sup>k</sup> · (1 − p)<sup>1−k</sup>,&nbsp;&nbsp;k ∈ {0, 1}</div>
+            <br>
+            <p>equivalently</p>
+            <div>P(X = 0) = 1 − p&nbsp;&nbsp;&nbsp;&nbsp;P(X = 1) = p</div>
+            <br>
+            <p>CDF</p>
+            <div>F(k) = 0 for k &lt; 0&nbsp;&nbsp;·&nbsp;&nbsp;1 − p for 0 ≤ k &lt; 1&nbsp;&nbsp;·&nbsp;&nbsp;1 for k ≥ 1</div>
+            <br>
+            <p>MGF</p>
+            <div>M(t) = (1 − p) + p·e<sup>t</sup></div>
+        </div>
+
+        <!-- About -->
+        <div class="term-divider">
+            <span class="term-divider__label">about</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-prose">
+            <p>The Bernoulli distribution models a single experiment with exactly two outcomes — success (X = 1) with probability p and failure (X = 0) with probability 1 − p. It is the simplest non-trivial probability distribution and the building block for nearly every discrete model in statistics.</p>
+            <p>Variance peaks at p = 0.5, where both outcomes are equally likely and uncertainty is greatest. It falls to zero as p approaches 0 or 1, where the outcome becomes increasingly certain. Entropy follows the same arc: one bit at p = 0.5, zero bits at the extremes.</p>
+            <p>In Bayesian inference, the Bernoulli likelihood has the Beta distribution as its conjugate prior. Observing n successes and m failures updates Beta(α, β) to Beta(α + n, β + m), making posterior computation exact and closed-form.</p>
+        </div>
+
+        <!-- Properties -->
+        <div class="term-divider">
+            <span class="term-divider__label">properties</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <table class="term-props">
+            <tbody>
+                <tr><td>support</td><td>k ∈ {0, 1}</td></tr>
+                <tr><td>parameter</td><td>p ∈ [0, 1]  (success probability)</td></tr>
+                <tr><td>PMF</td><td>p^k · (1−p)^(1−k)</td></tr>
+                <tr><td>mean</td><td>p</td></tr>
+                <tr><td>variance</td><td>p(1 − p)</td></tr>
+                <tr><td>std dev</td><td>√(p(1 − p))</td></tr>
+                <tr><td>skewness</td><td>(1 − 2p) / √(p(1−p))</td></tr>
+                <tr><td>kurtosis</td><td>(1 − 6p(1−p)) / (p(1−p))</td></tr>
+                <tr><td>entropy</td><td>−p log₂p − (1−p) log₂(1−p)  bits</td></tr>
+                <tr><td>MGF</td><td>(1−p) + p·e^t</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Related -->
+        <div class="term-divider">
+            <span class="term-divider__label">related</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <ul class="term-related">
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Binomial(n, p) &nbsp;<span class="term-related__note">sum of n independent Bernoulli(p) trials; Bernoulli is the n = 1 case</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Geometric(p) &nbsp;<span class="term-related__note">number of Bernoulli trials until the first success</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Beta(α, β) &nbsp;<span class="term-related__note">conjugate prior for p; posterior after n successes, m failures is Beta(α+n, β+m)</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Negative Binomial &nbsp;<span class="term-related__note">trials until r successes; generalises Geometric using the same Bernoulli building block</span></span>
+            </li>
+        </ul>
+
+        <!-- Presets -->
+        <div class="term-divider">
+            <span class="term-divider__label">presets</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-presets">
+            <button class="term-preset" data-p="0.5">fair</button>
+            <button class="term-preset" data-p="0.7">biased</button>
+            <button class="term-preset" data-p="0.05">rare</button>
+            <button class="term-preset" data-p="0.03">email</button>
+            <button class="term-preset" data-p="0.9">drug</button>
+            <button class="term-preset" data-p="0.35">a/b</button>
+        </div>
+
+    </div><!-- /.page-content -->
 
     <footer class="site-footer">
         <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
     </footer>
 
+    <script>
+    // ── Utilities ──────────────────────────────────────────────
+    function entropy(p) {
+        if (p <= 0 || p >= 1) return 0;
+        return -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p));
+    }
+
+    function shape(p) {
+        if (Math.abs(p - 0.5) < 0.005) return 'symmetric';
+        return p > 0.5 ? 'left_skewed' : 'right_skewed';
+    }
+
+    function modeStr(p) {
+        if (p > 0.5) return '1';
+        if (p < 0.5) return '0';
+        return '0 and 1';
+    }
+
+    // ── Slider fill (CSS custom property trick) ────────────────
+    function setSliderFill(slider) {
+        const min = parseFloat(slider.min), max = parseFloat(slider.max);
+        const pct = ((parseFloat(slider.value) - min) / (max - min) * 100).toFixed(1) + '%';
+        slider.style.background =
+            `linear-gradient(to right, var(--color-primary) ${pct}, var(--color-border) ${pct})`;
+    }
+
+    // ── Plot ───────────────────────────────────────────────────
+    function plotBernoulli(p) {
+        const isDark = document.documentElement.getAttribute('data-color-scheme') === 'dark';
+        const bg = 'rgba(0,0,0,0)';
+        const grid = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+        const font = isDark ? '#e2e8f0' : '#13343b';
+        const primary = isDark ? '#32b8c6' : '#21808d';
+        const secondary = isDark ? '#8a9ba8' : '#626c71';
+
+        const barColors = [secondary, primary];
+
+        const trace = {
+            x: [0, 1],
+            y: [+(1 - p).toFixed(4), +p.toFixed(4)],
+            type: 'bar',
+            width: [0.4, 0.4],
+            marker: { color: barColors, borderRadius: 2 },
+            text: [(1-p).toFixed(3), p.toFixed(3)],
+            textposition: 'outside',
+            textfont: { family: 'Berkeley Mono, monospace', size: 13, color: font },
+            hovertemplate: 'P(X=%{x}) = %{y:.4f}<extra></extra>',
+        };
+
+        const meanLine = {
+            x: [p, p], y: [0, 1.08],
+            type: 'scatter', mode: 'lines',
+            line: { color: '#e74c3c', width: 1.5, dash: 'dot' },
+            hoverinfo: 'skip', showlegend: false
+        };
+
+        const layout = {
+            xaxis: {
+                tickvals: [0, 1], ticktext: ['0  (failure)', '1  (success)'],
+                tickfont: { family: 'Berkeley Mono, monospace', size: 12, color: font },
+                gridcolor: grid, zeroline: false, range: [-0.55, 1.55]
+            },
+            yaxis: {
+                range: [0, 1.25], gridcolor: grid, zeroline: false,
+                tickfont: { family: 'Berkeley Mono, monospace', size: 12, color: font },
+                tickformat: '.2f'
+            },
+            plot_bgcolor: bg, paper_bgcolor: bg,
+            showlegend: false,
+            margin: { t: 30, b: 50, l: 50, r: 20 },
+            annotations: [{
+                x: p, y: 1.15, xref: 'x', yref: 'y',
+                text: `μ = ${p.toFixed(3)}`,
+                showarrow: false,
+                font: { color: '#e74c3c', size: 12, family: 'Berkeley Mono, monospace' }
+            }]
+        };
+
+        Plotly.react('bernoulli-plot', [trace, meanLine], layout, { displayModeBar: false, responsive: true });
+    }
+
+    // ── Update all ─────────────────────────────────────────────
+    function updateAll(p) {
+        const v = p * (1 - p);
+        const s = Math.sqrt(v);
+        const e = entropy(p);
+
+        document.getElementById('out-mean').textContent    = p.toFixed(4);
+        document.getElementById('out-var').textContent     = v.toFixed(4);
+        document.getElementById('out-std').textContent     = s.toFixed(4);
+        document.getElementById('out-mode').textContent    = modeStr(p);
+        document.getElementById('out-entropy').textContent = e.toFixed(4) + ' bits';
+        document.getElementById('out-shape').textContent   = shape(p);
+
+        document.getElementById('cov-0').textContent       = (1-p).toFixed(3);
+        document.getElementById('cov-1').textContent       = p.toFixed(3);
+        document.getElementById('bar-0').style.width       = ((1-p)*100).toFixed(1) + '%';
+        document.getElementById('bar-1').style.width       = (p*100).toFixed(1) + '%';
+
+        const pSlider = document.getElementById('p-slider');
+        pSlider.value = p;
+        document.getElementById('p-val').textContent = p.toFixed(2);
+        setSliderFill(pSlider);
+
+        plotBernoulli(p);
+    }
+
+    // ── Slider events ──────────────────────────────────────────
+    const pSlider = document.getElementById('p-slider');
+    pSlider.addEventListener('input', () => {
+        updateAll(parseFloat(pSlider.value));
+    });
+
+    // ── Editable value ─────────────────────────────────────────
+    const pVal = document.getElementById('p-val');
+    pVal.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const v = parseFloat(pVal.textContent);
+            if (!isNaN(v)) updateAll(Math.min(0.99, Math.max(0.01, v)));
+            pVal.blur();
+        }
+    });
+    pVal.addEventListener('blur', () => {
+        const v = parseFloat(pVal.textContent);
+        if (!isNaN(v)) updateAll(Math.min(0.99, Math.max(0.01, v)));
+    });
+
+    // ── Presets ────────────────────────────────────────────────
+    document.querySelectorAll('.term-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.term-preset').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateAll(parseFloat(btn.dataset.p));
+        });
+    });
+
+    // ── Theme change re-render ─────────────────────────────────
+    new MutationObserver(() => updateAll(parseFloat(pSlider.value)))
+        .observe(document.documentElement, { attributes: true, attributeFilter: ['data-color-scheme'] });
+
+    // ── Init ───────────────────────────────────────────────────
+    setSliderFill(pSlider);
+    updateAll(0.5);
+    </script>
 
     <script>
         (function() {
