@@ -4,13 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skewness and Kurtosis: Beyond Averages</title>
+    <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Back to home link */
+        .mod-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--color-primary);
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 5px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            transition: all 150ms ease;
+            white-space: nowrap;
+        }
+        .mod-back-link:hover {
+            background: var(--color-secondary);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
             <h1 class="navbar__title">Statistical Moments Explorer</h1>
             <div class="navbar__nav">
+                <a href="../index.html" class="mod-back-link">← Home</a>
                 <button class="nav-btn active" data-section="intro">Introduction</button>
                 <button class="nav-btn" data-section="mean-std">Mean & Std Dev</button>
                 <button class="nav-btn" data-section="skewness">Skewness</button>
