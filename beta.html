@@ -7,166 +7,253 @@
     <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
     <link rel="stylesheet" href="theme.css">
     <style>
-        /* ── Page-specific styles (complement theme.css) ── */
-        body {
-            padding-top: 0;
-        }
+        body { padding-top: 0; }
+
         .page-content {
-            max-width: 960px;
+            font-family: var(--font-family-mono);
+            max-width: 780px;
             margin: 0 auto;
-            padding: var(--space-32) var(--space-24);
+            padding: var(--space-32) var(--space-24) var(--space-48);
         }
-        .page-title {
-            font-size: var(--font-size-4xl);
+
+        /* ── Title block ── */
+        .term-title {
+            font-size: var(--font-size-xl);
             font-weight: var(--font-weight-bold);
             color: var(--color-text);
-            text-align: center;
-            margin-bottom: var(--space-24);
-            letter-spacing: var(--letter-spacing-tight);
+            letter-spacing: -0.02em;
+            margin: 0 0 4px 0;
         }
-        .viz-panel {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            margin-bottom: var(--space-24);
-            box-shadow: var(--shadow-sm);
+        .term-rule {
+            border: none;
+            border-top: 2px solid var(--color-border);
+            margin: 6px 0 12px 0;
         }
-        /* Generic controls container */
-        .controls, .slider-container {
-            margin: var(--space-16) 0;
+        .term-tagline {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-32) 0;
+            line-height: 1.6;
         }
-        .slider-row {
+
+        /* ── Section divider ── */
+        .term-divider {
             display: flex;
             align-items: center;
-            gap: var(--space-8);
-            margin-bottom: var(--space-12);
-            flex-wrap: wrap;
+            gap: 10px;
+            margin: var(--space-24) 0 var(--space-16) 0;
         }
-        .slider-row label {
-            min-width: 180px;
-            font-weight: var(--font-weight-medium);
-            font-size: var(--font-size-base);
-            color: var(--color-text);
+        .term-divider__label {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+            letter-spacing: 0.04em;
         }
-        .slider-row input[type="range"] {
+        .term-divider__label::before { content: '── '; }
+        .term-divider__line {
             flex: 1;
-            min-width: 120px;
+            height: 1px;
+            background: var(--color-border);
         }
-        /* Labels inside controls */
-        .controls label {
-            display: block;
-            margin-bottom: var(--space-4);
-            font-weight: var(--font-weight-medium);
-            color: var(--color-text-secondary);
+
+        /* ── Parameter sliders ── */
+        .term-param {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 6px 0;
+        }
+        .term-param__prompt {
             font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            min-width: 28px;
+            flex-shrink: 0;
         }
-        /* Generic inputs inside controls (number, text) */
-        .controls input[type="number"],
-        .controls input[type="text"],
-        .controls select {
-            width: 100%;
-            padding: var(--space-8) var(--space-12);
-            margin-bottom: var(--space-12);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            font-family: var(--font-family-base);
-            font-size: var(--font-size-base);
-            background: var(--color-surface);
-            color: var(--color-text);
-            box-sizing: border-box;
-        }
-        .controls input:focus, .controls select:focus {
+        .term-param__slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 3px;
+            border-radius: 0;
             outline: none;
-            border-color: var(--color-primary);
-            box-shadow: var(--focus-ring);
+            cursor: pointer;
+            background: var(--color-border);
         }
-        .parameter-display {
+        .term-param__slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px;
+            height: 13px;
+            background: var(--color-primary);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .term-param__slider::-moz-range-thumb {
+            width: 13px;
+            height: 13px;
+            background: var(--color-primary);
+            border-radius: 2px;
+            border: none;
+            cursor: pointer;
+        }
+        .term-param__value {
+            font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            min-width: 48px;
+            text-align: right;
+            cursor: text;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.15s;
+        }
+        .term-param__value:focus {
+            outline: none;
+            border-bottom-color: var(--color-primary);
+        }
+
+        /* ── Output block ── */
+        .term-output {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 5px 0;
+            padding: 4px 0;
+        }
+        .term-output__key {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+        .term-output__val {
+            font-size: var(--font-size-sm);
             color: var(--color-primary);
             font-weight: var(--font-weight-medium);
-            min-width: 80px;
         }
-        .stats-container {
+        .term-output__val::before { content: '=  '; color: var(--color-text-secondary); }
+
+        /* ── Chart ── */
+        .term-chart-wrap { width: 100%; }
+        #beta-plot {
+            width: 100%;
+            min-height: 320px;
+        }
+
+        /* ── Coverage bars ── */
+        .term-coverage {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 4px 0;
+        }
+        .term-coverage__row {
+            display: grid;
+            grid-template-columns: 200px 60px 1fr;
+            align-items: center;
+            gap: 10px;
+            font-size: var(--font-size-sm);
+        }
+        @media (max-width: 560px) {
+            .term-coverage__row { grid-template-columns: 1fr 50px 80px; }
+        }
+        .term-coverage__label { color: var(--color-text-secondary); }
+        .term-coverage__val   { color: var(--color-primary); font-weight: var(--font-weight-medium); }
+        .term-coverage__track {
+            height: 8px;
+            background: var(--color-border);
+            overflow: hidden;
+        }
+        .term-coverage__fill {
+            height: 100%;
+            background: var(--color-primary);
+            transition: width 0.25s var(--ease-standard);
+        }
+        .term-coverage__row:nth-child(2) .term-coverage__fill { background: #10b981; }
+        .term-coverage__row:nth-child(3) .term-coverage__fill { background: var(--color-warning); }
+
+        /* ── Formula block ── */
+        .term-formula {
+            border-left: 2px solid var(--color-primary);
+            padding: var(--space-16) 0 var(--space-16) var(--space-16);
+            margin: var(--space-8) 0;
+            overflow-x: auto;
+        }
+        .term-formula p {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 6px 0;
+        }
+        .term-formula .term-formula__line {
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            margin: 0 0 14px 0;
+        }
+
+        /* ── Prose ── */
+        .term-prose p {
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            line-height: 1.8;
+            margin: 0 0 12px 0;
+        }
+        .term-prose p:last-child { margin-bottom: 0; }
+
+        /* ── Properties table ── */
+        .term-props {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+        .term-props td {
+            padding: 7px 0;
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: top;
+        }
+        .term-props tr:last-child td { border-bottom: none; }
+        .term-props td:first-child {
+            color: var(--color-text-secondary);
+            width: 140px;
+            padding-right: 24px;
+        }
+        .term-props td:last-child { color: var(--color-text); }
+
+        /* ── Related ── */
+        .term-related {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .term-related li {
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            display: flex;
+            gap: 10px;
+        }
+        .term-related__arrow { color: var(--color-primary); flex-shrink: 0; }
+        .term-related__note  { color: var(--color-text-secondary); }
+
+        /* ── Presets ── */
+        .term-presets {
             display: flex;
             flex-wrap: wrap;
-            gap: var(--space-12);
-            margin: var(--space-16) 0;
+            gap: 6px 20px;
+            padding: 4px 0;
         }
-        .stat-box {
-            background: var(--color-background);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-12) var(--space-16);
-            text-align: center;
-            min-width: 120px;
-        }
-        .stat-box h3 {
+        .term-preset {
+            background: none;
+            border: none;
+            font-family: var(--font-family-mono);
             font-size: var(--font-size-sm);
-            color: var(--color-text-secondary);
-            margin: 0 0 var(--space-4) 0;
-            font-weight: var(--font-weight-medium);
-        }
-        .stat-value {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-bold);
             color: var(--color-primary);
+            cursor: pointer;
+            padding: 0;
         }
-        .info-section {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--space-24);
-        }
-        .info-section h2 {
-            color: var(--color-primary);
-            font-size: var(--font-size-xl);
-            margin-top: var(--space-24);
-            margin-bottom: var(--space-12);
-            padding-bottom: var(--space-8);
-            border-bottom: 1px solid var(--color-border);
-        }
-        .info-section h2:first-child { margin-top: 0; }
-        .info-section h3 {
+        .term-preset::before { content: '['; }
+        .term-preset::after  { content: ']'; }
+        .term-preset:hover { text-decoration: underline; }
+        .term-preset.active {
             color: var(--color-text);
-            font-size: var(--font-size-lg);
-            margin-top: var(--space-16);
-            margin-bottom: var(--space-8);
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-6);
-            color: var(--color-primary);
             font-weight: var(--font-weight-medium);
-            margin-top: var(--space-16);
-            text-decoration: none;
-        }
-        .back-link:hover { text-decoration: underline; }
-        /* Example/output sections */
-        .example-section, .example-output {
-            background: var(--color-surface);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            box-shadow: var(--shadow-sm);
-            margin-top: var(--space-24);
-        }
-        .example-section h2, .example-section h3 {
-            color: var(--color-primary);
-        }
-        /* Ensure chart/plot containers have reasonable height */
-        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
-            width: 100% !important;
-            min-height: 300px;
-        }
-        #chart {
-            width: 100%;
-            min-height: 60vh;
         }
     </style>
-
 </head>
 <body>
     <header class="site-header">
@@ -184,163 +271,398 @@
 
     <div class="page-content">
 
-    <h1 class="page-title">Beta Distribution</h1>
-    <div class="viz-panel">
-        <p style="margin-bottom: 10px;">The Beta distribution is a continuous probability distribution defined on the interval [0,1], characterized by two shape parameters α and β.</p>
-        <div class="slider-container">
-            <div class="slider-row">
-                <label for="alpha-slider">Shape (α):</label>
-                <input type="range" id="alpha-slider" min="0.1" max="10" step="0.1" value="2">
-                <span class="parameter-display" id="alpha-value">α = 2</span>
-            </div>
-        </div>
-        <div class="slider-container">
-            <div class="slider-row">
-                <label for="beta-slider">Shape (β):</label>
-                <input type="range" id="beta-slider" min="0.1" max="10" step="0.1" value="5">
-                <span class="parameter-display" id="beta-value">β = 5</span>
-            </div>
-        </div>
-        <div class="stats-container">
-            <div class="stat-box">
-                <h3>Mean (μ)</h3>
-                <div class="stat-value" id="mean-value">0.29</div>
-            </div>
-            <div class="stat-box">
-                <h3>Variance (σ²)</h3>
-                <div class="stat-value" id="variance-value">0.03</div>
-            </div>
-        </div>
-        <div id="beta-plot"></div>
-    </div>
-    <section class="info-section">
-        <h2>Notation</h2>
-        <p><strong>α (alpha)</strong> – Shape parameter.</p>
-        <p><strong>β (beta)</strong> – Shape parameter.</p>
-        <p><strong>x</strong> – The value for which the probability density is evaluated (0 ≤ x ≤ 1).</p>
-        <h2>Parameters</h2>
-        <ul>
-            <li><strong>Shape (α)</strong>: Determines the shape of the distribution.</li>
-            <li><strong>Shape (β)</strong>: Determines the shape of the distribution.</li>
-        </ul>
-        <h2>PDF (Probability Density Function)</h2>
-        <pre>
-            f(x; α, β) = (Γ(α+β) / (Γ(α)Γ(β))) * x^(α-1) * (1-x)^(β-1), for 0 < x < 1
-        </pre>
-        <h2>Mean and Variance</h2>
-        <ul>
-            <li><strong>Mean:</strong> μ = α / (α + β)</li>
-            <li><strong>Variance:</strong> σ² = (αβ) / ((α + β)²(α + β + 1))</li>
-        </ul>
-    </section>
-    <script>
-        function gamma(z) {
-            // Lanczos approximation for the Gamma function
-            const g = 7;
-            const p = [
-                0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-                771.32342877765313, -176.61502916214059, 12.507343278686905,
-                -0.13857109526572012, 9.9843695780195716e-6,
-                1.5056327351493116e-7
-            ];
-            if (z < 0.5) {
-                return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
-            } else {
-                z -= 1;
-                let x = p[0];
-                for (let i = 1; i < g + 2; i++) {
-                    x += p[i] / (z + i);
-                }
-                const t = z + g + 0.5;
-                return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
-            }
-        }
-        function betaPDF(x, alpha, beta) {
-            if (x <= 0 || x >= 1) return 0;
-            const B = gamma(alpha) * gamma(beta) / gamma(alpha + beta);
-            return Math.pow(x, alpha - 1) * Math.pow(1 - x, beta - 1) / B;
-        }
-        function updateBetaPlot(alpha, beta) {
-            const x = Array.from({ length: 101 }, (_, i) => i / 100);
-            const y = x.map(xi => betaPDF(xi, alpha, beta));
-            // Mean and variance
-            const mean = alpha / (alpha + beta);
-            const variance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
-            const stdDev = Math.sqrt(variance);
-            document.getElementById('mean-value').textContent = mean.toFixed(2);
-            document.getElementById('variance-value').textContent = variance.toFixed(2);
-            // Main PDF trace
-            const trace = {
-                x: x,
-                y: y,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'PDF',
-                line: { color: '#3498db', width: 3 }
-            };
-            // Mean line
-            const meanTrace = {
-                x: [mean, mean],
-                y: [0, Math.max(...y)],
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Mean',
-                line: { color: '#e74c3c', width: 2, dash: 'dash' }
-            };
-            // Variance region: fill under the curve between mean-stdDev and mean+stdDev
-            const lower = Math.max(0, mean - stdDev);
-            const upper = Math.min(1, mean + stdDev);
-            const varianceX = x.filter(xi => xi >= lower && xi <= upper);
-            const varianceY = varianceX.map(xi => betaPDF(xi, alpha, beta));
-            const fillX = [varianceX[0], ...varianceX, varianceX[varianceX.length-1]];
-            const fillY = [0, ...varianceY, 0];
-            const varianceTrace = {
-                x: fillX,
-                y: fillY,
-                type: 'scatter',
-                mode: 'lines',
-                name: '±1σ',
-                line: { color: '#2ecc71', width: 2 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(46, 204, 113, 0.2)'
-            };
-            const layout = {
-                title: {
-                    text: `Beta Distribution (α = ${alpha.toFixed(2)}, β = ${beta.toFixed(2)})`,
-                    font: { size: 24 }
-                },
-                xaxis: { title: 'x', range: [0, 1], gridcolor: '#ddd' },
-                yaxis: { title: 'Density', gridcolor: '#ddd' },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: true,
-                legend: { x: 0.7, y: 1 }
-            };
-            Plotly.newPlot('beta-plot', [varianceTrace, trace, meanTrace], layout);
-        }
-        const alphaSlider = document.getElementById('alpha-slider');
-        const betaSlider = document.getElementById('beta-slider');
-        const alphaValue = document.getElementById('alpha-value');
-        const betaValue = document.getElementById('beta-value');
-        alphaSlider.addEventListener('input', function() {
-            alphaValue.textContent = `α = ${parseFloat(alphaSlider.value)}`;
-            betaValue.textContent = `β = ${parseFloat(betaSlider.value)}`;
-            updateBetaPlot(parseFloat(alphaSlider.value), parseFloat(betaSlider.value));
-        });
-        betaSlider.addEventListener('input', function() {
-            alphaValue.textContent = `α = ${parseFloat(alphaSlider.value)}`;
-            betaValue.textContent = `β = ${parseFloat(betaSlider.value)}`;
-            updateBetaPlot(parseFloat(alphaSlider.value), parseFloat(betaSlider.value));
-        });
-        updateBetaPlot(parseFloat(alphaSlider.value), parseFloat(betaSlider.value));
-    </script>
+        <h1 class="term-title">beta_distribution</h1>
+        <hr class="term-rule">
+        <p class="term-tagline">continuous &nbsp;·&nbsp; support: (0, 1) &nbsp;·&nbsp; parameters: α &gt; 0, β &gt; 0</p>
 
-    </div>
+        <!-- Parameters -->
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; α</span>
+            <input class="term-param__slider" type="range" id="alpha-slider" min="0.1" max="10" step="0.1" value="2">
+            <span class="term-param__value" id="alpha-val" contenteditable="true" spellcheck="false">2.0</span>
+        </div>
+        <div class="term-param">
+            <span class="term-param__prompt">&gt; β</span>
+            <input class="term-param__slider" type="range" id="beta-slider" min="0.1" max="10" step="0.1" value="5">
+            <span class="term-param__value" id="beta-val" contenteditable="true" spellcheck="false">5.0</span>
+        </div>
+
+        <!-- Output -->
+        <div class="term-divider">
+            <span class="term-divider__label">output</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-output">
+            <span class="term-output__key">mean</span>
+            <span class="term-output__val" id="out-mean">0.2857</span>
+            <span class="term-output__key">variance</span>
+            <span class="term-output__val" id="out-var">0.0255</span>
+            <span class="term-output__key">std_dev</span>
+            <span class="term-output__val" id="out-std">0.1598</span>
+            <span class="term-output__key">mode</span>
+            <span class="term-output__val" id="out-mode">0.2000</span>
+            <span class="term-output__key">α + β</span>
+            <span class="term-output__val" id="out-conc">7.0</span>
+            <span class="term-output__key">shape</span>
+            <span class="term-output__val" id="out-shape">right_skewed</span>
+        </div>
+
+        <!-- Chart -->
+        <div class="term-divider">
+            <span class="term-divider__label">chart</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-chart-wrap">
+            <div id="beta-plot"></div>
+        </div>
+
+        <!-- Interval coverage -->
+        <div class="term-divider">
+            <span class="term-divider__label">interval coverage</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-coverage">
+            <div class="term-coverage__row">
+                <span class="term-coverage__label">P(x &lt; 0.25)</span>
+                <span class="term-coverage__val" id="cov-lo">—</span>
+                <div class="term-coverage__track">
+                    <div class="term-coverage__fill" id="bar-lo" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="term-coverage__row">
+                <span class="term-coverage__label">P(0.25 ≤ x ≤ 0.75)</span>
+                <span class="term-coverage__val" id="cov-mid">—</span>
+                <div class="term-coverage__track">
+                    <div class="term-coverage__fill" id="bar-mid" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="term-coverage__row">
+                <span class="term-coverage__label">P(x &gt; 0.75)</span>
+                <span class="term-coverage__val" id="cov-hi">—</span>
+                <div class="term-coverage__track">
+                    <div class="term-coverage__fill" id="bar-hi" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formula -->
+        <div class="term-divider">
+            <span class="term-divider__label">formula</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-formula">
+            <p>PDF</p>
+            <div class="term-formula__line">f(x; α, β) = x<sup>α−1</sup> · (1−x)<sup>β−1</sup> / B(α, β)&nbsp;&nbsp;&nbsp;&nbsp;x ∈ (0, 1)</div>
+            <p>normalising constant (Beta function)</p>
+            <div class="term-formula__line">B(α, β) = Γ(α) · Γ(β) / Γ(α + β)</div>
+            <p>Bayesian update rule</p>
+            <div class="term-formula__line">prior Beta(α, β) + n successes + m failures  →  posterior Beta(α+n, β+m)</div>
+        </div>
+
+        <!-- About -->
+        <div class="term-divider">
+            <span class="term-divider__label">about</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-prose">
+            <p>The Beta distribution is a continuous distribution defined on the open interval (0, 1), making it the natural model for any quantity that is itself a probability or proportion. Two shape parameters — α and β — give it extraordinary flexibility: the same functional form produces uniform, bell-shaped, skewed, J-shaped, and U-shaped densities depending solely on their values.</p>
+            <p>α controls how much mass accumulates near 1; β controls mass near 0. When both exceed 1 the distribution is unimodal. When both are below 1 it is U-shaped, concentrating density at the extremes. Setting α = β = 1 recovers the Uniform[0, 1]. The sum α + β, often called the concentration or precision, determines how sharply the distribution is peaked — larger values produce narrower, more confident distributions.</p>
+            <p>Its most important application in modern statistics is as the conjugate prior for Bernoulli and Binomial likelihoods. When you start with a Beta(α, β) belief about an unknown success probability and observe n successes and m failures, the posterior is exactly Beta(α+n, β+m) — no numerical integration required. Each new observation simply increments a count.</p>
+        </div>
+
+        <!-- Properties -->
+        <div class="term-divider">
+            <span class="term-divider__label">properties</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <table class="term-props">
+            <tbody>
+                <tr><td>support</td><td>x ∈ (0, 1)</td></tr>
+                <tr><td>parameters</td><td>α &gt; 0  (shape),  β &gt; 0  (shape)</td></tr>
+                <tr><td>PDF</td><td>x^(α−1) · (1−x)^(β−1) / B(α, β)</td></tr>
+                <tr><td>CDF</td><td>I_x(α, β)  —  regularised incomplete Beta function</td></tr>
+                <tr><td>mean</td><td>α / (α + β)</td></tr>
+                <tr><td>mode</td><td>(α − 1) / (α + β − 2)  for α, β &gt; 1</td></tr>
+                <tr><td>variance</td><td>αβ / [(α+β)²(α+β+1)]</td></tr>
+                <tr><td>std dev</td><td>√[ αβ / ((α+β)²(α+β+1)) ]</td></tr>
+                <tr><td>skewness</td><td>2(β−α)√(α+β+1) / [(α+β+2)√(αβ)]</td></tr>
+                <tr><td>concentration</td><td>α + β  (larger = more peaked)</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Related -->
+        <div class="term-divider">
+            <span class="term-divider__label">related</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <ul class="term-related">
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Uniform[0, 1] &nbsp;<span class="term-related__note">special case Beta(1, 1) — complete ignorance about a probability</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Arcsine &nbsp;<span class="term-related__note">special case Beta(½, ½) — the arc-sine law in random walk theory</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">→</span>
+                <span>Dirichlet &nbsp;<span class="term-related__note">multivariate generalisation; conjugate prior for Multinomial likelihoods</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">←</span>
+                <span>Gamma &nbsp;<span class="term-related__note">if X~Gamma(α) and Y~Gamma(β) independently, then X/(X+Y) ~ Beta(α, β)</span></span>
+            </li>
+            <li>
+                <span class="term-related__arrow">←</span>
+                <span>Bernoulli / Binomial &nbsp;<span class="term-related__note">Beta is the conjugate prior for the success parameter p</span></span>
+            </li>
+        </ul>
+
+        <!-- Presets -->
+        <div class="term-divider">
+            <span class="term-divider__label">presets</span>
+            <span class="term-divider__line"></span>
+        </div>
+        <div class="term-presets">
+            <button class="term-preset" data-alpha="1"   data-beta="1"  >uniform</button>
+            <button class="term-preset" data-alpha="5"   data-beta="5"  >bell</button>
+            <button class="term-preset" data-alpha="2"   data-beta="8"  >rare</button>
+            <button class="term-preset" data-alpha="8"   data-beta="2"  >high</button>
+            <button class="term-preset" data-alpha="0.5" data-beta="0.5">jeffrey</button>
+            <button class="term-preset" data-alpha="10"  data-beta="3"  >posterior</button>
+        </div>
+
+    </div><!-- /.page-content -->
 
     <footer class="site-footer">
         <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
     </footer>
 
+    <script>
+    // ── Gamma (Lanczos) ────────────────────────────────────────
+    function gamma(z) {
+        const g = 7, p = [
+            0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+            771.32342877765313, -176.61502916214059, 12.507343278686905,
+            -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
+        ];
+        if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+        z -= 1;
+        let x = p[0];
+        for (let i = 1; i < g + 2; i++) x += p[i] / (z + i);
+        const t = z + g + 0.5;
+        return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+    }
+
+    function logGamma(z) { return Math.log(Math.abs(gamma(z))); }
+
+    function betaPDF(x, a, b) {
+        if (x <= 0 || x >= 1) return 0;
+        const logB = logGamma(a) + logGamma(b) - logGamma(a + b);
+        return Math.exp((a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x) - logB);
+    }
+
+    // ── Numerical CDF (Simpson) ────────────────────────────────
+    function betaCDF(x, a, b) {
+        if (x <= 0) return 0;
+        if (x >= 1) return 1;
+        const n = 200, h = x / n;
+        let s = betaPDF(1e-9, a, b) + betaPDF(x - 1e-9, a, b);
+        for (let i = 1; i < n; i++)
+            s += (i % 2 === 0 ? 2 : 4) * betaPDF(i * h, a, b);
+        return Math.min(1, Math.max(0, (h / 3) * s));
+    }
+
+    // ── Shape descriptor ───────────────────────────────────────
+    function shapeOf(a, b) {
+        if (a < 1 && b < 1)  return 'u_shaped';
+        if (a < 1 && b >= 1) return 'j_shaped_decreasing';
+        if (a >= 1 && b < 1) return 'j_shaped_increasing';
+        const tol = 0.12 * (a + b);
+        if (Math.abs(a - 1) < 0.05 && Math.abs(b - 1) < 0.05) return 'uniform';
+        if (Math.abs(a - b) < tol)  return 'symmetric';
+        return a > b ? 'left_skewed' : 'right_skewed';
+    }
+
+    // ── Mode string ────────────────────────────────────────────
+    function modeStr(a, b) {
+        if (a > 1 && b > 1) return ((a - 1) / (a + b - 2)).toFixed(4);
+        if (a <= 1 && b <= 1) return '0 and 1';
+        if (a <= 1) return '0';
+        return '1';
+    }
+
+    // ── Slider fill ────────────────────────────────────────────
+    function setFill(slider) {
+        const min = parseFloat(slider.min), max = parseFloat(slider.max);
+        const pct = ((parseFloat(slider.value) - min) / (max - min) * 100).toFixed(1) + '%';
+        slider.style.background =
+            `linear-gradient(to right, var(--color-primary) ${pct}, var(--color-border) ${pct})`;
+    }
+
+    // ── Plot ───────────────────────────────────────────────────
+    function plotBeta(a, b) {
+        const isDark = document.documentElement.getAttribute('data-color-scheme') === 'dark';
+        const bg      = 'rgba(0,0,0,0)';
+        const grid    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+        const font    = isDark ? '#e2e8f0' : '#13343b';
+        const primary = isDark ? '#32b8c6' : '#21808d';
+
+        const xs = Array.from({ length: 500 }, (_, i) => 0.001 + i * (0.998 / 499));
+        const ys = xs.map(x => betaPDF(x, a, b));
+        const finiteYs = ys.filter(y => isFinite(y) && y < 1e6);
+        const maxY = finiteYs.length ? Math.min(Math.max(...finiteYs) * 1.15, 20) : 5;
+
+        const mean = a / (a + b);
+        const variance = (a * b) / (Math.pow(a + b, 2) * (a + b + 1));
+        const sigma = Math.sqrt(variance);
+        const lo = Math.max(0.001, mean - sigma);
+        const hi = Math.min(0.999, mean + sigma);
+
+        const fillXs = xs.filter(x => x >= lo && x <= hi);
+        const fillYs = fillXs.map(x => betaPDF(x, a, b));
+
+        const fillTrace = {
+            x: fillXs.length ? [fillXs[0], ...fillXs, fillXs[fillXs.length-1]] : [],
+            y: fillXs.length ? [0, ...fillYs, 0] : [],
+            type: 'scatter', mode: 'lines', fill: 'tozeroy',
+            fillcolor: isDark ? 'rgba(50,184,198,0.18)' : 'rgba(33,128,141,0.12)',
+            line: { color: 'transparent', width: 0 },
+            name: '±1σ', hoverinfo: 'skip', showlegend: false
+        };
+
+        const pdfTrace = {
+            x: xs, y: ys,
+            type: 'scatter', mode: 'lines',
+            name: 'PDF',
+            line: { color: primary, width: 2.5 },
+            hovertemplate: 'x = %{x:.3f}<br>f(x) = %{y:.3f}<extra></extra>',
+            showlegend: false
+        };
+
+        const meanLine = {
+            x: [mean, mean], y: [0, maxY * 0.88],
+            type: 'scatter', mode: 'lines',
+            line: { color: '#e74c3c', width: 1.5, dash: 'dot' },
+            hoverinfo: 'skip', showlegend: false
+        };
+
+        const layout = {
+            xaxis: {
+                range: [0, 1], gridcolor: grid, zeroline: false,
+                tickfont: { family: 'Berkeley Mono, monospace', size: 12, color: font },
+                tickformat: '.1f'
+            },
+            yaxis: {
+                range: [0, maxY], gridcolor: grid, zeroline: false,
+                tickfont: { family: 'Berkeley Mono, monospace', size: 12, color: font },
+            },
+            plot_bgcolor: bg, paper_bgcolor: bg,
+            showlegend: false,
+            margin: { t: 30, b: 50, l: 50, r: 20 },
+            annotations: [{
+                x: mean, y: maxY * 0.94, xref: 'x', yref: 'y',
+                text: `μ = ${mean.toFixed(3)}`,
+                showarrow: false,
+                font: { color: '#e74c3c', size: 12, family: 'Berkeley Mono, monospace' }
+            }]
+        };
+
+        Plotly.react('beta-plot', [fillTrace, pdfTrace, meanLine], layout,
+            { displayModeBar: false, responsive: true });
+    }
+
+    // ── Update all ─────────────────────────────────────────────
+    function updateAll(a, b) {
+        const mean = a / (a + b);
+        const variance = (a * b) / (Math.pow(a + b, 2) * (a + b + 1));
+        const std  = Math.sqrt(variance);
+        const conc = a + b;
+
+        document.getElementById('out-mean').textContent  = mean.toFixed(4);
+        document.getElementById('out-var').textContent   = variance.toFixed(4);
+        document.getElementById('out-std').textContent   = std.toFixed(4);
+        document.getElementById('out-mode').textContent  = modeStr(a, b);
+        document.getElementById('out-conc').textContent  = conc.toFixed(1);
+        document.getElementById('out-shape').textContent = shapeOf(a, b);
+
+        const cdfLo  = betaCDF(0.25, a, b);
+        const cdfHi  = betaCDF(0.75, a, b);
+        const pMid   = cdfHi - cdfLo;
+        const pHi    = 1 - cdfHi;
+
+        document.getElementById('cov-lo').textContent  = cdfLo.toFixed(3);
+        document.getElementById('cov-mid').textContent = pMid.toFixed(3);
+        document.getElementById('cov-hi').textContent  = pHi.toFixed(3);
+        document.getElementById('bar-lo').style.width  = (cdfLo * 100).toFixed(1) + '%';
+        document.getElementById('bar-mid').style.width = (pMid  * 100).toFixed(1) + '%';
+        document.getElementById('bar-hi').style.width  = (pHi   * 100).toFixed(1) + '%';
+
+        const aSlider = document.getElementById('alpha-slider');
+        const bSlider = document.getElementById('beta-slider');
+        aSlider.value = a;
+        bSlider.value = b;
+        document.getElementById('alpha-val').textContent = a.toFixed(1);
+        document.getElementById('beta-val').textContent  = b.toFixed(1);
+        setFill(aSlider);
+        setFill(bSlider);
+
+        plotBeta(a, b);
+    }
+
+    // ── Slider events ──────────────────────────────────────────
+    const aSlider = document.getElementById('alpha-slider');
+    const bSlider = document.getElementById('beta-slider');
+    aSlider.addEventListener('input', () => updateAll(parseFloat(aSlider.value), parseFloat(bSlider.value)));
+    bSlider.addEventListener('input', () => updateAll(parseFloat(aSlider.value), parseFloat(bSlider.value)));
+
+    // ── Editable values ────────────────────────────────────────
+    function makeEditable(el, sliderId, min, max, other) {
+        el.addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const v = Math.min(max, Math.max(min, parseFloat(el.textContent)));
+            if (!isNaN(v)) {
+                const otherVal = parseFloat(document.getElementById(other).value);
+                updateAll(
+                    sliderId === 'alpha-slider' ? v : otherVal,
+                    sliderId === 'beta-slider'  ? v : otherVal
+                );
+            }
+            el.blur();
+        });
+        el.addEventListener('blur', () => {
+            const v = Math.min(max, Math.max(min, parseFloat(el.textContent)));
+            if (!isNaN(v)) {
+                const otherVal = parseFloat(document.getElementById(other).value);
+                updateAll(
+                    sliderId === 'alpha-slider' ? v : otherVal,
+                    sliderId === 'beta-slider'  ? v : otherVal
+                );
+            }
+        });
+    }
+    makeEditable(document.getElementById('alpha-val'), 'alpha-slider', 0.1, 10, 'beta-slider');
+    makeEditable(document.getElementById('beta-val'),  'beta-slider',  0.1, 10, 'alpha-slider');
+
+    // ── Presets ────────────────────────────────────────────────
+    document.querySelectorAll('.term-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.term-preset').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateAll(parseFloat(btn.dataset.alpha), parseFloat(btn.dataset.beta));
+        });
+    });
+
+    // ── Theme re-render ────────────────────────────────────────
+    new MutationObserver(() => updateAll(parseFloat(aSlider.value), parseFloat(bSlider.value)))
+        .observe(document.documentElement, { attributes: true, attributeFilter: ['data-color-scheme'] });
+
+    // ── Init ───────────────────────────────────────────────────
+    setFill(aSlider);
+    setFill(bSlider);
+    updateAll(2, 5);
+    </script>
 
     <script>
         (function() {
