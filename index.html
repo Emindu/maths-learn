@@ -6,68 +6,251 @@
     <title>Maths Learn — Interactive Mathematics & Statistics</title>
     <link rel="stylesheet" href="theme.css">
     <style>
-        /* ── Index-specific styles ── */
+        /* ── Hero ─────────────────────────────────────────────── */
         .hub-hero {
-            background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-background) 100%);
+            position: relative;
+            overflow: hidden;
+            background: var(--color-surface);
             border-bottom: 1px solid var(--color-border);
-            padding: var(--space-48) var(--space-24);
+            padding: var(--space-64) var(--space-24) var(--space-48);
             text-align: center;
         }
 
-        .hub-hero__icon {
-            width: 64px;
-            height: 64px;
+        /* Decorative background blobs */
+        .hub-hero::before,
+        .hub-hero::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            pointer-events: none;
+        }
+
+        .hub-hero::before {
+            width: 500px;
+            height: 500px;
             background: var(--color-primary);
-            border-radius: var(--radius-xl);
-            display: flex;
+            top: -160px;
+            left: -100px;
+        }
+
+        .hub-hero::after {
+            width: 400px;
+            height: 400px;
+            background: #EC4899;
+            bottom: -120px;
+            right: -80px;
+        }
+
+        [data-color-scheme="dark"] .hub-hero::before,
+        [data-color-scheme="dark"] .hub-hero::after {
+            opacity: 0.28;
+        }
+
+        .hub-hero__inner {
+            position: relative;
+            z-index: 1;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .hub-hero__eyebrow {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            margin: 0 auto var(--space-20) auto;
-            font-size: 28px;
+            gap: var(--space-6);
+            padding: var(--space-4) var(--space-12);
+            border-radius: var(--radius-full);
+            background: var(--color-primary-subtle);
+            border: 1px solid var(--color-border);
+            color: var(--color-primary);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: var(--space-20);
         }
 
         .hub-hero__title {
-            font-size: var(--font-size-4xl);
+            font-size: var(--font-size-5xl);
             font-weight: var(--font-weight-bold);
             color: var(--color-text);
-            margin-bottom: var(--space-12);
+            margin-bottom: var(--space-16);
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+        }
+
+        .hub-hero__title span {
+            background: linear-gradient(135deg, var(--color-primary), #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hub-hero__subtitle {
             font-size: var(--font-size-xl);
             color: var(--color-text-secondary);
-            max-width: 560px;
-            margin: 0 auto;
-            line-height: var(--line-height-normal);
+            line-height: 1.6;
+            margin-bottom: var(--space-40);
         }
 
-        /* ── Hub Sections ── */
-        .hub-content {
-            max-width: var(--container-xl);
+        /* Stats bar */
+        .hub-hero__stats {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-4);
+            width: fit-content;
             margin: 0 auto;
-            padding: var(--space-48) var(--space-24);
+        }
+
+        .hub-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-12) var(--space-24);
+        }
+
+        .hub-stat + .hub-stat {
+            border-left: 1px solid var(--color-border);
+        }
+
+        .hub-stat__number {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+            line-height: 1;
+            margin-bottom: var(--space-4);
+        }
+
+        .hub-stat__label {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-muted);
+            font-weight: var(--font-weight-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Layout ───────────────────────────────────────────── */
+        .hub-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            gap: 0;
+            max-width: var(--container-2xl);
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ──────────────────────────────────────────── */
+        .hub-sidebar {
+            position: sticky;
+            top: var(--header-height);
+            height: calc(100vh - var(--header-height));
+            overflow-y: auto;
+            padding: var(--space-32) 0;
+            border-right: 1px solid var(--color-border);
+            background: var(--color-surface);
+        }
+
+        .hub-sidebar::-webkit-scrollbar { width: 4px; }
+        .hub-sidebar::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+
+        .hub-sidebar__label {
+            padding: 0 var(--space-20) var(--space-8);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .hub-nav__item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-10);
+            padding: var(--space-8) var(--space-20);
+            border-radius: 0;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            text-decoration: none;
+            transition: all var(--duration-fast) var(--ease-standard);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            border-left: 2px solid transparent;
+        }
+
+        .hub-nav__item:hover {
+            color: var(--color-primary);
+            background: var(--color-primary-subtle);
+            text-decoration: none;
+            border-left-color: var(--color-primary);
+        }
+
+        .hub-nav__item.active {
+            color: var(--color-primary);
+            background: var(--color-primary-subtle);
+            border-left-color: var(--color-primary);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .hub-nav__item-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .hub-nav__item-count {
+            margin-left: auto;
+            font-size: var(--font-size-xs);
+            color: var(--color-text-muted);
+            background: var(--color-secondary);
+            border-radius: var(--radius-full);
+            padding: 1px 7px;
+        }
+
+        /* ── Main Content ─────────────────────────────────────── */
+        .hub-main {
+            padding: var(--space-40) var(--space-40);
             display: flex;
             flex-direction: column;
             gap: var(--space-48);
         }
 
+        /* ── Section ──────────────────────────────────────────── */
+        .hub-section {
+            scroll-margin-top: calc(var(--header-height) + var(--space-24));
+        }
+
         .hub-section__header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: var(--space-24);
+            gap: var(--space-16);
+        }
+
+        .hub-section__title-group {
             display: flex;
             align-items: center;
             gap: var(--space-12);
-            margin-bottom: var(--space-24);
         }
 
         .hub-section__icon {
-            width: 40px;
-            height: 40px;
-            background: var(--color-secondary);
-            border-radius: var(--radius-base);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
             flex-shrink: 0;
+            background: var(--color-primary-subtle);
+            border: 1px solid var(--color-border);
         }
 
         .hub-section__title {
@@ -77,80 +260,101 @@
             margin: 0;
         }
 
-        .hub-section__count {
-            margin-left: auto;
+        .hub-section__badge {
             padding: var(--space-4) var(--space-10);
             background: var(--color-secondary);
+            border: 1px solid var(--color-border);
             border-radius: var(--radius-full);
-            font-size: var(--font-size-sm);
+            font-size: var(--font-size-xs);
             color: var(--color-text-secondary);
             font-weight: var(--font-weight-medium);
+            white-space: nowrap;
         }
 
-        /* ── Link Cards ── */
-        .link-grid {
+        /* ── Distribution / Topic Cards ───────────────────────── */
+        .topic-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: var(--space-16);
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: var(--space-12);
         }
 
-        .link-card {
+        .topic-card {
             background: var(--color-surface);
             border: 1px solid var(--color-card-border);
             border-radius: var(--radius-lg);
-            padding: var(--space-20);
+            padding: var(--space-16) var(--space-20);
             text-decoration: none;
             transition: all var(--duration-normal) var(--ease-standard);
             display: flex;
             flex-direction: column;
-            gap: var(--space-8);
+            gap: var(--space-6);
             box-shadow: var(--shadow-xs);
+            position: relative;
+            overflow: hidden;
         }
 
-        .link-card:hover {
-            border-color: var(--color-primary);
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--color-primary);
+            opacity: 0;
+            transition: opacity var(--duration-fast) var(--ease-standard);
+        }
+
+        .topic-card:hover {
+            border-color: var(--color-border-strong);
             box-shadow: var(--shadow-md);
             transform: translateY(-2px);
             text-decoration: none;
         }
 
-        .link-card__title {
+        .topic-card:hover::before { opacity: 1; }
+
+        .topic-card__title {
             font-size: var(--font-size-base);
             font-weight: var(--font-weight-semibold);
             color: var(--color-text);
             margin: 0;
-            line-height: var(--line-height-tight);
+            line-height: 1.3;
         }
 
-        .link-card__desc {
+        .topic-card__desc {
             font-size: var(--font-size-sm);
             color: var(--color-text-secondary);
             margin: 0;
-            line-height: var(--line-height-normal);
+            line-height: 1.5;
+            flex: 1;
         }
 
-        .link-card__arrow {
-            margin-top: auto;
-            padding-top: var(--space-8);
-            color: var(--color-primary);
-            font-size: var(--font-size-sm);
-            font-weight: var(--font-weight-medium);
+        .topic-card__footer {
+            margin-top: var(--space-4);
             display: flex;
             align-items: center;
             gap: var(--space-4);
+            color: var(--color-primary);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+            opacity: 0.7;
+            transition: opacity var(--duration-fast);
         }
 
-        /* ── Featured Cards (wider, for advanced modules) ── */
-        .featured-grid {
+        .topic-card:hover .topic-card__footer { opacity: 1; }
+
+        /* ── Featured / Interactive Module Cards ──────────────── */
+        .module-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: var(--space-20);
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-16);
         }
 
-        .featured-card {
+        .module-card {
             background: var(--color-surface);
             border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             padding: var(--space-24);
             text-decoration: none;
             transition: all var(--duration-normal) var(--ease-standard);
@@ -158,27 +362,54 @@
             flex-direction: column;
             gap: var(--space-12);
             box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
         }
 
-        .featured-card:hover {
-            border-color: var(--color-primary);
+        .module-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--color-primary-subtle) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity var(--duration-normal) var(--ease-standard);
+            pointer-events: none;
+        }
+
+        .module-card:hover {
+            border-color: var(--color-border-strong);
             box-shadow: var(--shadow-lg);
             transform: translateY(-3px);
             text-decoration: none;
         }
 
-        .featured-card__badge {
-            display: inline-block;
-            padding: var(--space-2) var(--space-8);
-            background: rgba(var(--color-success-rgb), 0.12);
-            color: var(--color-success);
+        .module-card:hover::after { opacity: 1; }
+
+        .module-card__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-4);
+            padding: var(--space-4) var(--space-10);
+            background: var(--color-accent-subtle);
+            color: var(--color-accent);
             border-radius: var(--radius-full);
             font-size: var(--font-size-xs);
-            font-weight: var(--font-weight-medium);
+            font-weight: var(--font-weight-semibold);
             width: fit-content;
+            border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
-        .featured-card__title {
+        [data-color-scheme="dark"] .module-card__badge {
+            border-color: rgba(252, 211, 77, 0.2);
+        }
+
+        .module-card__badge--3d {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818CF8;
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .module-card__title {
             font-size: var(--font-size-lg);
             font-weight: var(--font-weight-bold);
             color: var(--color-text);
@@ -186,50 +417,107 @@
             line-height: var(--line-height-tight);
         }
 
-        .featured-card__desc {
+        .module-card__desc {
             font-size: var(--font-size-base);
             color: var(--color-text-secondary);
             margin: 0;
             line-height: var(--line-height-normal);
+            flex: 1;
         }
 
-        .featured-card__cta {
+        .module-card__cta {
             margin-top: auto;
             padding-top: var(--space-12);
             border-top: 1px solid var(--color-card-border-inner);
             color: var(--color-primary);
             font-size: var(--font-size-sm);
-            font-weight: var(--font-weight-medium);
+            font-weight: var(--font-weight-semibold);
             display: flex;
             align-items: center;
             gap: var(--space-6);
+            transition: gap var(--duration-fast);
         }
 
-        /* ── Divider ── */
+        .module-card:hover .module-card__cta { gap: var(--space-10); }
+
+        /* ── Divider ──────────────────────────────────────────── */
         .hub-divider {
             border: none;
             border-top: 1px solid var(--color-border);
+            margin: 0;
         }
 
-        /* ── Responsive ── */
-        @media (max-width: 768px) {
-            .hub-hero {
-                padding: var(--space-32) var(--space-16);
-            }
+        /* ── Footer ───────────────────────────────────────────── */
+        .hub-footer {
+            grid-column: 1 / -1;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: var(--space-32) var(--space-40);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-24);
+        }
 
-            .hub-hero__title {
-                font-size: var(--font-size-3xl);
-            }
+        .hub-footer__brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-10);
+            text-decoration: none;
+        }
 
-            .hub-content {
-                padding: var(--space-32) var(--space-16);
-                gap: var(--space-32);
-            }
+        .hub-footer__logo {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--color-primary), #9B59FC);
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-base);
+        }
 
-            .link-grid,
-            .featured-grid {
+        .hub-footer__name {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text);
+        }
+
+        .hub-footer__copy {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+
+        /* ── Responsive ───────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .hub-layout {
                 grid-template-columns: 1fr;
             }
+
+            .hub-sidebar {
+                display: none;
+            }
+
+            .hub-main {
+                padding: var(--space-32) var(--space-24);
+            }
+
+            .hub-footer {
+                padding: var(--space-24);
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hub-hero__title { font-size: var(--font-size-4xl); }
+            .hub-hero__stats { flex-direction: column; width: 100%; }
+            .hub-stat + .hub-stat { border-left: none; border-top: 1px solid var(--color-border); }
+            .hub-main { padding: var(--space-24) var(--space-16); gap: var(--space-32); }
+            .topic-grid { grid-template-columns: 1fr; }
+            .module-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -242,265 +530,333 @@
                 <span class="site-header__site-name">Maths Learn</span>
             </a>
             <div class="site-header__actions">
-                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
-                    🌙
-                </button>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
             </div>
         </div>
     </header>
 
     <!-- Hero -->
     <div class="hub-hero">
-        <div class="hub-hero__icon">∑</div>
-        <h1 class="hub-hero__title">Maths Learn</h1>
-        <p class="hub-hero__subtitle">Interactive visualisations and tutorials for probability distributions, statistics, and machine learning algorithms.</p>
+        <div class="hub-hero__inner">
+            <div class="hub-hero__eyebrow">✦ Interactive Learning Platform</div>
+            <h1 class="hub-hero__title">
+                Mathematics &amp;<br><span>Statistics</span> Visualised
+            </h1>
+            <p class="hub-hero__subtitle">
+                Explore probability distributions, statistical algorithms, and machine learning concepts through hands-on interactive visualisations.
+            </p>
+            <div class="hub-hero__stats">
+                <div class="hub-stat">
+                    <span class="hub-stat__number">30+</span>
+                    <span class="hub-stat__label">Topics</span>
+                </div>
+                <div class="hub-stat">
+                    <span class="hub-stat__number">6</span>
+                    <span class="hub-stat__label">Categories</span>
+                </div>
+                <div class="hub-stat">
+                    <span class="hub-stat__number">8</span>
+                    <span class="hub-stat__label">Interactive Modules</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="hub-content">
+    <!-- Body: sidebar + main -->
+    <div class="hub-layout">
+        <!-- Sidebar Navigation -->
+        <nav class="hub-sidebar" aria-label="Content navigation">
+            <div class="hub-sidebar__label">Categories</div>
+            <a href="#distributions" class="hub-nav__item active">
+                <span class="hub-nav__item-icon">📊</span>
+                Probability Distributions
+                <span class="hub-nav__item-count">14</span>
+            </a>
+            <a href="#properties" class="hub-nav__item">
+                <span class="hub-nav__item-icon">📐</span>
+                Distribution Properties
+                <span class="hub-nav__item-count">1</span>
+            </a>
+            <a href="#markov" class="hub-nav__item">
+                <span class="hub-nav__item-icon">🔗</span>
+                Markov Chains
+                <span class="hub-nav__item-count">4</span>
+            </a>
+            <a href="#mcmc" class="hub-nav__item">
+                <span class="hub-nav__item-icon">🎲</span>
+                MCMC &amp; Sampling
+                <span class="hub-nav__item-count">2</span>
+            </a>
+            <a href="#montecarlo" class="hub-nav__item">
+                <span class="hub-nav__item-icon">🎯</span>
+                Monte Carlo
+                <span class="hub-nav__item-count">2</span>
+            </a>
+            <a href="#advanced" class="hub-nav__item">
+                <span class="hub-nav__item-icon">🔬</span>
+                Advanced Topics
+                <span class="hub-nav__item-count">6</span>
+            </a>
+        </nav>
 
-        <!-- Probability Distributions -->
-        <section>
-            <div class="hub-section__header">
-                <div class="hub-section__icon">📊</div>
-                <h2 class="hub-section__title">Probability Distributions</h2>
-                <span class="hub-section__count">14 topics</span>
-            </div>
-            <div class="link-grid">
-                <a href="bernoulli.html" class="link-card">
-                    <div class="link-card__title">Bernoulli Distribution</div>
-                    <div class="link-card__desc">Single-trial binary outcomes with interactive probability slider.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="beta.html" class="link-card">
-                    <div class="link-card__title">Beta Distribution</div>
-                    <div class="link-card__desc">Continuous distribution over [0,1], useful for Bayesian priors.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="binomial.html" class="link-card">
-                    <div class="link-card__title">Binomial Distribution</div>
-                    <div class="link-card__desc">Number of successes in a fixed number of independent trials.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="exponential.html" class="link-card">
-                    <div class="link-card__title">Exponential Distribution</div>
-                    <div class="link-card__desc">Time between Poisson events; memoryless continuous distribution.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="laplace.html" class="link-card">
-                    <div class="link-card__title">Laplace Distribution</div>
-                    <div class="link-card__desc">Double-exponential distribution with heavier tails than Gaussian.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="gemma.html" class="link-card">
-                    <div class="link-card__title">Gamma Distribution</div>
-                    <div class="link-card__desc">Generalisation of the exponential distribution for waiting times.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="lognormal.html" class="link-card">
-                    <div class="link-card__title">Log-Normal Distribution</div>
-                    <div class="link-card__desc">Distribution of a variable whose logarithm is normally distributed.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="normal.html" class="link-card">
-                    <div class="link-card__title">Normal / Gaussian</div>
-                    <div class="link-card__desc">The ubiquitous bell curve defined by mean and standard deviation.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="pareto.html" class="link-card">
-                    <div class="link-card__title">Pareto Distribution</div>
-                    <div class="link-card__desc">Power-law distribution modelling the 80/20 rule.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="poisson.html" class="link-card">
-                    <div class="link-card__title">Poisson Distribution</div>
-                    <div class="link-card__desc">Count of events occurring in a fixed interval of time or space.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="powerlaw.html" class="link-card">
-                    <div class="link-card__title">Power Law Distribution</div>
-                    <div class="link-card__desc">Scale-free distribution found in networks, wealth, and language.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="uniform.html" class="link-card">
-                    <div class="link-card__title">Uniform Distribution</div>
-                    <div class="link-card__desc">Every outcome equally likely across a bounded interval.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="zscore.html" class="link-card">
-                    <div class="link-card__title">Z-Score & Standard Normal</div>
-                    <div class="link-card__desc">Standardising data and working with the standard normal table.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="Dirichlet.html" class="link-card">
-                    <div class="link-card__title">Dirichlet Distribution</div>
-                    <div class="link-card__desc">Multivariate generalisation of the Beta distribution; the prior for categorical data.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-            </div>
-        </section>
+        <!-- Main Content -->
+        <main class="hub-main">
 
-        <hr class="hub-divider">
+            <!-- Probability Distributions -->
+            <section id="distributions" class="hub-section">
+                <div class="hub-section__header">
+                    <div class="hub-section__title-group">
+                        <div class="hub-section__icon">📊</div>
+                        <h2 class="hub-section__title">Probability Distributions</h2>
+                    </div>
+                    <span class="hub-section__badge">14 topics</span>
+                </div>
+                <div class="topic-grid">
+                    <a href="bernoulli.html" class="topic-card">
+                        <div class="topic-card__title">Bernoulli Distribution</div>
+                        <div class="topic-card__desc">Single-trial binary outcomes with interactive probability slider.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="beta.html" class="topic-card">
+                        <div class="topic-card__title">Beta Distribution</div>
+                        <div class="topic-card__desc">Continuous distribution over [0,1], useful for Bayesian priors.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="binomial.html" class="topic-card">
+                        <div class="topic-card__title">Binomial Distribution</div>
+                        <div class="topic-card__desc">Number of successes in a fixed number of independent trials.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="exponential.html" class="topic-card">
+                        <div class="topic-card__title">Exponential Distribution</div>
+                        <div class="topic-card__desc">Time between Poisson events; memoryless continuous distribution.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="laplace.html" class="topic-card">
+                        <div class="topic-card__title">Laplace Distribution</div>
+                        <div class="topic-card__desc">Double-exponential distribution with heavier tails than Gaussian.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="gemma.html" class="topic-card">
+                        <div class="topic-card__title">Gamma Distribution</div>
+                        <div class="topic-card__desc">Generalisation of the exponential distribution for waiting times.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="lognormal.html" class="topic-card">
+                        <div class="topic-card__title">Log-Normal Distribution</div>
+                        <div class="topic-card__desc">Distribution of a variable whose logarithm is normally distributed.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="normal.html" class="topic-card">
+                        <div class="topic-card__title">Normal / Gaussian</div>
+                        <div class="topic-card__desc">The ubiquitous bell curve defined by mean and standard deviation.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="pareto.html" class="topic-card">
+                        <div class="topic-card__title">Pareto Distribution</div>
+                        <div class="topic-card__desc">Power-law distribution modelling the 80/20 rule.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="poisson.html" class="topic-card">
+                        <div class="topic-card__title">Poisson Distribution</div>
+                        <div class="topic-card__desc">Count of events occurring in a fixed interval of time or space.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="powerlaw.html" class="topic-card">
+                        <div class="topic-card__title">Power Law Distribution</div>
+                        <div class="topic-card__desc">Scale-free distribution found in networks, wealth, and language.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="uniform.html" class="topic-card">
+                        <div class="topic-card__title">Uniform Distribution</div>
+                        <div class="topic-card__desc">Every outcome equally likely across a bounded interval.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="zscore.html" class="topic-card">
+                        <div class="topic-card__title">Z-Score &amp; Standard Normal</div>
+                        <div class="topic-card__desc">Standardising data and working with the standard normal table.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="Dirichlet.html" class="topic-card">
+                        <div class="topic-card__title">Dirichlet Distribution</div>
+                        <div class="topic-card__desc">Multivariate generalisation of the Beta; prior for categorical data.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                </div>
+            </section>
 
-        <!-- Distribution Properties -->
-        <section>
-            <div class="hub-section__header">
-                <div class="hub-section__icon">📐</div>
-                <h2 class="hub-section__title">Distribution Properties</h2>
-                <span class="hub-section__count">1 topic</span>
-            </div>
-            <div class="link-grid">
-                <a href="skewness-kurtosis-edu/index.html" class="link-card">
-                    <div class="link-card__title">Skewness &amp; Kurtosis</div>
-                    <div class="link-card__desc">Understand the shape of distributions: symmetry and tail weight.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-            </div>
-        </section>
+            <hr class="hub-divider">
 
-        <hr class="hub-divider">
+            <!-- Distribution Properties -->
+            <section id="properties" class="hub-section">
+                <div class="hub-section__header">
+                    <div class="hub-section__title-group">
+                        <div class="hub-section__icon">📐</div>
+                        <h2 class="hub-section__title">Distribution Properties</h2>
+                    </div>
+                    <span class="hub-section__badge">1 topic</span>
+                </div>
+                <div class="topic-grid">
+                    <a href="skewness-kurtosis-edu/index.html" class="topic-card">
+                        <div class="topic-card__title">Skewness &amp; Kurtosis</div>
+                        <div class="topic-card__desc">Understand the shape of distributions: symmetry and tail weight.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                </div>
+            </section>
 
-        <!-- Markov Chains -->
-        <section>
-            <div class="hub-section__header">
-                <div class="hub-section__icon">🔗</div>
-                <h2 class="hub-section__title">Markov Chains</h2>
-                <span class="hub-section__count">4 topics</span>
-            </div>
-            <div class="link-grid">
-                <a href="markovChain.html" class="link-card">
-                    <div class="link-card__title">Markov Chain Basics</div>
-                    <div class="link-card__desc">Discrete-time Markov chains with transition matrix visualisation.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="markovChainC.html" class="link-card">
-                    <div class="link-card__title">Continuous Markov Chain</div>
-                    <div class="link-card__desc">Continuous-time Markov chain dynamics and rate matrices.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="markov-chains-edu/index.html" class="link-card">
-                    <div class="link-card__title">Discrete Markov Chain (Interactive)</div>
-                    <div class="link-card__desc">In-depth educational module with exercises and visualisations.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="continuous-probability-learning/index.html" class="link-card">
-                    <div class="link-card__title">Continuous Probability Learning</div>
-                    <div class="link-card__desc">Interactive continuous probability distributions learning module.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-            </div>
-        </section>
+            <hr class="hub-divider">
 
-        <hr class="hub-divider">
+            <!-- Markov Chains -->
+            <section id="markov" class="hub-section">
+                <div class="hub-section__header">
+                    <div class="hub-section__title-group">
+                        <div class="hub-section__icon">🔗</div>
+                        <h2 class="hub-section__title">Markov Chains</h2>
+                    </div>
+                    <span class="hub-section__badge">4 topics</span>
+                </div>
+                <div class="topic-grid">
+                    <a href="markovChain.html" class="topic-card">
+                        <div class="topic-card__title">Markov Chain Basics</div>
+                        <div class="topic-card__desc">Discrete-time Markov chains with transition matrix visualisation.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="markovChainC.html" class="topic-card">
+                        <div class="topic-card__title">Continuous Markov Chain</div>
+                        <div class="topic-card__desc">Continuous-time Markov chain dynamics and rate matrices.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="markov-chains-edu/index.html" class="topic-card">
+                        <div class="topic-card__title">Discrete Markov Chain (Interactive)</div>
+                        <div class="topic-card__desc">In-depth educational module with exercises and visualisations.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="continuous-probability-learning/index.html" class="topic-card">
+                        <div class="topic-card__title">Continuous Probability Learning</div>
+                        <div class="topic-card__desc">Interactive continuous probability distributions learning module.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                </div>
+            </section>
 
-        <!-- MCMC Algorithms -->
-        <section>
-            <div class="hub-section__header">
-                <div class="hub-section__icon">🎲</div>
-                <h2 class="hub-section__title">MCMC &amp; Sampling</h2>
-                <span class="hub-section__count">2 topics</span>
-            </div>
-            <div class="featured-grid">
-                <a href="metropolis-hastings-learn/index.html" class="featured-card">
-                    <span class="featured-card__badge">Interactive</span>
-                    <div class="featured-card__title">Metropolis-Hastings Algorithm</div>
-                    <div class="featured-card__desc">Step-by-step guide to one of the most important MCMC algorithms in Bayesian computation.</div>
-                    <div class="featured-card__cta">Open Module →</div>
-                </a>
-                <a href="gibbs-sampling-tutor/index.html" class="featured-card">
-                    <span class="featured-card__badge">Interactive</span>
-                    <div class="featured-card__title">Gibbs Sampling Tutor</div>
-                    <div class="featured-card__desc">Learn Gibbs sampling through interactive demos, step-by-step calculations, and practice exercises.</div>
-                    <div class="featured-card__cta">Open Module →</div>
-                </a>
-            </div>
-        </section>
+            <hr class="hub-divider">
 
-        <hr class="hub-divider">
+            <!-- MCMC & Sampling -->
+            <section id="mcmc" class="hub-section">
+                <div class="hub-section__header">
+                    <div class="hub-section__title-group">
+                        <div class="hub-section__icon">🎲</div>
+                        <h2 class="hub-section__title">MCMC &amp; Sampling</h2>
+                    </div>
+                    <span class="hub-section__badge">2 topics</span>
+                </div>
+                <div class="module-grid">
+                    <a href="metropolis-hastings-learn/index.html" class="module-card">
+                        <span class="module-card__badge">⚡ Interactive</span>
+                        <div class="module-card__title">Metropolis-Hastings Algorithm</div>
+                        <div class="module-card__desc">Step-by-step guide to one of the most important MCMC algorithms in Bayesian computation.</div>
+                        <div class="module-card__cta">Open Module →</div>
+                    </a>
+                    <a href="gibbs-sampling-tutor/index.html" class="module-card">
+                        <span class="module-card__badge">⚡ Interactive</span>
+                        <div class="module-card__title">Gibbs Sampling Tutor</div>
+                        <div class="module-card__desc">Learn Gibbs sampling through interactive demos, step-by-step calculations, and practice exercises.</div>
+                        <div class="module-card__cta">Open Module →</div>
+                    </a>
+                </div>
+            </section>
 
-        <!-- Monte Carlo -->
-        <section>
-            <div class="hub-section__header">
-                <div class="hub-section__icon">🎯</div>
-                <h2 class="hub-section__title">Monte Carlo Methods</h2>
-                <span class="hub-section__count">2 topics</span>
-            </div>
-            <div class="link-grid">
-                <a href="MonteCarloPiEstimationVisualization.html" class="link-card">
-                    <div class="link-card__title">Monte Carlo Pi Estimation</div>
-                    <div class="link-card__desc">Estimate π using random sampling with live visualisation.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="MontyHallGame.html" class="link-card">
-                    <div class="link-card__title">Monty Hall Problem</div>
-                    <div class="link-card__desc">Simulate the classic probability puzzle and see why switching wins.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-            </div>
-        </section>
+            <hr class="hub-divider">
 
-        <hr class="hub-divider">
+            <!-- Monte Carlo -->
+            <section id="montecarlo" class="hub-section">
+                <div class="hub-section__header">
+                    <div class="hub-section__title-group">
+                        <div class="hub-section__icon">🎯</div>
+                        <h2 class="hub-section__title">Monte Carlo Methods</h2>
+                    </div>
+                    <span class="hub-section__badge">2 topics</span>
+                </div>
+                <div class="topic-grid">
+                    <a href="MonteCarloPiEstimationVisualization.html" class="topic-card">
+                        <div class="topic-card__title">Monte Carlo Pi Estimation</div>
+                        <div class="topic-card__desc">Estimate π using random sampling with live visualisation.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="MontyHallGame.html" class="topic-card">
+                        <div class="topic-card__title">Monty Hall Problem</div>
+                        <div class="topic-card__desc">Simulate the classic probability puzzle and see why switching wins.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                </div>
+            </section>
 
-        <!-- Advanced Modules -->
-        <section>
-            <div class="hub-section__header">
-                <div class="hub-section__icon">🔬</div>
-                <h2 class="hub-section__title">Advanced Topics</h2>
-                <span class="hub-section__count">7 topics</span>
-            </div>
-            <div class="featured-grid">
-                <a href="mixture-model-explorer/index.html" class="featured-card">
-                    <span class="featured-card__badge">Interactive</span>
-                    <div class="featured-card__title">Mixture Model Explorer</div>
-                    <div class="featured-card__desc">Visualise and understand Gaussian mixture models and their EM algorithm.</div>
-                    <div class="featured-card__cta">Open Module →</div>
-                </a>
-                <a href="likelihood-mle-dashboard/index.html" class="featured-card">
-                    <span class="featured-card__badge">Interactive</span>
-                    <div class="featured-card__title">Likelihood &amp; MLE Dashboard</div>
-                    <div class="featured-card__desc">Explore likelihood functions and maximum likelihood estimation interactively.</div>
-                    <div class="featured-card__cta">Open Module →</div>
-                </a>
-                <a href="trinity-uncertainty-dashboard/index.html" class="featured-card">
-                    <span class="featured-card__badge">Interactive</span>
-                    <div class="featured-card__title">Trinity of Uncertainty</div>
-                    <div class="featured-card__desc">Understand aleatory, epistemic, and ontological uncertainty through interactive games.</div>
-                    <div class="featured-card__cta">Open Module →</div>
-                </a>
-                <a href="bivariate_normal_3_d_visualizer.html" class="featured-card">
-                    <span class="featured-card__badge">3D Visualisation</span>
-                    <div class="featured-card__title">Bivariate Normal — 3D</div>
-                    <div class="featured-card__desc">Explore the bivariate normal distribution in interactive 3D.</div>
-                    <div class="featured-card__cta">Open Visualiser →</div>
-                </a>
-                <a href="softmax.html" class="link-card" style="align-self: start;">
-                    <div class="link-card__title">Softmax Function</div>
-                    <div class="link-card__desc">Neural network activation function for multi-class classification.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-                <a href="anova.html" class="link-card" style="align-self: start;">
-                    <div class="link-card__title">ANOVA</div>
-                    <div class="link-card__desc">Analysis of variance to compare means across multiple groups.</div>
-                    <div class="link-card__arrow">Explore →</div>
-                </a>
-            </div>
-        </section>
+            <hr class="hub-divider">
 
+            <!-- Advanced Topics -->
+            <section id="advanced" class="hub-section">
+                <div class="hub-section__header">
+                    <div class="hub-section__title-group">
+                        <div class="hub-section__icon">🔬</div>
+                        <h2 class="hub-section__title">Advanced Topics</h2>
+                    </div>
+                    <span class="hub-section__badge">6 topics</span>
+                </div>
+                <div class="module-grid">
+                    <a href="mixture-model-explorer/index.html" class="module-card">
+                        <span class="module-card__badge">⚡ Interactive</span>
+                        <div class="module-card__title">Mixture Model Explorer</div>
+                        <div class="module-card__desc">Visualise and understand Gaussian mixture models and the EM algorithm.</div>
+                        <div class="module-card__cta">Open Module →</div>
+                    </a>
+                    <a href="likelihood-mle-dashboard/index.html" class="module-card">
+                        <span class="module-card__badge">⚡ Interactive</span>
+                        <div class="module-card__title">Likelihood &amp; MLE Dashboard</div>
+                        <div class="module-card__desc">Explore likelihood functions and maximum likelihood estimation interactively.</div>
+                        <div class="module-card__cta">Open Module →</div>
+                    </a>
+                    <a href="trinity-uncertainty-dashboard/index.html" class="module-card">
+                        <span class="module-card__badge">⚡ Interactive</span>
+                        <div class="module-card__title">Trinity of Uncertainty</div>
+                        <div class="module-card__desc">Understand aleatory, epistemic, and ontological uncertainty through interactive games.</div>
+                        <div class="module-card__cta">Open Module →</div>
+                    </a>
+                    <a href="bivariate_normal_3_d_visualizer.html" class="module-card">
+                        <span class="module-card__badge module-card__badge--3d">◈ 3D Visualisation</span>
+                        <div class="module-card__title">Bivariate Normal — 3D</div>
+                        <div class="module-card__desc">Explore the bivariate normal distribution in interactive three-dimensional space.</div>
+                        <div class="module-card__cta">Open Visualiser →</div>
+                    </a>
+                    <a href="softmax.html" class="topic-card" style="border-radius: var(--radius-xl);">
+                        <div class="topic-card__title">Softmax Function</div>
+                        <div class="topic-card__desc">Neural network activation function for multi-class classification.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                    <a href="anova.html" class="topic-card" style="border-radius: var(--radius-xl);">
+                        <div class="topic-card__title">ANOVA</div>
+                        <div class="topic-card__desc">Analysis of variance to compare means across multiple groups.</div>
+                        <div class="topic-card__footer">Explore →</div>
+                    </a>
+                </div>
+            </section>
+
+        </main>
     </div>
 
     <!-- Footer -->
-    <footer class="site-footer">
-        <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education</p>
+    <footer class="hub-footer">
+        <a href="index.html" class="hub-footer__brand">
+            <div class="hub-footer__logo">∑</div>
+            <span class="hub-footer__name">Maths Learn</span>
+        </a>
+        <p class="hub-footer__copy">Interactive statistics &amp; probability education</p>
     </footer>
 
     <script>
         // Theme toggle
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
-
-        function getStoredTheme() {
-            return localStorage.getItem('theme');
-        }
 
         function applyTheme(theme) {
             if (theme === 'dark') {
@@ -515,7 +871,7 @@
         }
 
         function initTheme() {
-            const stored = getStoredTheme();
+            const stored = localStorage.getItem('theme');
             if (stored) {
                 applyTheme(stored);
             } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -531,6 +887,23 @@
         });
 
         initTheme();
+
+        // Sidebar active link on scroll
+        const sections = document.querySelectorAll('.hub-section');
+        const navItems = document.querySelectorAll('.hub-nav__item');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    navItems.forEach(item => {
+                        item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+
+        sections.forEach(s => observer.observe(s));
     </script>
 </body>
 </html>
