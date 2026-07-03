@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pareto Distribution</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        /* ── Page-specific styles (complement theme.css) ── */
+        body {
+            padding-top: 0;
+        }
+        .page-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: var(--space-32) var(--space-24);
+        }
+        .page-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text);
+            text-align: center;
+            margin-bottom: var(--space-24);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        .viz-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: var(--space-24);
+            box-shadow: var(--shadow-sm);
+        }
+        /* Generic controls container */
+        .controls, .slider-container {
+            margin: var(--space-16) 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            margin-bottom: var(--space-12);
+            flex-wrap: wrap;
+        }
+        .slider-row label {
+            min-width: 180px;
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-base);
+            color: var(--color-text);
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        /* Labels inside controls */
+        .controls label {
+            display: block;
+            margin-bottom: var(--space-4);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        /* Generic inputs inside controls (number, text) */
+        .controls input[type="number"],
+        .controls input[type="text"],
+        .controls select {
+            width: 100%;
+            padding: var(--space-8) var(--space-12);
+            margin-bottom: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            box-sizing: border-box;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: var(--focus-ring);
+        }
+        .parameter-display {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            min-width: 80px;
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-12);
+            margin: var(--space-16) 0;
+        }
+        .stat-box {
+            background: var(--color-background);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-base);
+            padding: var(--space-12) var(--space-16);
+            text-align: center;
+            min-width: 120px;
+        }
+        .stat-box h3 {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-4) 0;
+            font-weight: var(--font-weight-medium);
+        }
+        .stat-value {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+        }
+        .info-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-24);
+        }
+        .info-section h2 {
+            color: var(--color-primary);
+            font-size: var(--font-size-xl);
+            margin-top: var(--space-24);
+            margin-bottom: var(--space-12);
+            padding-bottom: var(--space-8);
+            border-bottom: 1px solid var(--color-border);
+        }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section h3 {
+            color: var(--color-text);
+            font-size: var(--font-size-lg);
+            margin-top: var(--space-16);
+            margin-bottom: var(--space-8);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-6);
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            margin-top: var(--space-16);
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        /* Example/output sections */
+        .example-section, .example-output {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-top: var(--space-24);
+        }
+        .example-section h2, .example-section h3 {
+            color: var(--color-primary);
+        }
+        /* Ensure chart/plot containers have reasonable height */
+        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
+            width: 100% !important;
+            min-height: 300px;
+        }
+        #chart {
+            width: 100%;
+            min-height: 60vh;
+        }
+    </style>
+
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="index.html" class="site-header__brand">
+                <div class="site-header__logo">∑</div>
+                <span class="site-header__site-name">Maths Learn</span>
+            </a>
+            <div class="site-header__actions">
+                <a href="index.html" class="site-header__back">← Back to Home</a>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-content">
+
+    <h1 class="page-title">Pareto Distribution</h1>
+
+    <p>The Pareto Distribution is a power-law probability distribution used to model wealth distribution, file sizes, and more. It is defined by a scale parameter <em>x<sub>m</sub></em> and a shape parameter <em>α</em>.</p>
+
+    <!-- Alpha (Shape) Slider -->
+    <div>
+        <label for="alpha-slider">Shape Parameter (α):</label>
+        <input type="range" id="alpha-slider" min="1.1" max="5" step="0.1" value="2">
+        <span id="alpha-value">α = 2</span>
+    </div>
+
+    <!-- xm (Scale) Slider -->
+    <div>
+        <label for="xm-slider">Scale Parameter (x<sub>m</sub>):</label>
+        <input type="range" id="xm-slider" min="1" max="10" step="1" value="1">
+        <span id="xm-value">x<sub>m</sub> = 1</span>
+    </div>
+
+    <!-- Pareto Distribution Graph -->
+    <div id="pareto-distribution-graph"></div>
+
+    <!-- Example Output -->
+    <div id="pareto-example-output"></div>
+
+    <!-- Explanation Section -->
+    <section class="info-section">
+        <h2>Notation</h2>
+        <p><strong>α</strong> – Shape parameter (controls the "tail" of the distribution).</p>
+        <p><strong>x<sub>m</sub></strong> – Scale parameter (minimum possible value).</p>
+        <p><strong>x</strong> – A value such that x ≥ x<sub>m</sub>.</p>
+
+        <h2>PDF (Probability Density Function)</h2>
+        <pre>
+f(x; α, xₘ) = (α * xₘ^α) / x^(α + 1), for x ≥ xₘ
+        </pre>
+
+        <h2>Mean and Variance</h2>
+        <p><strong>Mean:</strong> μ = (α * x<sub>m</sub>) / (α - 1), for α > 1</p>
+        <p><strong>Variance:</strong> σ² = (α * x<sub>m</sub>²) / ((α - 1)² * (α - 2)), for α > 2</p>
+
+        <h2>Example</h2>
+        <p>For α = 2 and x<sub>m</sub> = 1, the PDF at x = 2 is:</p>
+        <pre>
+f(2) = (2 * 1^2) / (2^3) = 2 / 8 = 0.25
+        </pre>
+
+        <h2>Learn More</h2>
+        <p><a href="pareto.html" target="_blank">Learn about Pareto Distribution</a></p>
+    </section>
+
+    <script>
+        const alphaSlider = document.getElementById('alpha-slider');
+        const xmSlider = document.getElementById('xm-slider');
+        const alphaDisplay = document.getElementById('alpha-value');
+        const xmDisplay = document.getElementById('xm-value');
+
+        function paretoPDF(x, alpha, xm) {
+            return x >= xm ? (alpha * Math.pow(xm, alpha)) / Math.pow(x, alpha + 1) : 0;
+        }
+
+        function updateGraph(alpha, xm) {
+            const xValues = Array.from({ length: 200 }, (_, i) => xm + i * 0.1);
+            const yValues = xValues.map(x => paretoPDF(x, alpha, xm));
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'purple' }
+            };
+
+            const layout = {
+                title: `Pareto Distribution (α = ${alpha}, xₘ = ${xm})`,
+                xaxis: { title: 'x', range: [xm, xm + 10] },
+                yaxis: { title: 'Probability Density' }
+            };
+
+            Plotly.newPlot('pareto-distribution-graph', [trace], layout);
+
+            // Example Calculation at x = xm + 1
+            const xExample = xm + 1;
+            const pdfValue = paretoPDF(xExample, alpha, xm).toFixed(5);
+            document.getElementById('pareto-example-output').innerText = 
+                `For α = ${alpha} and xₘ = ${xm}, the PDF at x = ${xExample} is approximately ${pdfValue}.`;
+        }
+
+        alphaSlider.addEventListener('input', function () {
+            const alpha = parseFloat(alphaSlider.value);
+            const xm = parseFloat(xmSlider.value);
+            alphaDisplay.innerText = `α = ${alpha}`;
+            updateGraph(alpha, xm);
+        });
+
+        xmSlider.addEventListener('input', function () {
+            const alpha = parseFloat(alphaSlider.value);
+            const xm = parseFloat(xmSlider.value);
+            xmDisplay.innerHTML = `x<sub>m</sub> = ${xm}`;
+            updateGraph(alpha, xm);
+        });
+
+        updateGraph(parseFloat(alphaSlider.value), parseFloat(xmSlider.value));
+    </script>
+
+    </div>
+
+    <footer class="site-footer">
+        <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
+    </footer>
+
+
+    <script>
+        (function() {
+            var toggle = document.getElementById('themeToggle');
+            var html = document.documentElement;
+            function applyTheme(t) {
+                html.setAttribute('data-color-scheme', t);
+                if (toggle) toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+            }
+            var stored = localStorage.getItem('ml-theme');
+            if (stored) { applyTheme(stored); }
+            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { applyTheme('dark'); }
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    var cur = html.getAttribute('data-color-scheme') || 'light';
+                    var next = cur === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('ml-theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

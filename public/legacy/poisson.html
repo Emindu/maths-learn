@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poisson Distribution for Emails per Hour</title>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Optional: For Styling -->
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        /* ── Page-specific styles (complement theme.css) ── */
+        body {
+            padding-top: 0;
+        }
+        .page-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: var(--space-32) var(--space-24);
+        }
+        .page-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text);
+            text-align: center;
+            margin-bottom: var(--space-24);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        .viz-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: var(--space-24);
+            box-shadow: var(--shadow-sm);
+        }
+        /* Generic controls container */
+        .controls, .slider-container {
+            margin: var(--space-16) 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            margin-bottom: var(--space-12);
+            flex-wrap: wrap;
+        }
+        .slider-row label {
+            min-width: 180px;
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-base);
+            color: var(--color-text);
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        /* Labels inside controls */
+        .controls label {
+            display: block;
+            margin-bottom: var(--space-4);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        /* Generic inputs inside controls (number, text) */
+        .controls input[type="number"],
+        .controls input[type="text"],
+        .controls select {
+            width: 100%;
+            padding: var(--space-8) var(--space-12);
+            margin-bottom: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            box-sizing: border-box;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: var(--focus-ring);
+        }
+        .parameter-display {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            min-width: 80px;
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-12);
+            margin: var(--space-16) 0;
+        }
+        .stat-box {
+            background: var(--color-background);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-base);
+            padding: var(--space-12) var(--space-16);
+            text-align: center;
+            min-width: 120px;
+        }
+        .stat-box h3 {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-4) 0;
+            font-weight: var(--font-weight-medium);
+        }
+        .stat-value {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+        }
+        .info-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-24);
+        }
+        .info-section h2 {
+            color: var(--color-primary);
+            font-size: var(--font-size-xl);
+            margin-top: var(--space-24);
+            margin-bottom: var(--space-12);
+            padding-bottom: var(--space-8);
+            border-bottom: 1px solid var(--color-border);
+        }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section h3 {
+            color: var(--color-text);
+            font-size: var(--font-size-lg);
+            margin-top: var(--space-16);
+            margin-bottom: var(--space-8);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-6);
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            margin-top: var(--space-16);
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        /* Example/output sections */
+        .example-section, .example-output {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-top: var(--space-24);
+        }
+        .example-section h2, .example-section h3 {
+            color: var(--color-primary);
+        }
+        /* Ensure chart/plot containers have reasonable height */
+        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
+            width: 100% !important;
+            min-height: 300px;
+        }
+        #chart {
+            width: 100%;
+            min-height: 60vh;
+        }
+    </style>
+
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="index.html" class="site-header__brand">
+                <div class="site-header__logo">∑</div>
+                <span class="site-header__site-name">Maths Learn</span>
+            </a>
+            <div class="site-header__actions">
+                <a href="index.html" class="site-header__back">← Back to Home</a>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-content">
+
+    <h1 class="page-title">Poisson Distribution for Emails per Hour</h1>
+
+    <p>The Poisson distribution models the probability of a given number of events occurring within a fixed interval, such as receiving emails per hour.</p>
+
+    <!-- Lambda Slider -->
+    <div>
+        <label for="lambda-slider">Average Emails per Hour (λ):</label>
+        <input type="range" id="lambda-slider" min="1" max="15" step="1" value="5">
+        <span id="lambda-value">λ = 5</span>
+    </div>
+
+    <!-- Poisson Distribution Graph -->
+    <div id="poisson-email-graph"></div>
+
+    <!-- Example Output -->
+    <div id="email-example-output"></div>
+
+    <!-- Notation, Parameters, and Formulas Section -->
+    <section class="info-section">
+        <h2>Notation</h2>
+        <p><strong>λ (lambda)</strong> – The average number of events (emails per hour).</p>
+        <p><strong>k</strong> – The actual number of events (emails) observed during the given time period.</p>
+
+        <h2>Parameters</h2>
+        <p>The key parameters of the Poisson distribution are:</p>
+        <ul>
+            <li><strong>λ (lambda)</strong>: The rate of occurrence, i.e., the average number of events in the given interval.</li>
+            <li><strong>k</strong>: The number of occurrences (emails) for which we want to calculate the probability.</li>
+        </ul>
+
+        <h2>PMF (Probability Mass Function)</h2>
+        <p>The PMF of the Poisson distribution is given by the formula:</p>
+        <pre>
+            P(k, λ) = (λ^k * e^(-λ)) / k!
+        </pre>
+        <p>Where:</p>
+        <ul>
+            <li><strong>λ</strong> is the average rate of occurrence.</li>
+            <li><strong>k</strong> is the number of occurrences (emails).</li>
+            <li><strong>e</strong> is Euler's number (approximately 2.71828).</li>
+            <li><strong>k!</strong> is the factorial of <strong>k</strong>.</li>
+        </ul>
+
+        <h2>Mean and Variance of Poisson Distribution</h2>
+        <p>The mean and variance of a Poisson distribution are both equal to λ.</p>
+        <p><strong>Mean:</strong> <em>μ = λ</em></p>
+        <p><strong>Variance:</strong> <em>σ² = λ</em></p>
+
+        <h2>Example Calculation of Probability</h2>
+        <p>For λ = 5 (average of 5 emails per hour), let's calculate the probability of receiving exactly 3 emails (k = 3) within one hour:</p>
+        <pre>
+            P(k=3, λ=5) = (5^3 * e^(-5)) / 3!
+                         = (125 * e^(-5)) / 6
+                         ≈ 0.1404
+        </pre>
+        <p>So, the probability of receiving exactly 3 emails in one hour is approximately 0.1404.</p>
+    </section>
+
+    <script>
+        // Initialize Lambda value
+        const lambdaSlider = document.getElementById('lambda-slider');
+        const lambdaValueDisplay = document.getElementById('lambda-value');
+
+        // Function to calculate Poisson distribution PMF
+        function poissonPMF(k, lambda) {
+            return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
+        }
+
+        // Factorial function
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let f = 1;
+            for (let i = 2; i <= n; i++) {
+                f *= i;
+            }
+            return f;
+        }
+
+        // Function to update the graph and output based on λ
+        function updateGraph(lambda) {
+            const kValues = Array.from({ length: 20 }, (_, i) => i); // k = 0 to 19
+            const probabilities = kValues.map(k => poissonPMF(k, lambda));
+
+            // Create the bar chart using Plotly.js
+            const trace = {
+                x: kValues,
+                y: probabilities,
+                type: 'bar',
+                marker: { color: 'skyblue' }
+            };
+
+            const layout = {
+                title: `Poisson Distribution of Emails per Hour (λ = ${lambda})`,
+                xaxis: { title: 'Number of Emails (k)' },
+                yaxis: { title: 'Probability' }
+            };
+
+            Plotly.newPlot('poisson-email-graph', [trace], layout);
+
+            // Example Calculation for k = 3
+            const exampleK = 3;
+            const exampleProbability = poissonPMF(exampleK, lambda);
+            document.getElementById('email-example-output').innerText = 
+                `For λ = ${lambda}, the probability of receiving exactly ${exampleK} emails (P(k=3)) is approximately ${exampleProbability.toFixed(4)}.`;
+        }
+
+        // Update graph on slider change
+        lambdaSlider.addEventListener('input', function() {
+            const lambda = parseFloat(lambdaSlider.value);
+            lambdaValueDisplay.innerText = `λ = ${lambda}`;
+            updateGraph(lambda);
+        });
+
+        // Initialize graph with default lambda value
+        updateGraph(parseFloat(lambdaSlider.value));
+    </script>
+
+    </div>
+
+    <footer class="site-footer">
+        <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
+    </footer>
+
+
+    <script>
+        (function() {
+            var toggle = document.getElementById('themeToggle');
+            var html = document.documentElement;
+            function applyTheme(t) {
+                html.setAttribute('data-color-scheme', t);
+                if (toggle) toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+            }
+            var stored = localStorage.getItem('ml-theme');
+            if (stored) { applyTheme(stored); }
+            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { applyTheme('dark'); }
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    var cur = html.getAttribute('data-color-scheme') || 'light';
+                    var next = cur === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('ml-theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

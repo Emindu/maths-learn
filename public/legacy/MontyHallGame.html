@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monty Hall Game</title>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.12.16/dist/framer-motion.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        /* ── Page-specific styles (complement theme.css) ── */
+        body {
+            padding-top: 0;
+        }
+        .page-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: var(--space-32) var(--space-24);
+        }
+        .page-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text);
+            text-align: center;
+            margin-bottom: var(--space-24);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        .viz-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: var(--space-24);
+            box-shadow: var(--shadow-sm);
+        }
+        /* Generic controls container */
+        .controls, .slider-container {
+            margin: var(--space-16) 0;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            margin-bottom: var(--space-12);
+            flex-wrap: wrap;
+        }
+        .slider-row label {
+            min-width: 180px;
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-base);
+            color: var(--color-text);
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        /* Labels inside controls */
+        .controls label {
+            display: block;
+            margin-bottom: var(--space-4);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        /* Generic inputs inside controls (number, text) */
+        .controls input[type="number"],
+        .controls input[type="text"],
+        .controls select {
+            width: 100%;
+            padding: var(--space-8) var(--space-12);
+            margin-bottom: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            box-sizing: border-box;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: var(--focus-ring);
+        }
+        .parameter-display {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            min-width: 80px;
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-12);
+            margin: var(--space-16) 0;
+        }
+        .stat-box {
+            background: var(--color-background);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-base);
+            padding: var(--space-12) var(--space-16);
+            text-align: center;
+            min-width: 120px;
+        }
+        .stat-box h3 {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-4) 0;
+            font-weight: var(--font-weight-medium);
+        }
+        .stat-value {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+        }
+        .info-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-24);
+        }
+        .info-section h2 {
+            color: var(--color-primary);
+            font-size: var(--font-size-xl);
+            margin-top: var(--space-24);
+            margin-bottom: var(--space-12);
+            padding-bottom: var(--space-8);
+            border-bottom: 1px solid var(--color-border);
+        }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section h3 {
+            color: var(--color-text);
+            font-size: var(--font-size-lg);
+            margin-top: var(--space-16);
+            margin-bottom: var(--space-8);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-6);
+            color: var(--color-primary);
+            font-weight: var(--font-weight-medium);
+            margin-top: var(--space-16);
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        /* Example/output sections */
+        .example-section, .example-output {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            margin-top: var(--space-24);
+        }
+        .example-section h2, .example-section h3 {
+            color: var(--color-primary);
+        }
+        /* Ensure chart/plot containers have reasonable height */
+        [id$="-plot"], [id$="-graph"], [id$="chart"], [id*="-chart-"] {
+            width: 100% !important;
+            min-height: 300px;
+        }
+        #chart {
+            width: 100%;
+            min-height: 60vh;
+        }
+    </style>
+
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="index.html" class="site-header__brand">
+                <div class="site-header__logo">∑</div>
+                <span class="site-header__site-name">Maths Learn</span>
+            </a>
+            <div class="site-header__actions">
+                <a href="index.html" class="site-header__back">← Back to Home</a>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-content">
+
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Fallback for Framer Motion
+        const motion = window.motion || {
+            div: ({ children, ...props }) => <div {...props}>{children}</div>,
+            img: ({ children, ...props }) => <img {...props} />,
+        };
+        if (!window.motion) {
+            console.warn("Framer Motion not loaded; animations disabled.");
+        }
+
+        // Error Boundary Component
+        class ErrorBoundary extends React.Component {
+            state = { hasError: false, error: null };
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error };
+            }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="text-center p-4 text-red-600">
+                            <h2>Something went wrong!</h2>
+                            <p>{this.state.error?.message || "Unknown error"}</p>
+                            <button
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                                onClick={() => window.location.reload()}
+                            >
+                                Reload
+                            </button>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
+        // Confetti Effect
+        const Confetti = ({ active, doorRef }) => {
+            const canvasRef = useRef(null);
+
+            useEffect(() => {
+                if (!active || !canvasRef.current) return;
+
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const particles = [];
+                const colors = ['#ff0', '#f00', '#0f0', '#00f', '#f0f'];
+
+                for (let i = 0; i < 100; i++) {
+                    particles.push({
+                        x: doorRef.current ? doorRef.current.offsetLeft + doorRef.current.offsetWidth / 2 : canvas.width / 2,
+                        y: doorRef.current ? doorRef.current.offsetTop : canvas.height / 2,
+                        radius: Math.random() * 5 + 2,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        vx: Math.random() * 10 - 5,
+                        vy: Math.random() * -10 - 5,
+                        alpha: 1,
+                    });
+                }
+
+                const animate = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.2; // Gravity
+                        p.alpha -= 0.01;
+                        if (p.alpha <= 0) return;
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.alpha;
+                        ctx.fill();
+                    });
+
+                    if (particles.some(p => p.alpha > 0)) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+
+                animate();
+                return () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }, [active]);
+
+            return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" />;
+        };
+
+        const Door = ({ number, isSelected, isOpen, isCar, onClick, isWinner, isLoser }) => {
+            const doorRef = useRef(null);
+
+            return (
+                <>
+                    {isWinner && <Confetti active={isWinner} doorRef={doorRef} />}
+                    <motion.div
+                        ref={doorRef}
+                        onClick={onClick}
+                        className={`relative w-28 h-44 sm:w-36 sm:h-56 bg-indigo-600 rounded-lg shadow-lg cursor-pointer flex items-center justify-center
+                            ${isSelected ? 'ring-4 ring-cyan-400 shadow-cyan-400/50' : ''}
+                            ${isOpen && isCar ? 'bg-yellow-400' : isOpen ? 'bg-gray-300' : ''}
+                            ${isLoser ? 'filter grayscale' : ''}`}
+                        initial={{ scale: 1 }}
+                        animate={{
+                            scale: isWinner ? [1.05, 1.15, 1.05] : isOpen ? 1.05 : 1,
+                            x: isLoser ? [-5, 5, -5, 0] : 0,
+                            boxShadow: isWinner ? [
+                                '0 0 20px rgba(250, 204, 21, 0.8)',
+                                '0 0 40px rgba(250, 204, 21, 1)',
+                                '0 0 20px rgba(250, 204, 21, 0.8)'
+                            ] : '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                        }}
+                        transition={{
+                            scale: { duration: isWinner ? 0.5 : 0.3, repeat: isWinner ? Infinity : 0 },
+                            x: { duration: 0.4, repeat: isLoser ? 1 : 0 },
+                            boxShadow: { duration: 0.5, repeat: isWinner ? Infinity : 0 }
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        <span className={`text-lg sm:text-xl font-bold ${isOpen ? 'text-black' : 'text-white'}`}>
+                            Door {number}
+                        </span>
+                        {isOpen && (
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center">
+                                <motion.img
+                                    src={isCar ? "https://cdn-icons-png.flaticon.com/512/3202/3202003.png" : "https://cdn-icons-png.flaticon.com/512/1886/1886933.png"}
+                                    alt={isCar ? "Car" : "Goat"}
+                                    className="w-full h-full object-contain object-[50%_50%]"
+                                    initial={{ opacity: 0, scale: 0 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </div>
+                        )}
+                        {isWinner && (
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-12 flex h-8 items-center">
+                                <div className="inline-block w-2 h-8 bg-yellow-500 mx-1 animate-pulse"></div>
+                                <div className="inline-block w-2 h-6 bg-yellow-500 mx-1 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                                <div className="inline-block w-2 h-4 bg-yellow-500 mx-1 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                            </div>
+                        )}
+                    </motion.div>
+                </>
+            );
+        };
+
+        const MontyInstructor = ({ message, gameState, isWinner, isLoser }) => {
+            return (
+                <motion.div
+                    className="flex flex-col items-center mt-4"
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, type: "spring", bounce: isWinner ? 0.6 : 0.4 }}
+                >
+                    <img
+                        src="https://cdn-icons-png.flaticon.com/512/1998/1998671.png"
+                        alt="Monty Host"
+                        className="w-16 h-16 sm:w-20 sm:h-20 mb-2"
+                    />
+                    <motion.div
+                        className="relative bg-white p-3 rounded-lg shadow-md max-w-xs text-center text-sm sm:text-base text-gray-700 z-10"
+                        key={message}
+                        initial={{ opacity: 0, y: 10, scale: isWinner ? 0.8 : 1 }}
+                        animate={{ opacity: 1, y: 0, scale: isWinner ? [1, 1.1, 1] : 1 }}
+                        transition={{ duration: isLoser ? 0.8 : 0.3, scale: { repeat: isWinner ? 1 : 0, duration: 0.5 } }}
+                    >
+                        <p>{message}</p>
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45"></div>
+                    </motion.div>
+                </motion.div>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState('initial');
+            const [carDoor, setCarDoor] = useState(null);
+            const [selectedDoor, setSelectedDoor] = useState(null);
+            const [montyOpensDoor, setMontyOpensDoor] = useState(null);
+            const [message, setMessage] = useState('Pick a door, my friend! Let’s see if you’re driving home or herding goats!');
+            const [showSimulate, setShowSimulate] = useState(false);
+            const [simulationResults, setSimulationResults] = useState(null);
+            const [isWinner, setIsWinner] = useState(false);
+            const [isLoser, setIsLoser] = useState(false);
+            const chartRef = useRef(null);
+            const chartInstanceRef = useRef(null);
+
+            const initializeGame = () => {
+                setCarDoor(Math.floor(Math.random() * 3) + 1);
+                setSelectedDoor(null);
+                setMontyOpensDoor(null);
+                setGameState('initial');
+                setMessage('Pick a door, my friend! Let’s see if you’re driving home or herding goats!');
+                setShowSimulate(false);
+                setSimulationResults(null);
+                setIsWinner(false);
+                setIsLoser(false);
+                if (chartInstanceRef.current) {
+                    chartInstanceRef.current.destroy();
+                    chartInstanceRef.current = null;
+                }
+            };
+
+            const chooseDoor = (doorNumber) => {
+                if (gameState === 'initial') {
+                    setSelectedDoor(doorNumber);
+                    const possibleOpens = [1, 2, 3].filter(d => d !== doorNumber && d !== carDoor);
+                    const montyDoor = possibleOpens[Math.floor(Math.random() * possibleOpens.length)];
+                    setMontyOpensDoor(montyDoor);
+                    setGameState('firstPick');
+                    setMessage(`Nice choice! I’ve opened Door ${montyDoor} to show a goat. Stay with Door ${doorNumber} or switch to the other door?`);
+                } else if (gameState === 'firstPick' && doorNumber !== montyOpensDoor) {
+                    setSelectedDoor(doorNumber);
+                    setGameState('finished');
+                    const won = doorNumber === carDoor;
+                    setIsWinner(won);
+                    setIsLoser(!won);
+                    setMessage(`You chose Door ${doorNumber}! The car is behind Door ${carDoor}! ${won ? 'Vroom vroom! You’re a winner!' : 'Baa! Better luck next time!'}`);
+                    setShowSimulate(true);
+                }
+            };
+
+            const runSimulation = () => {
+                const iterations = 10000;
+                let stayWins = 0;
+                let switchWins = 0;
+
+                for (let i = 0; i < iterations; i++) {
+                    const carDoorSim = Math.floor(Math.random() * 3) + 1;
+                    const initialPickSim = Math.floor(Math.random() * 3) + 1;
+                    const montyOpensSim = [1, 2, 3].filter(d => d !== carDoorSim && d !== initialPickSim)[0];
+                    const switchPickSim = [1, 2, 3].filter(d => d !== initialPickSim && d !== montyOpensSim)[0];
+
+                    if (initialPickSim === carDoorSim) stayWins++;
+                    else switchWins++;
+                }
+
+                const stayWinRate = (stayWins / iterations) * 100;
+                const switchWinRate = (switchWins / iterations) * 100;
+
+                setSimulationResults({ stayWinRate, switchWinRate });
+                setMessage(`Simulation of ${iterations} games done! Staying wins ${stayWinRate.toFixed(2)}%, Switching wins ${switchWinRate.toFixed(2)}%. Check the chart!`);
+            };
+
+            useEffect(() => {
+                if (simulationResults && chartRef.current) {
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy();
+                    }
+                    chartInstanceRef.current = new Chart(chartRef.current, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Stay', 'Switch'],
+                            datasets: [{
+                                label: 'Win Rate (%)',
+                                data: [simulationResults.stayWinRate, simulationResults.switchWinRate],
+                                backgroundColor: ['#60A5FA', '#F87171'],
+                                borderColor: ['#2563EB', '#B91C1C'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: { display: true, text: 'Win Rate (%)' }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                title: {
+                                    display: true,
+                                    text: 'Monty Hall Simulation Results'
+                                }
+                            }
+                        }
+                    });
+                }
+            }, [simulationResults]);
+
+            useEffect(() => {
+                initializeGame();
+                console.log("Game initialized. All scripts loaded:", {
+                    React: !!window.React,
+                    ReactDOM: !!window.ReactDOM,
+                    Chart: !!window.Chart,
+                    motion: !!window.motion,
+                });
+            }, []);
+
+            return (
+                <ErrorBoundary>
+                    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-6 px-4 relative">
+                        {isLoser && (
+                            <motion.div
+                                className="fixed inset-0 bg-gray-900/50 pointer-events-none"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                            />
+                        )}
+                        <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 mb-4 z-10">Monty Hall Game</h1>
+                        <div className="max-w-2xl mx-auto mb-6 p-4 bg-white rounded-lg shadow-md z-10">
+                            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">🎉 Welcome to the Monty Hall Show! 🎉</h2>
+                            <p className="text-gray-600 text-sm sm:text-base">
+                                Step right up for a wild ride! Behind one of these three mysterious doors hides a shiny new car 🚗, while the other two conceal... well, some very charming goats 🐐. Here's the deal:
+                            </p>
+                            <ul className="list-disc list-inside text-gray-600 text-sm sm:text-base mt-2">
+                                <li>Pick a door—any door!</li>
+                                <li>Your host, Monty, will slyly open one of the other doors to reveal a goat (he always knows where the car is, cheeky fella).</li>
+                                <li>Now, the big moment: stick with your door or switch to the other unopened one?</li>
+                                <li>Reveal your choice and see if you drive away or get a new furry friend!</li>
+                            </ul>
+                            <p className="text-gray-600 text-sm sm:text-base mt-2">
+                                Feeling curious? Run a simulation of 10,000 games to uncover the secret strategy that could make you a Monty Hall legend! 🌟
+                            </p>
+                        </div>
+                        <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isLoser ? 'filter grayscale' : ''}`}>
+                            {[1, 2, 3].map(num => (
+                                <Door
+                                    key={num}
+                                    number={num}
+                                    isSelected={selectedDoor === num}
+                                    isOpen={montyOpensDoor === num || gameState === 'finished'}
+                                    isCar={carDoor === num && gameState === 'finished'}
+                                    isWinner={isWinner && carDoor === num && gameState === 'finished'}
+                                    isLoser={isLoser && selectedDoor === num && gameState === 'finished'}
+                                    onClick={() => chooseDoor(num)}
+                                />
+                            ))}
+                        </div>
+                        <MontyInstructor message={message} gameState={gameState} isWinner={isWinner} isLoser={isLoser} />
+                        <div className="flex gap-4 mb-6 mt-6 z-10">
+                            <button
+                                onClick={initializeGame}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Reset
+                            </button>
+                            {showSimulate && (
+                                <button
+                                    onClick={runSimulation}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                    Simulate 10,000 Games
+                                </button>
+                            )}
+                        </div>
+                        {simulationResults && (
+                            <div className="w-full max-w-md z-10">
+                                <canvas ref={chartRef}></canvas>
+                            </div>
+                        )}
+                    </div>
+                </ErrorBoundary>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+
+    </div>
+
+    <footer class="site-footer">
+        <p class="site-footer__text">Maths Learn — Interactive statistics &amp; probability education · <a class="site-footer__link" href="index.html">Back to Home</a></p>
+    </footer>
+
+
+    <script>
+        (function() {
+            var toggle = document.getElementById('themeToggle');
+            var html = document.documentElement;
+            function applyTheme(t) {
+                html.setAttribute('data-color-scheme', t);
+                if (toggle) toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+            }
+            var stored = localStorage.getItem('ml-theme');
+            if (stored) { applyTheme(stored); }
+            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { applyTheme('dark'); }
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    var cur = html.getAttribute('data-color-scheme') || 'light';
+                    var next = cur === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('ml-theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

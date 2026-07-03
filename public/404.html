@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Maths Learn</title>
+  <script>
+    // GitHub Pages SPA routing: encode the current path as a query param and
+    // redirect to the repo root so index.html loads. The restore script in
+    // index.html reads the param back and calls history.replaceState.
+    var pathSegmentsToKeep = 1; // number of segments in the base path (/maths-learn)
+    var l = window.location;
+    l.replace(
+      l.protocol + '//' + l.host +
+      l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+      l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+      (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      l.hash
+    );
+  </script>
+</head>
+<body></body>
+</html>
