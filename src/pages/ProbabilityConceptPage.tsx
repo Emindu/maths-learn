@@ -15,6 +15,21 @@ import { VizInclusionExclusion } from '../visualizations/VizInclusionExclusion';
 import { VizBinomial }           from '../visualizations/VizBinomial';
 import { VizBayes }              from '../visualizations/VizBayes';
 import { VizContinuity }         from '../visualizations/VizContinuity';
+import { VizWeather, VizFairCoin, VizThreeCoins, VizUniform } from '../visualizations/VizWorkedExamples';
+import { VizLottery, VizRedCard, VizLargeNumbers } from '../visualizations/VizIntroExamples';
+import { VizComplementRule, VizLawOfTotalProbability, VizMonotonicity, VizSubadditivity } from '../visualizations/VizProperties';
+import { VizUniformDie, VizMultiplication, VizPermutations, VizMultinomial } from '../visualizations/VizUniformProbability';
+import { VizConditionalProbability, VizMultiplicationFormula, VizTotalProbability, VizIndependence } from '../visualizations/VizConditionalProbability';
+import { VizRandomVariableDie, VizIndicatorFunction, VizArithmeticOperations } from '../visualizations/VizRandomVariables';
+import { VizDistributionCoin, VizEqualDistributions } from '../visualizations/VizDistributions';
+import { VizBernoulli, VizBinomialQuality, VizGeometric, VizPoisson, VizHypergeometric } from '../visualizations/VizDiscreteDistributions';
+import { VizContinuousArea, VizContinuousUniform, VizContinuousExponential, VizContinuousGamma, VizContinuousNormal } from '../visualizations/VizContinuousDistributions';
+import { VizCDFDefinition, VizCDFIntervals, VizCDFExponential, VizCDFNormal } from '../visualizations/VizCDF';
+import { VizCovSquaring, VizCovIncreasing, VizCovDecreasing } from '../visualizations/VizChangeOfVariable';
+import { VizJointPMF, VizMarginalDist, VizJointDensity, VizBivariateNormal } from '../visualizations/VizJointDistributions';
+import { VizConditionalDiscrete, VizConditionalContinuous, VizIndependenceCheck, VizIIDTrials } from '../visualizations/VizConditioningIndependence';
+import { VizSumDifference, VizJacobianDet, VizConvolution } from '../visualizations/VizMultidimCov';
+import { VizDiscreteSimulation, VizInverseCDF, VizBoxMuller } from '../visualizations/VizSimulatingDistributions';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -24,6 +39,61 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'binomial':            VizBinomial,
   'bayes':               VizBayes,
   'continuity':          VizContinuity,
+  'viz-weather':         VizWeather,
+  'viz-fair-coin':       VizFairCoin,
+  'viz-three-coins':     VizThreeCoins,
+  'viz-uniform':         VizUniform,
+  'viz-lottery':         VizLottery,
+  'viz-red-card':        VizRedCard,
+  'viz-large-numbers':   VizLargeNumbers,
+  'viz-complement':      VizComplementRule,
+  'viz-law-total-prob':  VizLawOfTotalProbability,
+  'viz-monotonicity':    VizMonotonicity,
+  'viz-subadditivity':   VizSubadditivity,
+  'viz-uniform-die':     VizUniformDie,
+  'viz-multiplication':  VizMultiplication,
+  'viz-permutations':    VizPermutations,
+  'viz-multinomial':     VizMultinomial,
+  'viz-conditional':     VizConditionalProbability,
+  'viz-mult-formula':    VizMultiplicationFormula,
+  'viz-total-prob-cond': VizTotalProbability,
+  'viz-independence':    VizIndependence,
+  'viz-rv-die':          VizRandomVariableDie,
+  'viz-indicator':       VizIndicatorFunction,
+  'viz-arithmetic':      VizArithmeticOperations,
+  'viz-dist-coin':       VizDistributionCoin,
+  'viz-equal-dist':      VizEqualDistributions,
+  'viz-bernoulli':       VizBernoulli,
+  'viz-binomial-qual':   VizBinomialQuality,
+  'viz-geometric':       VizGeometric,
+  'viz-poisson':         VizPoisson,
+  'viz-hypergeometric':  VizHypergeometric,
+  'viz-cont-area':       VizContinuousArea,
+  'viz-cont-uniform':    VizContinuousUniform,
+  'viz-cont-exp':        VizContinuousExponential,
+  'viz-cont-gamma':      VizContinuousGamma,
+  'viz-cont-normal':     VizContinuousNormal,
+  'viz-cdf-def':         VizCDFDefinition,
+  'viz-cdf-intervals':   VizCDFIntervals,
+  'viz-cdf-exp':         VizCDFExponential,
+  'viz-cdf-normal':      VizCDFNormal,
+  'viz-cov-square':      VizCovSquaring,
+  'viz-cov-inc':         VizCovIncreasing,
+  'viz-cov-dec':         VizCovDecreasing,
+  'viz-joint-pmf':       VizJointPMF,
+  'viz-marginal':        VizMarginalDist,
+  'viz-joint-density':   VizJointDensity,
+  'viz-biv-normal':      VizBivariateNormal,
+  'viz-cond-disc':       VizConditionalDiscrete,
+  'viz-cond-cont':       VizConditionalContinuous,
+  'viz-indep-check':     VizIndependenceCheck,
+  'viz-iid-trials':      VizIIDTrials,
+  'viz-sum-diff':        VizSumDifference,
+  'viz-jacobian':        VizJacobianDet,
+  'viz-convolution':     VizConvolution,
+  'viz-discrete-sim':    VizDiscreteSimulation,
+  'viz-inverse-cdf':     VizInverseCDF,
+  'viz-box-muller':      VizBoxMuller,
 };
 
 // ── Box components ────────────────────────────────────────────────────────────

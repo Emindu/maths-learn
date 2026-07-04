@@ -7,6 +7,286 @@ export interface PythonLabDemo {
 
 export const pythonLabsByConceptId: Record<string, PythonLabDemo[]> = {
 
+  'simulating-distributions': [
+    {
+      id: 'sim-lab-1',
+      title: 'Box-Muller Transform',
+      description: 'Simulate 10,000 standard Normal variables using the Box-Muller transform from pure Uniform pseudo-random numbers. We will plot a 2D histogram of (X, Y) to show the perfectly circular standard normal distribution, and plot the marginal histograms to verify the bell curves.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Generate 10000 independent Uniform(0,1) pairs
+N = 10000
+U1 = np.random.uniform(0, 1, N)
+U2 = np.random.uniform(0, 1, N)
+
+# 2. Apply Box-Muller transform
+R = np.sqrt(-2 * np.log(U1))
+Theta = 2 * np.pi * U2
+
+X = R * np.cos(Theta)
+Y = R * np.sin(Theta)
+
+# 3. Setup plots
+fig = plt.figure(figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+
+# 2D Histogram of (X,Y)
+ax1 = fig.add_subplot(131)
+ax1.set_facecolor('#1e293b')
+ax1.hist2d(X, Y, bins=50, cmap='plasma')
+ax1.set_title("2D Scatter (X, Y)", color='white')
+ax1.set_xlabel("X", color='#cbd5e1')
+ax1.set_ylabel("Y", color='#cbd5e1')
+ax1.tick_params(colors='#94a3b8')
+
+# Marginal X
+ax2 = fig.add_subplot(132)
+ax2.set_facecolor('#1e293b')
+ax2.hist(X, bins=50, density=True, color='#3b82f6', alpha=0.7)
+ax2.set_title("Marginal X ~ N(0,1)", color='white')
+ax2.tick_params(colors='#94a3b8')
+
+# Marginal Y
+ax3 = fig.add_subplot(133)
+ax3.set_facecolor('#1e293b')
+ax3.hist(Y, bins=50, density=True, color='#ec4899', alpha=0.7)
+ax3.set_title("Marginal Y ~ N(0,1)", color='white')
+ax3.tick_params(colors='#94a3b8')
+
+plt.tight_layout()
+plt.show()`
+    }
+  ],
+
+  'multidim-cov': [
+    {
+      id: 'multidim-lab-1',
+      title: 'Convolution of Two Exponentials',
+      description: 'Simulate drawing $X$ and $Y$ independently from an Exponential(1) distribution, and compute their sum $Z = X + Y$. Plot the empirical distribution of $Z$ and compare it to the theoretical convolution result, which is the Gamma(2, 1) density.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+
+# 1. Simulate independent X, Y ~ Exp(1)
+N = 100000
+lam = 1.0
+X = np.random.exponential(1/lam, N)
+Y = np.random.exponential(1/lam, N)
+
+# 2. Compute the sum (Convolution)
+Z = X + Y
+
+# 3. Setup the plot
+fig, ax = plt.subplots(figsize=(9, 5))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+
+# 4. Plot empirical histogram of Z
+ax.hist(Z, bins=100, density=True, color='#a855f7', alpha=0.6, label='Empirical Z = X + Y')
+
+# 5. Overlay theoretical Gamma(2, lambda) density
+z_vals = np.linspace(0, 10, 200)
+# Gamma PDF: f(z) = lambda^2 * z * exp(-lambda * z)
+f_z = lam**2 * z_vals * np.exp(-lam * z_vals)
+ax.plot(z_vals, f_z, color='#f472b6', lw=3, label='Theoretical Gamma(2, 1)')
+
+# Styling
+ax.set_title("Convolution: Sum of Two Independent Exponentials", color='white', fontsize=14)
+ax.set_xlabel("z", color='#cbd5e1')
+ax.set_ylabel("Density", color='#cbd5e1')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white')
+ax.set_xlim(0, 10)
+
+plt.tight_layout()
+plt.show()`
+    }
+  ],
+
+  'conditioning-independence': [
+    {
+      id: 'cond-lab-1',
+      title: 'Law of Large Numbers (i.i.d. Trials)',
+      description: 'Simulate 1,000 independent and identically distributed (i.i.d.) coin flips. Plot the running average of heads to see how independence allows the empirical probability to converge exactly to the true probability (0.5).',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Simulate 1000 i.i.d. Bernoulli(0.5) trials
+N = 1000
+flips = np.random.choice([0, 1], size=N, p=[0.5, 0.5])
+
+# 2. Compute the running average
+# running_avg[i] will be the average of the first i+1 flips
+running_avg = np.cumsum(flips) / np.arange(1, N + 1)
+
+# 3. Setup the plot
+fig, ax = plt.subplots(figsize=(10, 5))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+
+# Plot the running average
+ax.plot(np.arange(1, N + 1), running_avg, color='#3b82f6', lw=2, label='Running Average of Heads')
+
+# Plot the theoretical probability line
+ax.axhline(0.5, color='#ec4899', lw=2, linestyle='--', label='Theoretical P(Heads) = 0.5')
+
+# Styling
+ax.set_title("Law of Large Numbers for i.i.d. Coin Flips", color='white', fontsize=14)
+ax.set_xlabel("Number of Flips (N)", color='#cbd5e1')
+ax.set_ylabel("Empirical Probability", color='#cbd5e1')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', loc='upper right')
+ax.set_ylim(0, 1)
+
+plt.tight_layout()
+plt.show()`
+    }
+  ],
+
+  'joint-distributions': [
+    {
+      id: 'joint-lab-1',
+      title: 'Bivariate Normal Distribution',
+      description: 'Simulate a 2D Bivariate Normal distribution with a specified correlation ρ. Plot the joint scatter plot and the marginal histograms for X and Y.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters for Bivariate Normal
+mu_x, mu_y = 0, 0
+sigma_x, sigma_y = 1, 1
+rho = 0.7  # Correlation coefficient
+
+# Covariance matrix
+cov_matrix = [[sigma_x**2, rho * sigma_x * sigma_y],
+              [rho * sigma_x * sigma_y, sigma_y**2]]
+
+# 1. Simulate (X, Y) ~ BivariateNormal
+N = 5000
+X, Y = np.random.multivariate_normal([mu_x, mu_y], cov_matrix, N).T
+
+# 2. Setup the plot with subplots (Joint + Marginals)
+fig = plt.figure(figsize=(8, 8))
+fig.patch.set_facecolor('#0f172a')
+
+# Define grid for subplots
+gs = fig.add_gridspec(3, 3, wspace=0.1, hspace=0.1)
+ax_joint = fig.add_subplot(gs[1:, 0:2])
+ax_marg_x = fig.add_subplot(gs[0, 0:2], sharex=ax_joint)
+ax_marg_y = fig.add_subplot(gs[1:, 2], sharey=ax_joint)
+
+# Styling
+for ax in [ax_joint, ax_marg_x, ax_marg_y]:
+    ax.set_facecolor('#1e293b')
+    ax.tick_params(colors='#94a3b8')
+
+# 3. Plot Joint Scatter
+ax_joint.scatter(X, Y, alpha=0.3, s=5, color='#3b82f6')
+ax_joint.set_xlabel("X", color='#cbd5e1')
+ax_joint.set_ylabel("Y", color='#cbd5e1')
+
+# 4. Plot Marginal X (Top)
+ax_marg_x.hist(X, bins=50, density=True, color='#10b981', alpha=0.7)
+ax_marg_x.tick_params(labelbottom=False)
+ax_marg_x.set_title(f"Bivariate Normal (ρ = {rho})", color='white')
+
+# 5. Plot Marginal Y (Right)
+ax_marg_y.hist(Y, bins=50, density=True, orientation="horizontal", color='#ec4899', alpha=0.7)
+ax_marg_y.tick_params(labelleft=False)
+
+plt.show()`
+    }
+  ],
+
+  'change-of-variable': [
+    {
+      id: 'cov-lab-1',
+      title: 'Squaring a Uniform Distribution',
+      description: 'Simulate drawing from a Uniform(0,1) distribution and transforming the samples by squaring them. Notice how the empirical histogram perfectly matches the theoretical density $f_Y(y) = 1 / (2\\sqrt{y})$.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Simulate X ~ U[0, 1]
+N = 100000
+X = np.random.uniform(0, 1, N)
+
+# 2. Transform Y = X^2
+Y = X**2
+
+# 3. Setup the plot
+fig, ax = plt.subplots(figsize=(8, 5))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+
+# 4. Plot empirical histogram
+counts, bins, patches = ax.hist(Y, bins=100, density=True, color='#ec4899', alpha=0.6, label='Empirical Histogram')
+
+# 5. Overlay theoretical density
+# f_Y(y) = 1 / (2 * sqrt(y)) for y in (0, 1]
+y_vals = np.linspace(0.01, 1, 200) # avoid 0 to prevent div by zero
+f_y = 1 / (2 * np.sqrt(y_vals))
+ax.plot(y_vals, f_y, color='#fbcfe8', lw=2, label='Theoretical f_Y(y)')
+
+# Formatting
+ax.set_title("Transformation: Y = X² where X ~ U[0, 1]", color='white', fontsize=14)
+ax.set_xlabel("y", color='#cbd5e1')
+ax.set_ylabel("Density", color='#cbd5e1')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white')
+ax.set_ylim(0, 4) # cap the y-axis for better visualization
+
+plt.tight_layout()
+plt.show()`
+    },
+    {
+      id: 'cov-lab-2',
+      title: 'Log-Normal from Normal',
+      description: 'Generate standard normal random variables $Z \\sim N(0,1)$ and apply the exponential transformation $Y = e^Z$. The resulting distribution is heavily right-skewed, demonstrating the strictly increasing transformation rule.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Simulate Z ~ N(0, 1)
+N = 100000
+Z = np.random.normal(0, 1, N)
+
+# 2. Transform Y = e^Z
+Y = np.exp(Z)
+
+# 3. Setup the plot
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+fig.patch.set_facecolor('#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+    ax.tick_params(colors='#94a3b8')
+    ax.xaxis.label.set_color('#cbd5e1')
+    ax.yaxis.label.set_color('#cbd5e1')
+    ax.title.set_color('white')
+
+# 4. Plot Z ~ N(0, 1)
+axes[0].hist(Z, bins=100, density=True, color='#3b82f6', alpha=0.7)
+axes[0].set_title("Z ~ N(0, 1)")
+axes[0].set_xlabel("z")
+axes[0].set_ylabel("Density")
+
+# 5. Plot Y = e^Z (Log-Normal)
+# Filter Y for better visualization (tails can be very long)
+y_filtered = Y[Y < 10]
+axes[1].hist(y_filtered, bins=100, density=True, color='#10b981', alpha=0.7, label='Empirical')
+
+# Overlay theoretical Log-Normal density
+y_vals = np.linspace(0.01, 10, 200)
+f_y = (1 / (y_vals * np.sqrt(2 * np.pi))) * np.exp(-0.5 * (np.log(y_vals))**2)
+axes[1].plot(y_vals, f_y, color='#a7f3d0', lw=2, label='Theoretical')
+
+axes[1].set_title("Y = e^Z (Log-Normal)")
+axes[1].set_xlabel("y")
+axes[1].legend(facecolor='#1e293b', labelcolor='white')
+
+plt.tight_layout()
+plt.show()`
+    }
+  ],
+
   'probability-intro': [
     {
       id: 'intro-lab-1',
@@ -244,6 +524,115 @@ for ax, (title, weights) in zip(axes, [
             color='#94a3b8', fontsize=8.5)
 
 plt.tight_layout(pad=1.5)
+plt.show()
+`,
+    },
+    {
+      id: 'lab-sim-1',
+      title: 'Box-Muller: Uniform → Normal',
+      description: 'Visualise the Box-Muller transform: scatter of (U₁, U₂) inputs vs (X, Y) normal outputs, with a histogram.',
+      code: `import matplotlib.pyplot as plt
+import math, random
+
+random.seed(42)
+N = 2000
+U1s = [random.random() for _ in range(N)]
+U2s = [random.random() for _ in range(N)]
+Xs = [math.sqrt(-2*math.log(u1)) * math.cos(2*math.pi*u2) for u1, u2 in zip(U1s, U2s)]
+Ys = [math.sqrt(-2*math.log(u1)) * math.sin(2*math.pi*u2) for u1, u2 in zip(U1s, U2s)]
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+fig.patch.set_facecolor('#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+axes[0].scatter(U1s[:500], U2s[:500], s=6, color='#3b82f6', alpha=0.5)
+axes[0].set_title('Inputs (U₁, U₂) ~ Unif[0,1]', color='white', fontsize=10)
+axes[0].set_xlabel('U₁', color='#94a3b8')
+axes[0].set_ylabel('U₂', color='#94a3b8')
+axes[0].tick_params(colors='#94a3b8')
+for s in axes[0].spines.values(): s.set_edgecolor('#334155')
+
+axes[1].scatter(Xs[:500], Ys[:500], s=6, color='#10b981', alpha=0.5)
+axes[1].set_title('Outputs (X, Y) ~ N(0,1)', color='white', fontsize=10)
+axes[1].set_xlabel('X', color='#94a3b8')
+axes[1].set_ylabel('Y', color='#94a3b8')
+axes[1].tick_params(colors='#94a3b8')
+for s in axes[1].spines.values(): s.set_edgecolor('#334155')
+
+min_x, max_x = min(Xs), max(Xs)
+bins = 30
+bw = (max_x - min_x) / bins
+hist = [0] * bins
+for x in Xs:
+    idx = min(int((x - min_x) / bw), bins - 1)
+    hist[idx] += 1
+bcs = [min_x + (i + 0.5) * bw for i in range(bins)]
+axes[2].bar(bcs, [h / (len(Xs) * bw) for h in hist], width=bw*0.9,
+            color='#f59e0b', alpha=0.8, edgecolor='#0f172a')
+xs_th = [min_x + i*(max_x-min_x)/200 for i in range(201)]
+axes[2].plot(xs_th, [math.exp(-x*x/2)/math.sqrt(2*math.pi) for x in xs_th],
+             color='#ef4444', linewidth=2)
+axes[2].set_title('Histogram of X vs N(0,1)', color='white', fontsize=10)
+axes[2].set_xlabel('x', color='#94a3b8')
+axes[2].set_ylabel('density', color='#94a3b8')
+axes[2].tick_params(colors='#94a3b8')
+for s in axes[2].spines.values(): s.set_edgecolor('#334155')
+
+mean_X = sum(Xs) / len(Xs)
+var_X  = sum(x*x for x in Xs) / len(Xs)
+print(f"Mean(X) = {mean_X:.4f}  Var(X) = {var_X:.4f}")
+plt.suptitle('Box-Muller: Uniform → Normal', color='white', fontsize=12, y=1.02)
+plt.tight_layout()
+plt.show()
+`,
+    },
+    {
+      id: 'lab-sim-2',
+      title: 'Inverse CDF Method',
+      description: 'Simulate three different distributions using inverse CDF and compare histograms to theoretical densities.',
+      code: `import matplotlib.pyplot as plt
+import math, random
+
+random.seed(123)
+N = 5000
+
+exp_samples  = [-math.log(random.random()) / 2 for _ in range(N)]
+uni_samples  = [3 + 4 * random.random() for _ in range(N)]
+cube_samples = [random.random() ** (1/3) for _ in range(N)]
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+fig.patch.set_facecolor('#0f172a')
+
+configs = [
+    (exp_samples,  'Exponential(2)',    '#3b82f6', lambda x: 2*math.exp(-2*x), 0, 3.5),
+    (uni_samples,  'Uniform[3, 7]',     '#10b981', lambda x: 0.25,             3, 7),
+    (cube_samples, 'F(x) = x³ on [0,1]','#f59e0b', lambda x: 3*x**2,          0, 1),
+]
+
+for ax, (samps, title, color, pdf, lo, hi) in zip(axes, configs):
+    ax.set_facecolor('#1e293b')
+    bins = 30
+    rng = hi - lo
+    bw = rng / bins
+    hist = [0] * bins
+    for s in samps:
+        idx = min(int((s - lo) / bw), bins - 1)
+        if 0 <= idx < bins:
+            hist[idx] += 1
+    bcs = [lo + (i + 0.5) * bw for i in range(bins)]
+    ax.bar(bcs, [h / (len(samps) * bw) for h in hist], width=bw*0.9,
+           color=color, alpha=0.8, edgecolor='#0f172a')
+    xs_th = [lo + i * rng / 100 for i in range(101)]
+    ax.plot(xs_th, [pdf(x) for x in xs_th], color='#ef4444', linewidth=2, linestyle='--')
+    ax.set_title(title, color='white', fontsize=10)
+    ax.set_xlabel('x', color='#94a3b8')
+    ax.set_ylabel('density', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8', labelsize=8)
+    for s in ax.spines.values(): s.set_edgecolor('#334155')
+
+plt.suptitle('Inverse CDF Simulation', color='white', fontsize=12, y=1.02)
+plt.tight_layout()
 plt.show()
 `,
     },
@@ -979,118 +1368,6 @@ ax2.tick_params(colors='#94a3b8')
 for s in ax2.spines.values(): s.set_edgecolor('#334155')
 
 plt.suptitle('Cumulative Distribution Functions', color='white', fontsize=12, y=1.02)
-plt.tight_layout()
-plt.show()
-`,
-    },
-  ],
-
-  'simulating-distributions': [
-    {
-      id: 'lab-sim-1',
-      title: 'Box-Muller: Uniform → Normal',
-      description: 'Visualise the Box-Muller transform: scatter of (U₁, U₂) inputs vs (X, Y) normal outputs, with a histogram.',
-      code: `import matplotlib.pyplot as plt
-import math, random
-
-random.seed(42)
-N = 2000
-U1s = [random.random() for _ in range(N)]
-U2s = [random.random() for _ in range(N)]
-Xs = [math.sqrt(-2*math.log(u1)) * math.cos(2*math.pi*u2) for u1, u2 in zip(U1s, U2s)]
-Ys = [math.sqrt(-2*math.log(u1)) * math.sin(2*math.pi*u2) for u1, u2 in zip(U1s, U2s)]
-
-fig, axes = plt.subplots(1, 3, figsize=(14, 4))
-fig.patch.set_facecolor('#0f172a')
-for ax in axes:
-    ax.set_facecolor('#1e293b')
-
-axes[0].scatter(U1s[:500], U2s[:500], s=6, color='#3b82f6', alpha=0.5)
-axes[0].set_title('Inputs (U₁, U₂) ~ Unif[0,1]', color='white', fontsize=10)
-axes[0].set_xlabel('U₁', color='#94a3b8')
-axes[0].set_ylabel('U₂', color='#94a3b8')
-axes[0].tick_params(colors='#94a3b8')
-for s in axes[0].spines.values(): s.set_edgecolor('#334155')
-
-axes[1].scatter(Xs[:500], Ys[:500], s=6, color='#10b981', alpha=0.5)
-axes[1].set_title('Outputs (X, Y) ~ N(0,1)', color='white', fontsize=10)
-axes[1].set_xlabel('X', color='#94a3b8')
-axes[1].set_ylabel('Y', color='#94a3b8')
-axes[1].tick_params(colors='#94a3b8')
-for s in axes[1].spines.values(): s.set_edgecolor('#334155')
-
-min_x, max_x = min(Xs), max(Xs)
-bins = 30
-bw = (max_x - min_x) / bins
-hist = [0] * bins
-for x in Xs:
-    idx = min(int((x - min_x) / bw), bins - 1)
-    hist[idx] += 1
-bcs = [min_x + (i + 0.5) * bw for i in range(bins)]
-axes[2].bar(bcs, [h / (len(Xs) * bw) for h in hist], width=bw*0.9,
-            color='#f59e0b', alpha=0.8, edgecolor='#0f172a')
-xs_th = [min_x + i*(max_x-min_x)/200 for i in range(201)]
-axes[2].plot(xs_th, [math.exp(-x*x/2)/math.sqrt(2*math.pi) for x in xs_th],
-             color='#ef4444', linewidth=2)
-axes[2].set_title('Histogram of X vs N(0,1)', color='white', fontsize=10)
-axes[2].set_xlabel('x', color='#94a3b8')
-axes[2].set_ylabel('density', color='#94a3b8')
-axes[2].tick_params(colors='#94a3b8')
-for s in axes[2].spines.values(): s.set_edgecolor('#334155')
-
-mean_X = sum(Xs) / len(Xs)
-var_X  = sum(x*x for x in Xs) / len(Xs)
-print(f"Mean(X) = {mean_X:.4f}  Var(X) = {var_X:.4f}")
-plt.suptitle('Box-Muller: Uniform → Normal', color='white', fontsize=12, y=1.02)
-plt.tight_layout()
-plt.show()
-`,
-    },
-    {
-      id: 'lab-sim-2',
-      title: 'Inverse CDF Method',
-      description: 'Simulate three different distributions using inverse CDF and compare histograms to theoretical densities.',
-      code: `import matplotlib.pyplot as plt
-import math, random
-
-random.seed(123)
-N = 5000
-
-exp_samples  = [-math.log(random.random()) / 2 for _ in range(N)]
-uni_samples  = [3 + 4 * random.random() for _ in range(N)]
-cube_samples = [random.random() ** (1/3) for _ in range(N)]
-
-fig, axes = plt.subplots(1, 3, figsize=(13, 4))
-fig.patch.set_facecolor('#0f172a')
-
-configs = [
-    (exp_samples,  'Exponential(2)',    '#3b82f6', lambda x: 2*math.exp(-2*x), 0, 3.5),
-    (uni_samples,  'Uniform[3, 7]',     '#10b981', lambda x: 0.25,             3, 7),
-    (cube_samples, 'F(x) = x³ on [0,1]','#f59e0b', lambda x: 3*x**2,          0, 1),
-]
-
-for ax, (samps, title, color, pdf, lo, hi) in zip(axes, configs):
-    ax.set_facecolor('#1e293b')
-    bins = 30
-    rng = hi - lo
-    bw = rng / bins
-    hist = [0] * bins
-    for s in samps:
-        idx = min(int((s - lo) / bw), bins - 1)
-        if 0 <= idx < bins:
-            hist[idx] += 1
-    bcs = [lo + (i + 0.5) * bw for i in range(bins)]
-    ax.bar(bcs, [h / (len(samps) * bw) for h in hist], width=bw*0.9,
-           color=color, alpha=0.8, edgecolor='#0f172a')
-    xs_th = [lo + i * rng / 100 for i in range(101)]
-    ax.plot(xs_th, [pdf(x) for x in xs_th], color='#ef4444', linewidth=2, linestyle='--')
-    ax.set_title(title, color='white', fontsize=10)
-    ax.set_xlabel('x', color='#94a3b8')
-    ax.set_ylabel('density', color='#94a3b8')
-    ax.tick_params(colors='#94a3b8', labelsize=8)
-    for s in ax.spines.values(): s.set_edgecolor('#334155')
-
-plt.suptitle('Inverse CDF Simulation', color='white', fontsize=12, y=1.02)
 plt.tight_layout()
 plt.show()
 `,

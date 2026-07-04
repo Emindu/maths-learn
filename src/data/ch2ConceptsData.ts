@@ -33,6 +33,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Number Shown on a Die',
             body: 'Roll a fair die with S = {1, 2, 3, 4, 5, 6}. The function X(s) = s is a random variable taking values in {1, …, 6} with P(X = k) = 1/6 for each k.',
           },
+          { type: 'viz', vizId: 'viz-rv-die' },
         ],
       },
       {
@@ -56,6 +57,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Even Die Roll',
             body: 'Roll a fair die. Let A = {2, 4, 6}. Then I_A equals 1 if the result is even and 0 otherwise. P(I_A = 1) = 3/6 = 1/2.',
           },
+          { type: 'viz', vizId: 'viz-indicator' },
         ],
       },
       {
@@ -72,6 +74,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Sum of Two Dice',
             body: 'Roll two fair dice with results X and Y. The sum Z = X + Y is a random variable taking values 2 through 12. For instance P(Z = 7) = 6/36 = 1/6, the most probable value.',
           },
+          { type: 'viz', vizId: 'viz-arithmetic' },
         ],
       },
     ],
@@ -107,6 +110,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Fair Coin as a Random Variable',
             body: 'Encode H as 1 and T as 0. Then P(X = 1) = 1/2 and P(X = 0) = 1/2. The distribution is fully described by these two probabilities. Another experiment — say, choosing uniformly from {0, 1} — gives the same distribution.',
           },
+          { type: 'viz', vizId: 'viz-dist-coin' },
         ],
       },
       {
@@ -133,6 +137,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Two Coins vs. One Urn',
             body: 'Flipping a fair coin twice and recording the number of heads, versus drawing one ball from an urn containing {0, 1, 2} with probabilities {1/4, 1/2, 1/4} — both experiments yield the same distribution on {0, 1, 2}.',
           },
+          { type: 'viz', vizId: 'viz-equal-dist' },
         ],
       },
     ],
@@ -169,6 +174,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Biased Coin',
             body: 'A biased coin lands heads with probability 0.7. X = 1 for heads, X = 0 for tails. Then X ~ Bernoulli(0.7), P(X = 1) = 0.7, P(X = 0) = 0.3.',
           },
+          { type: 'viz', vizId: 'viz-bernoulli' },
         ],
       },
       {
@@ -192,6 +198,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Quality Control',
             body: 'A factory produces items with a 5% defect rate. In a batch of 20, the probability of exactly 2 defects is C(20,2)(0.05)²(0.95)^18 ≈ 0.189.',
           },
+          { type: 'viz', vizId: 'viz-binomial-qual' },
         ],
       },
       {
@@ -222,6 +229,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Waiting for a Six',
             body: 'Roll a fair die repeatedly until a 6 appears. X = number of non-six rolls before the first six is Geometric(1/6). P(X = 0) = 1/6, P(X = 3) = (5/6)³(1/6) ≈ 0.096.',
           },
+          { type: 'viz', vizId: 'viz-geometric' },
         ],
       },
       {
@@ -245,6 +253,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Phone Calls',
             body: 'A call centre receives on average λ = 3 calls per minute. The probability of exactly 5 calls in one minute is (3⁵ e^{-3})/5! = 243 e^{-3}/120 ≈ 0.101.',
           },
+          { type: 'viz', vizId: 'viz-poisson' },
         ],
       },
       {
@@ -268,6 +277,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Card Drawing',
             body: 'From a standard 52-card deck (13 hearts), draw 5 cards without replacement. The probability of exactly 2 hearts is C(13,2)·C(39,3)/C(52,5) ≈ 0.274.',
           },
+          { type: 'viz', vizId: 'viz-hypergeometric' },
         ],
       },
     ],
@@ -295,6 +305,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             type: 'formula',
             latex: 'P(a \\le X \\le b) = \\int_a^b f_X(x)\\,dx, \\qquad \\int_{-\\infty}^{\\infty} f_X(x)\\,dx = 1',
           },
+          { type: 'viz', vizId: 'viz-cont-area' },
         ],
       },
       {
@@ -313,6 +324,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Bus Arrival',
             body: 'A bus arrives uniformly at random in [0, 60] minutes. The probability of waiting more than 40 minutes is (60 − 40)/60 = 1/3.',
           },
+          { type: 'viz', vizId: 'viz-cont-uniform' },
         ],
       },
       {
@@ -336,6 +348,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Light Bulb Lifetime',
             body: 'A light bulb has an exponential lifetime with rate λ = 0.01 failures per hour. The probability it lasts more than 200 hours is e^{-0.01·200} = e^{-2} ≈ 0.135.',
           },
+          { type: 'viz', vizId: 'viz-cont-exp' },
         ],
       },
       {
@@ -364,6 +377,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Waiting for Three Events',
             body: 'If events arrive at rate λ = 2 per minute, the waiting time until the 3rd event is Gamma(3, 2). The mean waiting time is α/λ = 3/2 = 1.5 minutes.',
           },
+          { type: 'viz', vizId: 'viz-cont-gamma' },
         ],
       },
       {
@@ -387,6 +401,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Heights',
             body: 'Adult male heights are approximately N(μ = 178 cm, σ² = 49 cm²). The probability of a height between 171 and 185 cm corresponds to the interval μ ± σ, which contains about 68% of the distribution.',
           },
+          { type: 'viz', vizId: 'viz-cont-normal' },
         ],
       },
     ],
@@ -417,6 +432,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             text: 'The CDF of a random variable X is the function F_X : ℝ → [0, 1] defined by:',
             formula: 'F_X(x) = P(X \\le x), \\quad x \\in \\mathbb{R}',
           },
+          { type: 'viz', vizId: 'viz-cdf-def' },
         ],
       },
       {
@@ -438,6 +454,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Using the CDF to Find Interval Probabilities',
             body: 'For any random variable, P(a < X ≤ b) = F_X(b) − F_X(a). For example, if X ~ N(0,1) then P(−1 < X ≤ 1) = Φ(1) − Φ(−1) ≈ 0.8413 − 0.1587 = 0.6827.',
           },
+          { type: 'viz', vizId: 'viz-cdf-intervals' },
         ],
       },
       {
@@ -460,6 +477,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             body: 'For X ~ Exponential(λ), integrating the density gives F_X(x) = 1 − e^{−λx} for x ≥ 0. So P(X > t) = e^{−λt}, confirming the memoryless property.',
             formula: 'F_X(x) = 1 - e^{-\\lambda x}, \\quad x \\ge 0',
           },
+          { type: 'viz', vizId: 'viz-cdf-exp' },
         ],
       },
       {
@@ -480,6 +498,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Standardising a Normal',
             body: 'If X ~ N(μ, σ²), then P(X ≤ x) = Φ((x − μ)/σ). For X ~ N(5, 4) and x = 7: P(X ≤ 7) = Φ((7−5)/2) = Φ(1) ≈ 0.841.',
           },
+          { type: 'viz', vizId: 'viz-cdf-normal' },
         ],
       },
     ],
@@ -509,6 +528,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Squaring a Uniform',
             body: 'Let X ~ Uniform[0, 1] and Y = X². To find f_Y, we use the CDF method: F_Y(y) = P(Y ≤ y) = P(X² ≤ y) = P(X ≤ √y) = √y for y ∈ [0, 1]. Differentiating gives f_Y(y) = 1/(2√y).',
           },
+          { type: 'viz', vizId: 'viz-cov-square' },
         ],
       },
       {
@@ -527,6 +547,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Exponential Rescaling',
             body: 'Let X ~ Exponential(1) and Y = X/λ. Then h(x) = x/λ, h⁻¹(y) = λy, h\'(x) = 1/λ. So f_Y(y) = f_X(λy) · λ = e^{−λy} · λ = λe^{−λy}, confirming Y ~ Exponential(λ).',
           },
+          { type: 'viz', vizId: 'viz-cov-inc' },
         ],
       },
       {
@@ -551,6 +572,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Log-Normal from Normal',
             body: 'Let Z ~ N(0, 1) and Y = e^Z. Then h(z) = e^z, h⁻¹(y) = log(y), h\'(z) = e^z. So f_Y(y) = φ(log y)/y for y > 0, which is the Log-Normal(0,1) density.',
           },
+          { type: 'viz', vizId: 'viz-cov-dec' },
         ],
       },
     ],
@@ -587,6 +609,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Two Dice',
             body: 'Roll two fair dice. The joint PMF is p(x, y) = 1/36 for each (x, y) ∈ {1,…,6}². The event X + Y = 7 corresponds to the 6 pairs (1,6),(2,5),(3,4),(4,3),(5,2),(6,1), so P(X + Y = 7) = 6/36 = 1/6.',
           },
+          { type: 'viz', vizId: 'viz-joint-pmf' },
         ],
       },
       {
@@ -607,6 +630,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             label: 'Continuous marginal',
             latex: 'f_X(x) = \\int_{-\\infty}^{\\infty} f_{X,Y}(x,y)\\,dy',
           },
+          { type: 'viz', vizId: 'viz-marginal' },
         ],
       },
       {
@@ -625,6 +649,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Uniform on a Triangle',
             body: 'Let (X, Y) be uniform over the triangle {(x, y) : x ≥ 0, y ≥ 0, x + y ≤ 1}. The area is 1/2, so f(x, y) = 2 on that region and 0 elsewhere. The marginal density of X is f_X(x) = ∫_0^{1−x} 2 dy = 2(1 − x) for x ∈ [0, 1].',
           },
+          { type: 'viz', vizId: 'viz-joint-density' },
         ],
       },
       {
@@ -649,6 +674,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Height and Weight',
             body: 'Human height and weight are approximately Bivariate Normal with positive correlation ρ ≈ 0.6. The marginal distribution of height is Normal, and the marginal distribution of weight is also Normal, but knowing someone\'s height shifts the conditional distribution of their weight.',
           },
+          { type: 'viz', vizId: 'viz-biv-normal' },
         ],
       },
     ],
@@ -685,6 +711,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Conditional Distribution from a Table',
             body: 'Suppose P(X=0, Y=0)=0.1, P(X=0, Y=1)=0.3, P(X=1, Y=0)=0.2, P(X=1, Y=1)=0.4. Then p_X(0)=0.4, and the conditional PMF of Y given X=0 is P(Y=0|X=0)=0.1/0.4=0.25 and P(Y=1|X=0)=0.3/0.4=0.75.',
           },
+          { type: 'viz', vizId: 'viz-cond-disc' },
         ],
       },
       {
@@ -703,6 +730,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Conditional Normal',
             body: 'In the Bivariate Normal with parameters μ₁, μ₂, σ₁, σ₂, ρ, the conditional distribution of Y given X = x is Normal with mean μ₂ + ρ(σ₂/σ₁)(x − μ₁) and variance σ₂²(1 − ρ²). The conditioning "pulls" the mean toward the observed x.',
           },
+          { type: 'viz', vizId: 'viz-cond-cont' },
         ],
       },
       {
@@ -727,6 +755,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Checking Independence',
             body: 'For the uniform distribution on the unit square [0,1]², f(x,y)=1. Since f_X(x)=1 and f_Y(y)=1, we have f(x,y)=f_X(x)f_Y(y), confirming X and Y are independent.',
           },
+          { type: 'viz', vizId: 'viz-indep-check' },
         ],
       },
       {
@@ -749,6 +778,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'i.i.d. Bernoulli Trials',
             body: 'Flipping a fair coin 100 times: X₁, …, X₁₀₀ i.i.d. Bernoulli(0.5). The joint PMF is the product p(x₁)·…·p(x₁₀₀) = (1/2)^100 for any sequence (x₁,…,x₁₀₀) ∈ {0,1}^100.',
           },
+          { type: 'viz', vizId: 'viz-iid-trials' },
         ],
       },
     ],
@@ -778,6 +808,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Sum and Difference',
             body: 'Let Z = X + Y and W = X − Y. We wish to find the joint density of (Z, W) given the joint density of (X, Y). The inverse map is X = (Z + W)/2, Y = (Z − W)/2.',
           },
+          { type: 'viz', vizId: 'viz-sum-diff' },
         ],
       },
       {
@@ -804,6 +835,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Jacobian of Sum and Difference',
             body: 'For Z = X + Y, W = X − Y: ∂h₁/∂x = 1, ∂h₁/∂y = 1, ∂h₂/∂x = 1, ∂h₂/∂y = −1. So J = (1)(−1) − (1)(1) = −2, and |J| = 2. Thus f_{Z,W}(z,w) = f_{X,Y}((z+w)/2, (z−w)/2) / 2.',
           },
+          { type: 'viz', vizId: 'viz-jacobian' },
         ],
       },
       {
@@ -827,6 +859,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Sum of Two Exponentials',
             body: 'If X, Y ~ Exponential(λ) independently, then Z = X + Y has density f_Z(z) = ∫_0^z λe^{−λ(z−w)} λe^{−λw} dw = λ²z e^{−λz} for z ≥ 0. This is the Gamma(2, λ) density.',
           },
+          { type: 'viz', vizId: 'viz-convolution' },
         ],
       },
     ],
@@ -872,6 +905,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Simulating a Die Roll',
             body: 'Generate U ~ Uniform[0,1]. Return k if (k−1)/6 ≤ U < k/6, for k = 1,…,6. Each value is returned with probability 1/6, so this correctly simulates a fair die.',
           },
+          { type: 'viz', vizId: 'viz-discrete-sim' },
         ],
       },
       {
@@ -902,6 +936,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             body: 'For Exponential(λ), the CDF is F(x) = 1 − e^{−λx}. Solving F(y) = u gives y = −log(1−u)/λ. Since 1 − U is also Uniform[0,1], we can use Y = −log(U)/λ, which has distribution Exponential(λ).',
             formula: 'Y = -\\frac{\\log U}{\\lambda} \\sim \\text{Exponential}(\\lambda)',
           },
+          { type: 'viz', vizId: 'viz-inverse-cdf' },
         ],
       },
       {
@@ -926,6 +961,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
             title: 'Result of Box-Muller',
             text: 'The variables X and Y defined by the Box-Muller transform are independent and each has distribution N(0,1).',
           },
+          { type: 'viz', vizId: 'viz-box-muller' },
           {
             type: 'example',
             number: '2.10.3',

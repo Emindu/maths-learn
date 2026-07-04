@@ -72,18 +72,21 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             title: 'Lottery Odds',
             body: 'In a "Lotto 6/49" lottery you pick 6 distinct integers from 1 to 49, and 6 are drawn at random. The probability of winning the jackpot is exactly 1 in 13,983,816 — roughly 14 million times more likely that you will not win than that you will. Furthermore, once the jackpot exceeds ~$14 million many extra people buy tickets, making the prize likely to be split, so the expected value is even lower.',
           },
+          { type: 'viz', vizId: 'viz-lottery' },
           {
             type: 'example',
             number: '2',
             title: 'The Red Card Bet',
             body: 'A "friend" shows you one side of a card that is red and bets $4 against your $3 that the other side is also red. At first glance, the probability seems 50%. However, conditional probability (Section 1.5) reveals the conditional probability of the other side being red is 2/3, not 1/2 — so you should refuse the bet.',
           },
+          { type: 'viz', vizId: 'viz-red-card' },
           {
             type: 'example',
             number: '3',
             title: 'Coin Flips and Large Numbers',
             body: 'A friend bets $100 that if you flip a coin 1000 times you will get at least 600 heads, against your $1. Despite 500 being the most likely count, the laws of large numbers show the probability of 600+ heads is less than one in ten billion — so you should decline this too.',
           },
+          { type: 'viz', vizId: 'viz-large-numbers' },
         ],
       },
       {
@@ -188,18 +191,21 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             title: 'Weather',
             body: 'Let S = {rain, snow, clear} with P({rain}) = 0.40, P({snow}) = 0.15, P({clear}) = 0.45. Then P({rain, snow}) = P({rain}) + P({snow}) = 0.40 + 0.15 = 0.55, i.e., there is a 55% chance of rain or snow.',
           },
+          { type: 'viz', vizId: 'viz-weather' },
           {
             type: 'example',
             number: '1.2.3',
             title: 'Fair Coin',
             body: 'Flipping a fair coin gives S = {H, T} with P({H}) = P({T}) = 0.5. Of course P(H) + P(T) = 1.',
           },
+          { type: 'viz', vizId: 'viz-fair-coin' },
           {
             type: 'example',
             number: '1.2.4',
             title: 'Three Fair Coins',
             body: 'Flipping three fair coins yields S = {HHH, HHT, HTH, HTT, THH, THT, TTH, TTT}. Each outcome has probability 1/8. The event "first coin heads and second coin tails" = {HTH, HTT}, so P = 1/8 + 1/8 = 1/4.',
           },
+          { type: 'viz', vizId: 'viz-three-coins' },
           {
             type: 'example',
             number: '1.2.6',
@@ -207,6 +213,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             body: 'Let S = [0, 1]. Define P([a, b]) = b − a for 0 ≤ a ≤ b ≤ 1. For any sub-interval the probability equals its length. This is the uniform distribution on [0, 1].',
             formula: 'P([a,b]) = b - a, \\quad 0 \\le a \\le b \\le 1',
           },
+          { type: 'viz', vizId: 'viz-uniform' },
         ],
       },
       {
@@ -222,9 +229,8 @@ export const probabilityConcepts: ProbabilityConcept[] = [
               'Venn diagrams are a useful graphical method for depicting S and subsets. For two events A and B inside S, the key set operations are:',
           },
           {
-            type: 'text',
-            content:
-              'Complement: A^c = {s : s ∉ A} — all outcomes in S but not in A.\nIntersection: A ∩ B = {s : s ∈ A and s ∈ B} — outcomes in both A and B.\nUnion: A ∪ B = {s : s ∈ A or s ∈ B} — outcomes in A or B (or both).',
+            type: 'formula',
+            latex: '\\begin{aligned} \\text{Complement: } A^c &= \\{s : s \\notin A\\} &\\text{— all outcomes in } S \\text{ but not in } A \\\\ \\text{Intersection: } A \\cap B &= \\{s : s \\in A \\text{ and } s \\in B\\} &\\text{— outcomes in both } A \\text{ and } B \\\\ \\text{Union: } A \\cup B &= \\{s : s \\in A \\text{ or } s \\in B\\} &\\text{— outcomes in } A \\text{ or } B \\text{ (or both)} \\end{aligned}',
           },
           {
             type: 'text',
@@ -268,6 +274,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             content:
               'In words: the probability that any event does not occur equals one minus the probability that it does. This is used extremely often in probability calculations.',
           },
+          { type: 'viz', vizId: 'viz-complement' },
         ],
       },
       {
@@ -285,6 +292,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             text: 'Let A₁, A₂, … be events forming a partition of S. Let B be any event. Then:',
             formula: 'P(B) = P(A_1 \\cap B) + P(A_2 \\cap B) + \\cdots',
           },
+          { type: 'viz', vizId: 'viz-law-total-prob' },
         ],
       },
       {
@@ -313,6 +321,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             text: 'Let A and B be two events, with A ⊇ B. Then:',
             formula: 'P(A \\cap B^c) = P(A) - P(B)',
           },
+          { type: 'viz', vizId: 'viz-monotonicity' },
         ],
       },
       {
@@ -361,6 +370,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             content:
               'Subadditivity is useful when we do not need the exact probability of a union, but only an upper bound. Note that equality holds when the events are disjoint (the countable additivity axiom), and strict inequality holds when events overlap.',
           },
+          { type: 'viz', vizId: 'viz-subadditivity' },
         ],
       },
     ],
@@ -396,6 +406,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             title: 'Fair Six-Sided Die',
             body: 'Rolling a fair die gives S = {1, 2, 3, 4, 5, 6} with |S| = 6. Each outcome has probability 1/6. The event {3, 4} has probability 2/6 = 1/3; the event {1, 5, 6} has probability 3/6 = 1/2.',
           },
+          { type: 'viz', vizId: 'viz-uniform-die' },
         ],
       },
       {
@@ -417,6 +428,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             content:
               'More generally, if we have k finite sets S₁, …, Sₖ and form sequences (s₁, …, sₖ) with sᵢ ∈ Sᵢ, the total number of such sequences is |S₁| × |S₂| × … × |Sₖ|.',
           },
+          { type: 'viz', vizId: 'viz-multiplication' },
         ],
       },
       {
@@ -441,6 +453,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             title: 'Coat Check',
             body: 'Four friends check coats, which are returned at random. The total arrangements are 4! = 24. Only one arrangement returns every coat to its owner, so the probability all coats are returned correctly is 1/24.',
           },
+          { type: 'viz', vizId: 'viz-permutations' },
         ],
       },
       {
@@ -505,6 +518,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             title: 'Bridge Hands',
             body: 'The number of ways to deal a 52-card deck into four 13-card bridge hands (North, East, South, West) is 52! / (13! × 13! × 13! × 13!) ≈ 5.36 × 10²⁸.',
           },
+          { type: 'viz', vizId: 'viz-multinomial' },
         ],
       },
     ],
@@ -536,6 +550,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             content:
               'The ratio P(A ∩ B) / P(B) gives the proportion of times A occurs among the times B occurs. Conditioning on B can either increase or decrease the probability of A.',
           },
+          { type: 'viz', vizId: 'viz-conditional' },
         ],
       },
       {
@@ -551,6 +566,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             label: '(1.5.2)',
             latex: 'P(A \\cap B) = P(A)\\,P(B \\mid A)',
           },
+          { type: 'viz', vizId: 'viz-mult-formula' },
         ],
       },
       {
@@ -569,6 +585,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             title: 'Long Hair in a Class',
             body: 'A class is 60% girls and 40% boys. 30% of girls have long hair, 20% of boys have long hair. The probability a randomly chosen student has long hair is P(B) = (0.6)(0.3) + (0.4)(0.2) = 0.18 + 0.08 = 0.26, i.e., 26%.',
           },
+          { type: 'viz', vizId: 'viz-total-prob-cond' },
         ],
       },
       {
@@ -630,6 +647,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             content:
               'Pairwise independence (every pair is independent) is not sufficient for mutual independence — all subset conditions must hold simultaneously.',
           },
+          { type: 'viz', vizId: 'viz-independence' },
         ],
       },
     ],
