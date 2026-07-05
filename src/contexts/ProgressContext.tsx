@@ -39,6 +39,12 @@ export const TOPIC_SEQUENCE = [
   '/ch5/data-collection',
   '/ch5/basic-inferences',
 
+  '/ch6/likelihood-function',
+  '/ch6/maximum-likelihood-estimation',
+  '/ch6/inferences-based-on-mle',
+  '/ch6/distribution-free-methods',
+  '/ch6/mle-asymptotics',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',

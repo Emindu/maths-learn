@@ -2781,4 +2781,521 @@ plt.tight_layout()
 plt.show()`,
     },
   ],
+
+  // ── Chapter 6: Likelihood Inference ──────────────────────────────────────
+
+  'likelihood-function': [
+    {
+      id: 'ch6-lf-lab-1',
+      title: 'Visualising the Binomial Likelihood Function',
+      description: 'Plot the Binomial(n=20, θ) likelihood for different observed values of s (number of successes). Overlay the MLE and 0.5-likelihood interval.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+n = 20
+theta = np.linspace(0.001, 0.999, 500)
+fig, axes = plt.subplots(1, 3, figsize=(12, 4), facecolor='#0f172a')
+successes = [5, 10, 15]
+
+for ax, s in zip(axes, successes):
+    ax.set_facecolor('#1e293b')
+    L = theta**s * (1 - theta)**(n - s)
+    L_norm = L / L.max()
+    mle = s / n
+    # 0.5-likelihood interval
+    mask = L_norm >= 0.5
+    ax.fill_between(theta, L_norm, where=mask, alpha=0.35, color='#818cf8', label='0.5-LI')
+    ax.plot(theta, L_norm, color='#38bdf8', lw=2)
+    ax.axvline(mle, color='#fb923c', lw=2, ls='--', label=f'MLE θ̂={mle:.2f}')
+    ax.axhline(0.5, color='#64748b', lw=1, ls=':')
+    ax.set_title(f's={s}, n={n}', color='white', fontsize=10)
+    ax.set_xlabel('θ', color='#94a3b8')
+    ax.set_ylabel('Relative likelihood', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    lo = theta[mask][0] if mask.any() else 0
+    hi = theta[mask][-1] if mask.any() else 1
+    print(f"s={s}: MLE={mle:.3f}, 0.5-LI=[{lo:.3f}, {hi:.3f}]")
+
+plt.suptitle('Binomial Likelihood for n=20', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch6-lf-lab-2',
+      title: 'Sufficient Statistics and the Factorization Theorem',
+      description: 'Demonstrate that the Bernoulli sample sum is sufficient: show that the likelihood depends on data only through T = Σxᵢ.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from itertools import product as iproduct
+
+# All binary sequences of length n=5 with a given sum T
+n = 5
+theta_vals = np.linspace(0.05, 0.95, 9)
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 4), facecolor='#0f172a')
+for ax, T in zip(axes, [1, 2, 3]):
+    ax.set_facecolor('#1e293b')
+    # Enumerate all sequences with sum T
+    seqs = [seq for seq in iproduct([0,1], repeat=n) if sum(seq) == T]
+    # Compute likelihood ratio L(seq, theta) / L(seqs[0], theta) for each theta
+    # Should be 1 for all sequences (since they have the same sum)
+    ratios = []
+    for seq in seqs[1:]:
+        base = seqs[0]
+        ratio_per_theta = []
+        for th in theta_vals:
+            L_seq  = np.prod([th**x * (1-th)**(1-x) for x in seq])
+            L_base = np.prod([th**x * (1-th)**(1-x) for x in base])
+            ratio_per_theta.append(L_seq / L_base if L_base > 0 else 1.0)
+        ratios.append(ratio_per_theta)
+    for r, seq in zip(ratios, seqs[1:]):
+        ax.plot(theta_vals, r, marker='o', ms=4, label=str(seq))
+    ax.axhline(1.0, color='#34d399', lw=2, ls='--', label='ratio = 1 (sufficient)')
+    ax.set_title(f'T={T}: all sequences with {T} success', color='white', fontsize=9)
+    ax.set_xlabel('θ', color='#94a3b8')
+    ax.set_ylabel('L(seq)/L(ref)', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.set_ylim(0.9, 1.1)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    print(f"T={T}: {len(seqs)} sequences — all likelihood ratios are 1 (confirms sufficiency)")
+
+plt.suptitle('Likelihood Ratios Within T-Groups Are All 1', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'maximum-likelihood-estimation': [
+    {
+      id: 'ch6-mle-lab-1',
+      title: 'MLE for Common Distributions',
+      description: 'Compute MLEs numerically and compare to closed-form formulas for Bernoulli, Exponential, and Normal models.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import minimize_scalar
+from scipy import stats
+
+rng = np.random.default_rng(7)
+n = 50
+
+# Bernoulli(0.3)
+x_bern = rng.binomial(1, 0.3, n)
+mle_bern_formula = x_bern.mean()
+neg_ll_bern = lambda th: -np.sum(x_bern * np.log(th+1e-12) + (1-x_bern)*np.log(1-th+1e-12))
+res_bern = minimize_scalar(neg_ll_bern, bounds=(0.001, 0.999), method='bounded')
+print(f"Bernoulli: formula MLE={mle_bern_formula:.4f}, numerical MLE={res_bern.x:.4f}, true=0.3")
+
+# Exponential(rate=2, mean=0.5)
+x_exp = rng.exponential(0.5, n)
+mle_exp_formula = x_exp.mean()  # MLE of mean = x_bar
+neg_ll_exp = lambda mu: -np.sum(-np.log(mu) - x_exp/mu) if mu > 0 else np.inf
+res_exp = minimize_scalar(neg_ll_exp, bounds=(0.01, 5), method='bounded')
+print(f"Exponential: formula MLE(mean)={mle_exp_formula:.4f}, numerical={res_exp.x:.4f}, true=0.5")
+
+# Normal(mu=2, sigma=1.5)
+x_norm = rng.normal(2, 1.5, n)
+mu_hat  = x_norm.mean()
+sig_hat = x_norm.std(ddof=0)  # MLE divides by n
+print(f"Normal: MLE mu_hat={mu_hat:.4f} (true=2), sigma_hat={sig_hat:.4f} (true=1.5)")
+
+# Plot log-likelihoods
+theta_grid = np.linspace(0.01, 0.99, 300)
+ll_bern = np.array([np.sum(x_bern*np.log(th) + (1-x_bern)*np.log(1-th)) for th in theta_grid])
+fig, axes = plt.subplots(1, 2, figsize=(10, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+axes[0].plot(theta_grid, ll_bern, color='#38bdf8', lw=2)
+axes[0].axvline(mle_bern_formula, color='#fb923c', ls='--', lw=2, label=f'MLE={mle_bern_formula:.3f}')
+axes[0].set_xlabel('θ', color='#94a3b8'); axes[0].set_ylabel('ℓ(θ)', color='#94a3b8')
+axes[0].set_title('Bernoulli Log-Likelihood', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[0].tick_params(colors='#94a3b8')
+
+mu_grid = np.linspace(x_norm.mean()-2, x_norm.mean()+2, 300)
+ll_norm = np.array([-n/2*np.log(2*np.pi*sig_hat**2) - np.sum((x_norm-mu)**2)/(2*sig_hat**2) for mu in mu_grid])
+axes[1].plot(mu_grid, ll_norm, color='#38bdf8', lw=2)
+axes[1].axvline(mu_hat, color='#fb923c', ls='--', lw=2, label=f'MLE μ={mu_hat:.3f}')
+axes[1].set_xlabel('μ', color='#94a3b8'); axes[1].set_ylabel('ℓ(μ)', color='#94a3b8')
+axes[1].set_title('Normal Log-Likelihood (σ fixed at MLE)', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[1].tick_params(colors='#94a3b8')
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch6-mle-lab-2',
+      title: 'Equivariance of the MLE',
+      description: 'Demonstrate the equivariance principle: the MLE of g(θ) is g(θ̂). Compare direct optimisation vs applying the transformation.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(42)
+n = 30
+# Bernoulli(theta=0.4)
+TRUE_THETA = 0.4
+data = rng.binomial(1, TRUE_THETA, n)
+theta_hat = data.mean()
+
+# Derived parameters and their MLEs by equivariance
+psi1 = lambda th: th * (1 - th)              # Bernoulli variance
+psi2 = lambda th: np.log(th / (1 - th))      # log-odds
+psi3 = lambda th: (1 - th)**5                # P(X₁=…=X₅=0)
+
+functions = [('θ(1−θ) — variance', psi1, TRUE_THETA),
+             ('log(θ/(1−θ)) — log-odds', psi2, TRUE_THETA),
+             ('(1−θ)⁵ — P(all failures in 5 trials)', psi3, TRUE_THETA)]
+
+print(f"MLE of θ: θ̂ = {theta_hat:.4f}  (true = {TRUE_THETA})")
+print()
+for name, g, th_true in functions:
+    mle_eq  = g(theta_hat)
+    true_val = g(th_true)
+    print(f"  {name}")
+    print(f"    MLE (equivariance) = {mle_eq:.4f},  True value = {true_val:.4f}")
+
+# Plot transformations
+theta_grid = np.linspace(0.001, 0.999, 400)
+fig, axes = plt.subplots(1, 3, figsize=(12, 4), facecolor='#0f172a')
+for ax, (name, g, _) in zip(axes, functions):
+    ax.set_facecolor('#1e293b')
+    ax.plot(theta_grid, g(theta_grid), color='#38bdf8', lw=2)
+    ax.axvline(theta_hat, color='#fb923c', ls=':', lw=1.5, label=f'θ̂={theta_hat:.3f}')
+    ax.axhline(g(theta_hat), color='#34d399', ls='--', lw=1.5, label=f'MLE={g(theta_hat):.3f}')
+    ax.set_xlabel('θ', color='#94a3b8'); ax.set_ylabel('g(θ)', color='#94a3b8')
+    ax.set_title(name, color='white', fontsize=8)
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=7)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.suptitle('MLE Equivariance: g(θ̂) is the MLE of g(θ)', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'inferences-based-on-mle': [
+    {
+      id: 'ch6-inf-lab-1',
+      title: 'Confidence Interval Coverage Simulation',
+      description: 'Simulate repeated 95% z-CIs to verify the coverage property: approximately 95% of intervals should contain the true mean.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(0)
+MU_TRUE = 5.0
+SIGMA    = 2.0
+n        = 20
+N_SIMS   = 200
+alpha    = 0.05
+z_crit   = 1.959964
+
+covered = []
+lo_list, hi_list = [], []
+for _ in range(N_SIMS):
+    sample = rng.normal(MU_TRUE, SIGMA, n)
+    xbar = sample.mean()
+    hw   = z_crit * SIGMA / np.sqrt(n)
+    lo, hi = xbar - hw, xbar + hw
+    lo_list.append(lo); hi_list.append(hi)
+    covered.append(lo <= MU_TRUE <= hi)
+
+coverage = np.mean(covered)
+print(f"Nominal level: 95%, Observed coverage: {coverage*100:.1f}% ({sum(covered)}/{N_SIMS} CIs contain μ={MU_TRUE})")
+
+fig, ax = plt.subplots(figsize=(10, 7), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+for i, (lo, hi, cov) in enumerate(zip(lo_list, hi_list, covered)):
+    color = '#34d399' if cov else '#fb923c'
+    ax.hlines(i, lo, hi, color=color, lw=0.8, alpha=0.9)
+ax.axvline(MU_TRUE, color='white', lw=1.5, ls='--', label=f'True μ={MU_TRUE}')
+ax.set_xlabel('μ', color='#94a3b8')
+ax.set_ylabel('Simulation number', color='#94a3b8')
+ax.set_title(f'95% z-CIs — {sum(covered)}/{N_SIMS} cover μ (coverage={coverage*100:.1f}%)', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch6-inf-lab-2',
+      title: 'Power Function of the z-Test',
+      description: 'Plot the power function β(μ) for a two-sided z-test. Show how power increases with n and with distance from H₀.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+MU0   = 0.0   # null hypothesis
+SIGMA = 1.0
+ALPHA = 0.05
+z_crit = stats.norm.ppf(1 - ALPHA/2)
+
+mu_range = np.linspace(-3, 3, 300)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+# Panel 1: power for different n
+for n, color in [(10,'#38bdf8'), (25,'#818cf8'), (50,'#34d399'), (100,'#fb923c')]:
+    se = SIGMA / np.sqrt(n)
+    power = stats.norm.cdf(MU0 - z_crit*se, mu_range, se) + (1 - stats.norm.cdf(MU0 + z_crit*se, mu_range, se))
+    axes[0].plot(mu_range, power, color=color, lw=2, label=f'n={n}')
+axes[0].axhline(ALPHA, color='white', lw=1, ls=':', label=f'size α={ALPHA}')
+axes[0].axvline(MU0, color='#64748b', lw=1, ls='--')
+axes[0].set_xlabel('True μ', color='#94a3b8'); axes[0].set_ylabel('Power β(μ)', color='#94a3b8')
+axes[0].set_title('Power Function for Different n', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+
+# Panel 2: power for different alpha
+n = 30
+for alpha, color in [(0.10,'#38bdf8'), (0.05,'#818cf8'), (0.01,'#34d399')]:
+    zc = stats.norm.ppf(1 - alpha/2)
+    se = SIGMA / np.sqrt(n)
+    power = stats.norm.cdf(MU0 - zc*se, mu_range, se) + (1 - stats.norm.cdf(MU0 + zc*se, mu_range, se))
+    axes[1].plot(mu_range, power, color=color, lw=2, label=f'α={alpha}')
+axes[1].axvline(MU0, color='#64748b', lw=1, ls='--')
+axes[1].set_xlabel('True μ', color='#94a3b8'); axes[1].set_ylabel('Power β(μ)', color='#94a3b8')
+axes[1].set_title(f'Power for Different α (n={n})', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.suptitle('Power Function of Two-Sided z-Test (H₀: μ=0, σ=1)', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'distribution-free-methods': [
+    {
+      id: 'ch6-df-lab-1',
+      title: 'Bootstrap Confidence Interval for the Median',
+      description: 'Apply the bootstrap to the hepatitis C data to estimate the SE of the sample median and construct a 95% percentile bootstrap CI.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(123)
+
+# Example 6.4.2 data (log10 viral load)
+data = np.array([-2.0, -0.2, -5.2, -3.5, -3.9, -0.6, -4.3, -1.7,
+                 -9.5,  1.6, -2.9,  0.9, -1.0, -2.0,  3.0])
+n = len(data)
+obs_median = np.median(data)
+print(f"n={n}, observed median = {obs_median:.4f}")
+
+# Bootstrap
+B = 2000
+boot_medians = np.array([np.median(rng.choice(data, size=n, replace=True)) for _ in range(B)])
+boot_se   = boot_medians.std()
+ci_lo, ci_hi = np.percentile(boot_medians, [2.5, 97.5])
+print(f"Bootstrap SE of median = {boot_se:.4f}")
+print(f"95% percentile CI: [{ci_lo:.4f}, {ci_hi:.4f}]")
+
+# Plot bootstrap distribution
+fig, ax = plt.subplots(figsize=(8, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+counts, edges, _ = ax.hist(boot_medians, bins=40, color='#818cf8', alpha=0.8, edgecolor='#334155')
+ax.axvline(obs_median, color='#fb923c', lw=2, ls='--', label=f'Observed median={obs_median}')
+ax.axvline(ci_lo, color='#34d399', lw=1.5, ls=':', label=f'95% CI: [{ci_lo:.2f}, {ci_hi:.2f}]')
+ax.axvline(ci_hi, color='#34d399', lw=1.5, ls=':')
+ax.set_xlabel('Bootstrap median', color='#94a3b8')
+ax.set_ylabel('Frequency', color='#94a3b8')
+ax.set_title(f'Bootstrap Distribution of Median (B={B}, SE={boot_se:.3f})', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch6-df-lab-2',
+      title: 'Sign Test and Comparison with t-Test',
+      description: 'Apply both the sign test and the one-sample t-test to the hepatitis C data. Compare P-values and discuss when each is appropriate.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+data = np.array([-2.0, -0.2, -5.2, -3.5, -3.9, -0.6, -4.3, -1.7,
+                 -9.5,  1.6, -2.9,  0.9, -1.0, -2.0,  3.0])
+m0   = -2.0   # hypothesised median / mean
+n    = len(data)
+
+# ── Sign Test ──────────────────────────────────────────────────────────────
+pos  = np.sum(data > m0)   # ignore ties (data[9]=m0 counts as tied)
+K    = pos
+p_sign = 2 * stats.binom.cdf(min(K, n - K), n, 0.5)
+print(f"Sign Test: K={K} positives out of n={n}")
+print(f"P-value (two-sided) = {p_sign:.4f}")
+
+# ── One-Sample t-Test ──────────────────────────────────────────────────────
+t_stat, p_t = stats.ttest_1samp(data, popmean=m0)
+print(f"\\nt-Test: t={t_stat:.4f}, p-value={p_t:.4f}")
+
+# ── Plot: data, null hypothesis, both tests ────────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(11, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+# Dot plot
+x_jitter = np.zeros(n)
+axes[0].scatter(data, x_jitter + np.random.default_rng(1).uniform(-0.05,0.05,n), color='#38bdf8', s=50, alpha=0.8)
+axes[0].axvline(m0, color='white', ls='--', lw=1.5, label=f'H₀: median/mean = {m0}')
+axes[0].axvline(np.median(data), color='#fb923c', ls=':', lw=2, label=f'observed median={np.median(data)}')
+axes[0].axvline(data.mean(), color='#34d399', ls=':', lw=2, label=f'observed mean={data.mean():.2f}')
+axes[0].set_xlabel('log₁₀(viral load)', color='#94a3b8'); axes[0].set_yticks([])
+axes[0].set_title('Hepatitis C Data', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+axes[0].tick_params(colors='#94a3b8')
+
+# P-value comparison
+tests  = ['Sign Test', 't-Test']
+pvals  = [p_sign, p_t]
+colors = ['#818cf8', '#38bdf8']
+axes[1].bar(tests, pvals, color=colors, alpha=0.85, edgecolor='#334155')
+axes[1].axhline(0.05, color='#fb923c', ls='--', lw=1.5, label='α=0.05')
+axes[1].set_ylabel('P-value', color='#94a3b8')
+axes[1].set_title(f'P-value Comparison (H₀: location={m0})', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[1].tick_params(colors='#94a3b8')
+for p, t in zip(pvals, tests):
+    axes[1].text(t, p+0.01, f'{p:.3f}', ha='center', color='white', fontsize=10)
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.suptitle('Sign Test vs t-Test: Hepatitis C Viral Load', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'mle-asymptotics': [
+    {
+      id: 'ch6-asy-lab-1',
+      title: 'Fisher Information and the Cramér–Rao Bound',
+      description: 'Compute the Fisher information for various distributions numerically and verify the Cramér–Rao lower bound by simulation.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(99)
+
+# ── Bernoulli: I(theta) = 1/(theta*(1-theta)) ──────────────────────────────
+theta_vals = np.linspace(0.05, 0.95, 200)
+I_bern = 1 / (theta_vals * (1 - theta_vals))
+
+# ── Normal(mu, sigma^2=1): I(mu) = 1/sigma^2 = 1 ─────────────────────────
+I_norm = np.ones_like(theta_vals)
+
+# ── Exponential(rate=lambda): I(lambda) = 1/lambda^2 ─────────────────────
+I_exp = 1 / (theta_vals**2)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+axes[0].plot(theta_vals, I_bern, color='#38bdf8', lw=2, label='Bernoulli I(θ)=1/(θ(1-θ))')
+axes[0].plot(theta_vals, I_norm, color='#34d399', lw=2, label='Normal I(μ)=1/σ²=1')
+axes[0].set_xlabel('Parameter', color='#94a3b8')
+axes[0].set_ylabel('I(θ)', color='#94a3b8')
+axes[0].set_title('Fisher Information', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+
+# Verify CR bound by simulation: Var(x-bar) vs 1/(n*I(theta))
+THETA0 = 0.3
+ns = [5, 10, 20, 50, 100, 200]
+sim_vars, cr_bounds = [], []
+for n in ns:
+    means = [rng.binomial(n, THETA0).item()/n for _ in range(3000)]
+    sim_vars.append(np.var(means))
+    cr_bounds.append(THETA0*(1-THETA0)/n)
+axes[1].plot(ns, sim_vars, 'o-', color='#38bdf8', lw=2, label='Simulated Var(θ̂)')
+axes[1].plot(ns, cr_bounds, 's--', color='#fb923c', lw=2, label='CR bound = θ(1-θ)/n')
+axes[1].set_xlabel('n', color='#94a3b8')
+axes[1].set_ylabel('Variance', color='#94a3b8')
+axes[1].set_title(f'MLE Var vs CR Bound (Bernoulli, θ={THETA0})', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.suptitle("Fisher Information and Cramér–Rao Lower Bound", color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch6-asy-lab-2',
+      title: 'Asymptotic Normality of the MLE',
+      description: 'Verify the asymptotic normality of the MLE for a Bernoulli model: show that √n(θ̂_n − θ₀) is approximately N(0, θ₀(1−θ₀)) for large n.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(12)
+THETA0 = 0.35
+N_SIMS = 4000
+ns = [5, 20, 100, 500]
+
+fig, axes = plt.subplots(2, 2, figsize=(11, 8), facecolor='#0f172a')
+axes_flat = axes.flatten()
+
+for ax, n in zip(axes_flat, ns):
+    ax.set_facecolor('#1e293b')
+    # Simulate standardised MLE
+    theta_hats = rng.binomial(n, THETA0, N_SIMS) / n
+    z_scores = np.sqrt(n) * (theta_hats - THETA0) / np.sqrt(THETA0*(1-THETA0))
+
+    # Histogram (normalised)
+    ax.hist(z_scores, bins=40, density=True, color='#818cf8', alpha=0.75, edgecolor='#334155')
+    # Theoretical N(0,1)
+    x_grid = np.linspace(-4, 4, 300)
+    ax.plot(x_grid, stats.norm.pdf(x_grid), color='#38bdf8', lw=2, label='N(0,1)')
+    # QQ-plot line
+    ax.set_xlabel('√n(θ̂ − θ₀)/SE', color='#94a3b8')
+    ax.set_ylabel('Density', color='#94a3b8')
+    ax.set_title(f'n={n}', color='white')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+    ax.tick_params(colors='#94a3b8')
+
+    # KS test for normality
+    ks_stat, ks_p = stats.kstest(z_scores, 'norm')
+    print(f"n={n}: KS stat={ks_stat:.4f}, p={ks_p:.4f} — {'looks normal' if ks_p>0.05 else 'deviation detected'}")
+
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle(f'Asymptotic Normality of MLE: Bernoulli(θ={THETA0}), {N_SIMS} sims', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
 };

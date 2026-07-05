@@ -95,6 +95,14 @@ import {
   VizChiSquared,
   VizTDistribution,
 } from '../visualizations/VizSamplingLimits';
+import {
+  VizLikelihoodFunction,
+  VizMLEScore,
+  VizBiasMSE,
+  VizConfidenceIntervals,
+  VizPvalueTest,
+  VizBootstrap,
+} from '../visualizations/VizLikelihoodInference';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -194,6 +202,13 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-chebyshev-comparison':       VizChebyshevComparison,
   'viz-cauchy-schwarz':             VizCauchySchwarz,
   'viz-jensen-functions':           VizJensenFunctions,
+  // Chapter 6 — Likelihood Inference
+  'viz-ch6-likelihood-fn':          VizLikelihoodFunction,
+  'viz-ch6-mle-score':              VizMLEScore,
+  'viz-ch6-bias-mse':               VizBiasMSE,
+  'viz-ch6-confidence-intervals':   VizConfidenceIntervals,
+  'viz-ch6-pvalue-test':            VizPvalueTest,
+  'viz-ch6-bootstrap':              VizBootstrap,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,

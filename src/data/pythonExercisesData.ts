@@ -2186,4 +2186,634 @@ print(f"\\nscipy verification: t={t_scipy:.4f}, p={p_scipy:.4f}")
       expectedHint: 't ≈ -1.112, p ≈ 0.276, CI ≈ [63.629, 65.405]. Fail to reject H0: μ=65 is plausible.',
     },
   ],
+
+  // ── Chapter 6: Likelihood Inference ──────────────────────────────────────
+
+  'likelihood-function': [
+    {
+      id: 'py-ch6-lf-1',
+      number: '1',
+      title: 'Plot the Likelihood and Find the 0.5-Likelihood Interval',
+      description: 'For n = 15 Bernoulli trials with s = 6 successes, plot L(θ | 6) ∝ θ⁶(1−θ)⁹ over θ ∈ (0,1). Identify the MLE and find the 0.5-likelihood interval numerically.',
+      starterCode:
+`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+n = 15
+s = 6
+theta = np.linspace(0.001, 0.999, 1000)
+
+# TODO: Compute the likelihood L ∝ theta^s * (1-theta)^(n-s)
+L = None  # TODO
+
+# TODO: Compute relative likelihood RL = L / L.max()
+RL = None  # TODO
+
+# TODO: Find the MLE (the theta where RL is maximised)
+mle = None  # TODO: theta[RL.argmax()]
+
+# TODO: Find the 0.5-likelihood interval (theta values where RL >= 0.5)
+mask = None  # TODO: RL >= 0.5
+lo   = None  # TODO: theta[mask][0]
+hi   = None  # TODO: theta[mask][-1]
+
+print(f"MLE = {mle:.4f}")
+print(f"0.5-likelihood interval: [{lo:.4f}, {hi:.4f}]")
+
+# TODO: Plot RL, mark MLE and shade the 0.5-LI
+`,
+      solution:
+`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+n, s = 15, 6
+theta = np.linspace(0.001, 0.999, 1000)
+L  = theta**s * (1 - theta)**(n - s)
+RL = L / L.max()
+mle = theta[RL.argmax()]
+mask = RL >= 0.5
+lo, hi = theta[mask][0], theta[mask][-1]
+
+print(f"MLE = {mle:.4f}  (exact: {s/n:.4f})")
+print(f"0.5-likelihood interval: [{lo:.4f}, {hi:.4f}]")
+
+fig, ax = plt.subplots(figsize=(8, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(theta, RL, color='#38bdf8', lw=2)
+ax.fill_between(theta, RL, where=mask, color='#818cf8', alpha=0.4, label=f'0.5-LI: [{lo:.3f},{hi:.3f}]')
+ax.axvline(mle, color='#fb923c', ls='--', lw=2, label=f'MLE={mle:.3f}')
+ax.axhline(0.5, color='#64748b', ls=':', lw=1)
+ax.set_xlabel('θ', color='#94a3b8'); ax.set_ylabel('RL(θ)', color='#94a3b8')
+ax.set_title(f'Relative Likelihood — Binomial(n={n}, s={s})', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout(); plt.show()
+`,
+      expectedHint: 'MLE = 0.4 (= s/n = 6/15). 0.5-LI ≈ [0.198, 0.623].',
+    },
+    {
+      id: 'py-ch6-lf-2',
+      number: '2',
+      title: 'Verify Sufficiency via Conditional Distribution',
+      description: 'For n = 4 Bernoulli(θ=0.3) trials, enumerate all sequences with T = Σxᵢ = 2. Verify that the conditional distribution of each sequence given T = 2 is uniform (does not depend on θ).',
+      starterCode:
+`import numpy as np
+from itertools import product as iproduct
+
+n     = 4
+T_val = 2
+theta_test = [0.1, 0.3, 0.5, 0.7, 0.9]
+
+# TODO: List all binary sequences of length n with sum = T_val
+seqs = [seq for seq in iproduct([0,1], repeat=n) if sum(seq) == T_val]
+print(f"Sequences with T={T_val}: {seqs}")
+
+# TODO: For each theta, compute P(seq) and P(T = T_val)
+# Then compute P(seq | T) = P(seq) / P(T)
+# Verify that P(seq | T) = 1/C(n, T_val) regardless of theta
+
+C_n_T = None  # TODO: scipy.special.comb(n, T_val, exact=True)
+
+for th in theta_test:
+    # TODO: compute P(T = T_val) using binomial PMF
+    # TODO: compute P(seq | T) for each sequence and verify = 1/C_n_T
+    pass
+`,
+      solution:
+`import numpy as np
+from itertools import product as iproduct
+from scipy.special import comb
+
+n, T_val = 4, 2
+theta_tests = [0.1, 0.3, 0.5, 0.7, 0.9]
+seqs = [seq for seq in iproduct([0,1], repeat=n) if sum(seq) == T_val]
+C_n_T = int(comb(n, T_val, exact=True))
+print(f"Sequences with T={T_val}: {seqs}")
+print(f"C({n},{T_val}) = {C_n_T}")
+print(f"Expected conditional prob = 1/{C_n_T} = {1/C_n_T:.6f}\\n")
+
+for th in theta_tests:
+    P_T = float(comb(n, T_val)) * th**T_val * (1-th)**(n-T_val)
+    cond_probs = []
+    for seq in seqs:
+        P_seq = np.prod([th**x * (1-th)**(1-x) for x in seq])
+        cond_probs.append(P_seq / P_T)
+    print(f"θ={th}: P(seq|T) = {[f'{p:.6f}' for p in cond_probs]}")
+    assert all(abs(p - 1/C_n_T) < 1e-9 for p in cond_probs), "NOT uniform!"
+print("\\nAll conditional probabilities are 1/C(n,T) — T is sufficient!")
+`,
+      expectedHint: 'For every θ and every sequence with T=2, P(seq|T=2) = 1/C(4,2) = 1/6 ≈ 0.1667. This confirms T=Σxᵢ is sufficient.',
+    },
+  ],
+
+  'maximum-likelihood-estimation': [
+    {
+      id: 'py-ch6-mle-1',
+      number: '1',
+      title: 'Numerical MLE via Log-Likelihood Maximisation',
+      description: 'Generate 50 observations from Gamma(α=3, β=2) and find the MLE using numerical optimisation of the log-likelihood. Compare to the method of moments estimators.',
+      starterCode:
+`import numpy as np
+from scipy import stats, optimize
+
+rng = np.random.default_rng(7)
+ALPHA_TRUE, BETA_TRUE = 3.0, 2.0
+n   = 50
+data = rng.gamma(ALPHA_TRUE, BETA_TRUE, n)  # shape=alpha, scale=beta
+
+# TODO: Write the negative log-likelihood for Gamma(alpha, beta)
+# Gamma pdf: f(x; alpha, beta) = x^(alpha-1)*exp(-x/beta) / (beta^alpha * Gamma(alpha))
+def neg_log_lik(params):
+    alpha, beta = params
+    if alpha <= 0 or beta <= 0:
+        return np.inf
+    return -np.sum(stats.gamma.logpdf(data, a=alpha, scale=beta))
+
+# TODO: Minimise neg_log_lik starting from method of moments estimates
+xbar = data.mean()
+s2   = data.var(ddof=1)
+beta_mom  = None  # TODO: s2 / xbar
+alpha_mom = None  # TODO: xbar / beta_mom
+
+result = None  # TODO: optimize.minimize(neg_log_lik, x0=[alpha_mom, beta_mom], method='Nelder-Mead')
+
+print(f"True: alpha={ALPHA_TRUE}, beta={BETA_TRUE}")
+print(f"MOM:  alpha_mom={alpha_mom:.4f}, beta_mom={beta_mom:.4f}")
+print(f"MLE:  ...")
+`,
+      solution:
+`import numpy as np
+from scipy import stats, optimize
+
+rng = np.random.default_rng(7)
+ALPHA_TRUE, BETA_TRUE = 3.0, 2.0
+n    = 50
+data = rng.gamma(ALPHA_TRUE, BETA_TRUE, n)
+
+def neg_log_lik(params):
+    alpha, beta = params
+    if alpha <= 0 or beta <= 0:
+        return np.inf
+    return -np.sum(stats.gamma.logpdf(data, a=alpha, scale=beta))
+
+xbar = data.mean()
+s2   = data.var(ddof=1)
+beta_mom  = s2 / xbar
+alpha_mom = xbar / beta_mom
+
+result = optimize.minimize(neg_log_lik, x0=[alpha_mom, beta_mom], method='Nelder-Mead',
+                           options={'xatol':1e-7,'fatol':1e-7,'maxiter':10000})
+alpha_mle, beta_mle = result.x
+
+print(f"True:  alpha={ALPHA_TRUE},  beta={BETA_TRUE}")
+print(f"MOM:   alpha={alpha_mom:.4f},  beta={beta_mom:.4f}")
+print(f"MLE:   alpha={alpha_mle:.4f},  beta={beta_mle:.4f}")
+print(f"Converged: {result.success}, fun={result.fun:.4f}")
+`,
+      expectedHint: 'MLE and MOM estimates should be close to the true values α=3, β=2, with MLE typically slightly more accurate.',
+    },
+    {
+      id: 'py-ch6-mle-2',
+      number: '2',
+      title: 'MLE for the Uniform(0, θ) Distribution',
+      description: 'Generate data from Uniform(0, θ=5). The MLE is θ̂ = max(x₁,…,xₙ). Show that this is biased and compute the bias-corrected version.',
+      starterCode:
+`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+rng   = np.random.default_rng(42)
+THETA = 5.0
+N_SIMS = 5000
+ns = [5, 10, 20, 50, 100]
+
+# TODO: For each n, simulate N_SIMS samples and compute:
+#   mle = max(sample)
+#   bias-corrected estimate: theta_bc = (n+1)/n * mle
+# Then compute mean bias for each
+
+for n in ns:
+    mles, bcs = [], []
+    for _ in range(N_SIMS):
+        s = rng.uniform(0, THETA, n)
+        mle = s.max()
+        bc  = (n + 1) / n * mle
+        mles.append(mle); bcs.append(bc)
+    # TODO: print bias and MSE for each estimator
+    pass
+`,
+      solution:
+`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+rng   = np.random.default_rng(42)
+THETA = 5.0
+N_SIMS = 5000
+ns = [5, 10, 20, 50, 100]
+
+print(f"True theta = {THETA}")
+print(f"{'n':>5} | {'E[MLE]':>8} | {'Bias(MLE)':>10} | {'E[BC]':>8} | {'Bias(BC)':>10}")
+print('-'*55)
+for n in ns:
+    samples = rng.uniform(0, THETA, (N_SIMS, n))
+    mles    = samples.max(axis=1)
+    bcs     = (n + 1) / n * mles
+    print(f"{n:>5} | {mles.mean():>8.4f} | {mles.mean()-THETA:>10.4f} | {bcs.mean():>8.4f} | {bcs.mean()-THETA:>10.4f}")
+
+# Plot distributions for n=10
+n = 10
+samples = rng.uniform(0, THETA, (N_SIMS, n))
+mles = samples.max(axis=1)
+bcs  = (n+1)/n * mles
+
+fig, ax = plt.subplots(figsize=(8, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.hist(mles, bins=50, density=True, color='#38bdf8', alpha=0.6, label=f'MLE (mean={mles.mean():.3f})')
+ax.hist(bcs,  bins=50, density=True, color='#34d399', alpha=0.6, label=f'BC  (mean={bcs.mean():.3f})')
+ax.axvline(THETA, color='#fb923c', lw=2, ls='--', label=f'True θ={THETA}')
+ax.set_xlabel('Estimate', color='#94a3b8'); ax.set_ylabel('Density', color='#94a3b8')
+ax.set_title(f'MLE vs Bias-Corrected Estimator for Uniform(0,θ), n={n}', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout(); plt.show()
+`,
+      expectedHint: 'MLE is biased downward: E[max] = n/(n+1)·θ. The bias-corrected estimator (n+1)/n·max is unbiased.',
+    },
+  ],
+
+  'inferences-based-on-mle': [
+    {
+      id: 'py-ch6-inf-1',
+      number: '1',
+      title: 'z-CI and t-CI Comparison',
+      description: 'For a sample of size n=10 from N(μ=5, σ²=4), compute both the z-CI (σ known) and the t-CI (σ unknown). Compare their widths and verify using scipy.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(0)
+MU_TRUE = 5.0
+SIGMA   = 2.0
+n       = 10
+alpha   = 0.05
+data    = rng.normal(MU_TRUE, SIGMA, n)
+
+xbar = data.mean()
+s    = data.std(ddof=1)
+se_known   = SIGMA / np.sqrt(n)
+se_unknown = s / np.sqrt(n)
+
+# TODO: Compute z-CI (sigma known)
+z_crit = None  # TODO: stats.norm.ppf(1 - alpha/2)
+z_lo   = None  # TODO
+z_hi   = None  # TODO
+
+# TODO: Compute t-CI (sigma unknown)
+t_crit = None  # TODO: stats.t.ppf(1 - alpha/2, df=n-1)
+t_lo   = None  # TODO
+t_hi   = None  # TODO
+
+print(f"x_bar = {xbar:.4f}, s = {s:.4f}")
+print(f"z-CI (σ={SIGMA} known): [{z_lo:.4f}, {z_hi:.4f}], width={z_hi-z_lo:.4f}")
+print(f"t-CI (σ unknown):       [{t_lo:.4f}, {t_hi:.4f}], width={t_hi-t_lo:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(0)
+MU_TRUE, SIGMA, n, alpha = 5.0, 2.0, 10, 0.05
+data = rng.normal(MU_TRUE, SIGMA, n)
+xbar, s = data.mean(), data.std(ddof=1)
+se_known   = SIGMA / np.sqrt(n)
+se_unknown = s / np.sqrt(n)
+
+z_crit = stats.norm.ppf(1 - alpha/2)
+z_lo, z_hi = xbar - z_crit*se_known, xbar + z_crit*se_known
+
+t_crit = stats.t.ppf(1 - alpha/2, df=n-1)
+t_lo, t_hi = xbar - t_crit*se_unknown, xbar + t_crit*se_unknown
+
+print(f"x_bar = {xbar:.4f}, s = {s:.4f}")
+print(f"z-CI (σ={SIGMA}): [{z_lo:.4f}, {z_hi:.4f}], width={z_hi-z_lo:.4f}")
+print(f"t-CI (σ unknown): [{t_lo:.4f}, {t_hi:.4f}], width={t_hi-t_lo:.4f}")
+print(f"t-CI wider than z-CI: {t_hi-t_lo > z_hi-z_lo}")
+sci_lo, sci_hi = stats.t.interval(0.95, df=n-1, loc=xbar, scale=se_unknown)
+print(f"scipy verification: [{sci_lo:.4f}, {sci_hi:.4f}]")
+`,
+      expectedHint: 'The t-CI is wider because t_{α/2}(9) ≈ 2.262 > z_{α/2} = 1.960. With small n, the extra uncertainty in σ matters.',
+    },
+    {
+      id: 'py-ch6-inf-2',
+      number: '2',
+      title: 'Two-Sample z-Test and P-value Calculation',
+      description: 'Test whether two groups have the same mean using a two-sample z-test (σ₁ = σ₂ = 1 known). Generate data, compute the test statistic and P-value.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(5)
+MU1, MU2 = 0.0, 0.5  # true means
+SIGMA = 1.0
+n1, n2 = 30, 30
+
+data1 = rng.normal(MU1, SIGMA, n1)
+data2 = rng.normal(MU2, SIGMA, n2)
+
+# TODO: Compute the two-sample z-statistic
+# H0: mu1 = mu2 vs H1: mu1 != mu2
+# z = (x1_bar - x2_bar) / sqrt(sigma^2/n1 + sigma^2/n2)
+xbar1, xbar2 = data1.mean(), data2.mean()
+se_diff = None  # TODO: np.sqrt(SIGMA**2/n1 + SIGMA**2/n2)
+z_stat  = None  # TODO: (xbar1 - xbar2) / se_diff
+
+# TODO: Compute two-sided P-value
+p_val = None  # TODO: 2 * stats.norm.sf(abs(z_stat))
+
+print(f"x1_bar={xbar1:.4f}, x2_bar={xbar2:.4f}")
+print(f"z = {z_stat:.4f}, p-value = {p_val:.4f}")
+print(f"Decision at alpha=0.05: {'Reject H0' if p_val < 0.05 else 'Fail to reject H0'}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(5)
+MU1, MU2 = 0.0, 0.5
+SIGMA = 1.0
+n1, n2 = 30, 30
+data1 = rng.normal(MU1, SIGMA, n1)
+data2 = rng.normal(MU2, SIGMA, n2)
+
+xbar1, xbar2 = data1.mean(), data2.mean()
+se_diff = np.sqrt(SIGMA**2/n1 + SIGMA**2/n2)
+z_stat  = (xbar1 - xbar2) / se_diff
+p_val   = 2 * stats.norm.sf(abs(z_stat))
+
+print(f"x1_bar={xbar1:.4f}, x2_bar={xbar2:.4f}, diff={xbar1-xbar2:.4f}")
+print(f"SE(diff) = {se_diff:.4f}")
+print(f"z = {z_stat:.4f}, p-value = {p_val:.4f}")
+print(f"Decision at alpha=0.05: {'Reject H0' if p_val < 0.05 else 'Fail to reject H0'}")
+print(f"(True difference = {MU1-MU2:.1f})")
+`,
+      expectedHint: 'z ≈ −1.9 to −1.3 depending on the random seed. With μ₁−μ₂=−0.5 and n=30, we may or may not reject at α=0.05 — power is moderate.',
+    },
+  ],
+
+  'distribution-free-methods': [
+    {
+      id: 'py-ch6-df-1',
+      number: '1',
+      title: 'Parametric Bootstrap vs Nonparametric Bootstrap',
+      description: 'Compare the parametric (assuming normality) and nonparametric bootstrap for estimating the SE of the sample mean. Use the hepatitis C data.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(10)
+data = np.array([-2.0, -0.2, -5.2, -3.5, -3.9, -0.6, -4.3, -1.7,
+                 -9.5,  1.6, -2.9,  0.9, -1.0, -2.0,  3.0])
+n = len(data)
+B = 2000
+
+# TODO: Nonparametric bootstrap — resample with replacement from data
+np_boot_means = None  # TODO: array of B bootstrap means
+
+# TODO: Parametric bootstrap — sample from N(xbar, s^2)
+xbar = data.mean()
+s    = data.std(ddof=1)
+p_boot_means = None  # TODO: array of B bootstrap means from normal
+
+# TODO: Compute SE for each and compare to the analytical SE = s/sqrt(n)
+np_se = None  # TODO
+p_se  = None  # TODO
+analytic_se = s / np.sqrt(n)
+
+print(f"x_bar = {xbar:.4f}, s = {s:.4f}")
+print(f"Analytic SE = s/√n = {analytic_se:.4f}")
+print(f"NP bootstrap SE  = {np_se:.4f}")
+print(f"Param bootstrap SE = {p_se:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(10)
+data = np.array([-2.0, -0.2, -5.2, -3.5, -3.9, -0.6, -4.3, -1.7,
+                 -9.5,  1.6, -2.9,  0.9, -1.0, -2.0,  3.0])
+n = len(data)
+B = 2000
+xbar, s = data.mean(), data.std(ddof=1)
+
+np_boot_means = np.array([rng.choice(data, size=n, replace=True).mean() for _ in range(B)])
+p_boot_means  = np.array([rng.normal(xbar, s, n).mean() for _ in range(B)])
+
+np_se = np_boot_means.std()
+p_se  = p_boot_means.std()
+analytic_se = s / np.sqrt(n)
+
+print(f"x_bar={xbar:.4f}, s={s:.4f}")
+print(f"Analytic SE     = {analytic_se:.4f}")
+print(f"NP bootstrap SE = {np_se:.4f}")
+print(f"Param boot SE   = {p_se:.4f}")
+print(f"\\nFor the mean, both should match s/√n closely.")
+print(f"The parametric bootstrap assumes normality; the NP bootstrap does not.")
+`,
+      expectedHint: 'All three SEs should be close (~0.73). For the mean, both bootstraps agree because CLT holds regardless of distribution.',
+    },
+    {
+      id: 'py-ch6-df-2',
+      number: '2',
+      title: 'Sign Test Implementation from Scratch',
+      description: 'Implement the sign test for the median from scratch using the Binomial distribution. Test H₀: median = 0 vs H₁: median ≠ 0 on simulated skewed data.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(3)
+# Skewed data: Exponential(1) shifted by -1, so true median = log(2)-1 ≈ -0.307
+data = rng.exponential(1, 30) - 1.0
+true_median = np.log(2) - 1
+m0 = 0.0  # null hypothesis: median = 0
+
+print(f"n={len(data)}, sample median={np.median(data):.4f}, true median={true_median:.4f}")
+
+# TODO: Count positives (values strictly above m0)
+K = None  # TODO: np.sum(data > m0)
+
+# TODO: Compute two-sided P-value using Binomial(n, 0.5)
+n = len(data)
+p_sign = None  # TODO: 2 * stats.binom.cdf(min(K, n-K), n, 0.5)
+
+# TODO: Compare with t-test
+t_stat, p_t = None, None  # TODO: stats.ttest_1samp(data, popmean=m0)
+
+print(f"Sign test: K={K}, p-value={p_sign:.4f}")
+print(f"t-test: t={t_stat:.4f}, p-value={p_t:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(3)
+data = rng.exponential(1, 30) - 1.0
+true_median = np.log(2) - 1
+m0 = 0.0
+n = len(data)
+print(f"n={n}, sample median={np.median(data):.4f}, true median={true_median:.4f}")
+
+K = int(np.sum(data > m0))
+p_sign = 2 * stats.binom.cdf(min(K, n - K), n, 0.5)
+
+t_stat, p_t = stats.ttest_1samp(data, popmean=m0)
+
+print(f"Sign test: K={K}, p-value={p_sign:.4f}")
+print(f"t-test:  t={t_stat:.4f}, p-value={p_t:.4f}")
+print(f"True H0 is FALSE (true median ≈ {true_median:.3f} ≠ 0)")
+print(f"Sign test {'correctly rejects' if p_sign < 0.05 else 'fails to reject'} H0 at α=0.05")
+print(f"t-test   {'correctly rejects' if p_t   < 0.05 else 'fails to reject'} H0 at α=0.05")
+`,
+      expectedHint: 'With n=30 and true median ≈ −0.307, both tests should detect the departure from 0. The t-test may be more powerful due to using magnitudes.',
+    },
+  ],
+
+  'mle-asymptotics': [
+    {
+      id: 'py-ch6-asy-1',
+      number: '1',
+      title: 'Computing Observed Fisher Information',
+      description: 'For Bernoulli(θ) data, compute the observed Fisher information Î(s) = 1/(θ̂(1−θ̂)) and use it to construct a large-sample CI for θ.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng  = np.random.default_rng(21)
+THETA_TRUE = 0.35
+n = 100
+data = rng.binomial(1, THETA_TRUE, n)
+
+# MLE
+theta_hat = data.mean()
+
+# TODO: Compute observed Fisher information I_hat = 1 / (theta_hat * (1 - theta_hat))
+I_hat = None  # TODO
+
+# TODO: Asymptotic variance of theta_hat = 1 / (n * I_hat)
+asy_var = None  # TODO
+
+# TODO: Large-sample 95% CI: theta_hat +/- z_{0.025} / sqrt(n * I_hat)
+z_crit = stats.norm.ppf(0.975)
+hw     = None  # TODO: z_crit * np.sqrt(asy_var)
+ci_lo  = None  # TODO
+ci_hi  = None  # TODO
+
+print(f"n={n}, theta_hat={theta_hat:.4f}, true theta={THETA_TRUE}")
+print(f"Observed Fisher info: I_hat = {I_hat:.4f}")
+print(f"Asymptotic SE = {np.sqrt(asy_var):.4f}")
+print(f"95% CI: [{ci_lo:.4f}, {ci_hi:.4f}]")
+print(f"True theta is {'inside' if ci_lo <= THETA_TRUE <= ci_hi else 'OUTSIDE'} the CI")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(21)
+THETA_TRUE = 0.35
+n = 100
+data = rng.binomial(1, THETA_TRUE, n)
+theta_hat = data.mean()
+
+I_hat   = 1 / (theta_hat * (1 - theta_hat))
+asy_var = 1 / (n * I_hat)
+z_crit  = stats.norm.ppf(0.975)
+hw      = z_crit * np.sqrt(asy_var)
+ci_lo, ci_hi = theta_hat - hw, theta_hat + hw
+
+print(f"n={n}, theta_hat={theta_hat:.4f}, true theta={THETA_TRUE}")
+print(f"I_hat = {I_hat:.4f} (exact: {1/(THETA_TRUE*(1-THETA_TRUE)):.4f})")
+print(f"Asymptotic SE = {np.sqrt(asy_var):.4f}  (exact: {np.sqrt(THETA_TRUE*(1-THETA_TRUE)/n):.4f})")
+print(f"95% CI: [{ci_lo:.4f}, {ci_hi:.4f}]")
+print(f"True theta is {'inside' if ci_lo <= THETA_TRUE <= ci_hi else 'OUTSIDE'} the CI")
+`,
+      expectedHint: 'I_hat ≈ 4.44 (varies by sample). Asymptotic SE ≈ 0.047. The 95% CI should cover the true θ=0.35 approximately 95% of the time.',
+    },
+    {
+      id: 'py-ch6-asy-2',
+      number: '2',
+      title: 'Delta Method in Practice',
+      description: 'The MLE of θ in Bernoulli(θ) is θ̂ = x̄. Use the delta method to compute the SE of ψ̂ = log(θ̂/(1−θ̂)) (log-odds) and construct a 95% CI for ψ.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(55)
+THETA_TRUE = 0.4
+n = 80
+data = rng.binomial(1, THETA_TRUE, n)
+theta_hat = data.mean()
+
+# True log-odds
+psi_true = np.log(THETA_TRUE / (1 - THETA_TRUE))
+
+# MLE of log-odds by equivariance
+psi_hat = np.log(theta_hat / (1 - theta_hat))
+
+# TODO: Delta method SE for psi_hat = log(theta/(1-theta))
+# g(theta) = log(theta/(1-theta)), g'(theta) = 1/(theta*(1-theta))
+# Var(theta_hat) = theta*(1-theta)/n
+# Var(psi_hat) ≈ [g'(theta_hat)]^2 * Var(theta_hat) by delta method
+
+g_prime = None  # TODO: 1 / (theta_hat * (1 - theta_hat))
+var_theta_hat = None  # TODO: theta_hat * (1 - theta_hat) / n
+var_psi_hat   = None  # TODO: g_prime**2 * var_theta_hat
+se_psi        = None  # TODO: np.sqrt(var_psi_hat)
+
+z = stats.norm.ppf(0.975)
+ci_lo = psi_hat - z * se_psi
+ci_hi = psi_hat + z * se_psi
+
+print(f"theta_hat={theta_hat:.4f}, psi_hat={psi_hat:.4f}, true psi={psi_true:.4f}")
+print(f"Delta-method SE(psi_hat) = {se_psi:.4f}")
+print(f"95% CI for log-odds: [{ci_lo:.4f}, {ci_hi:.4f}]")
+print(f"True psi in CI: {ci_lo <= psi_true <= ci_hi}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(55)
+THETA_TRUE = 0.4
+n = 80
+data = rng.binomial(1, THETA_TRUE, n)
+theta_hat = data.mean()
+
+psi_true = np.log(THETA_TRUE / (1 - THETA_TRUE))
+psi_hat  = np.log(theta_hat / (1 - theta_hat))
+
+g_prime       = 1 / (theta_hat * (1 - theta_hat))
+var_theta_hat = theta_hat * (1 - theta_hat) / n
+var_psi_hat   = g_prime**2 * var_theta_hat
+se_psi        = np.sqrt(var_psi_hat)
+
+z = stats.norm.ppf(0.975)
+ci_lo, ci_hi = psi_hat - z*se_psi, psi_hat + z*se_psi
+
+print(f"theta_hat={theta_hat:.4f}, psi_hat={psi_hat:.4f}, true psi={psi_true:.4f}")
+print(f"g'(theta_hat) = {g_prime:.4f}, Var(theta_hat) = {var_theta_hat:.6f}")
+print(f"Delta-method SE(psi_hat) = {se_psi:.4f}")
+print(f"95% CI for log-odds: [{ci_lo:.4f}, {ci_hi:.4f}]")
+print(f"True psi={'inside' if ci_lo <= psi_true <= ci_hi else 'OUTSIDE'} CI")
+`,
+      expectedHint: 'psi_true = log(0.4/0.6) ≈ −0.405. SE(ψ̂) ≈ 0.354. The CI should cover −0.405 approximately 95% of the time.',
+    },
+  ],
 };

@@ -10,6 +10,7 @@ import { Ch2ConceptPage } from './pages/Ch2ConceptPage';
 import { Ch3ConceptPage } from './pages/Ch3ConceptPage';
 import { Ch4ConceptPage } from './pages/Ch4ConceptPage';
 import { Ch5ConceptPage } from './pages/Ch5ConceptPage';
+import { Ch6ConceptPage } from './pages/Ch6ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -45,7 +46,10 @@ export const App: React.FC = () => {
 
               {/* Statistical Inference (Chapter 5) */}
               <Route path="/ch5/:id" element={<ProtectedRoute><Ch5ConceptPage /></ProtectedRoute>} />
-              
+
+              {/* Likelihood Inference (Chapter 6) */}
+              <Route path="/ch6/:id" element={<ProtectedRoute><Ch6ConceptPage /></ProtectedRoute>} />
+
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />
               

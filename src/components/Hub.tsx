@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface HubCardProps {
@@ -68,6 +68,7 @@ export const Hub: React.FC = () => {
     { id: 'ch3concepts', label: 'Expectation', icon: BarChart2, count: 6 },
     { id: 'ch4concepts', label: 'Sampling & Limits', icon: FlaskConical, count: 6 },
     { id: 'ch5concepts', label: 'Statistical Inference', icon: Search, count: 5 },
+    { id: 'ch6concepts', label: 'Likelihood Inference', icon: TrendingUp, count: 5 },
     { id: 'distributions', label: 'Probability Distributions', icon: BarChart2, count: 14 },
     { id: 'properties', label: 'Distribution Properties', icon: Compass, count: 1 },
     { id: 'markov', label: 'Markov Chains', icon: Link2, count: 4 },
@@ -444,6 +445,46 @@ export const Hub: React.FC = () => {
                 title="Some Basic Inferences"
                 desc="Descriptive statistics (mean, median, quantiles, IQR), plotting data, and the three formal types of inference: estimation, confidence regions, and hypothesis assessment."
                 to="/ch5/basic-inferences" isLocked={!isUnlocked('/ch5/basic-inferences')} isCompleted={isCompleted('/ch5/basic-inferences')}
+              />
+            </div>
+          </section>
+
+          <hr className="hub-divider" />
+
+          {/* Category: Likelihood Inference (Chapter 6) */}
+          <section id="ch6concepts" className="hub-section">
+            <div className="hub-section__header">
+              <div className="hub-section__title-group">
+                <div className="hub-section__icon"><TrendingUp size={20} /></div>
+                <h2 className="hub-section__title">Likelihood Inference</h2>
+              </div>
+              <span className="hub-section__badge">5 topics</span>
+            </div>
+            <div className="topic-grid">
+              <HubCard
+                title="The Likelihood Function"
+                desc="The likelihood L(θ|s) = f_θ(s) encodes all information about θ in the data. Sufficient statistics, the factorization theorem, and p-likelihood intervals."
+                to="/ch6/likelihood-function" isLocked={!isUnlocked('/ch6/likelihood-function')} isCompleted={isCompleted('/ch6/likelihood-function')}
+              />
+              <HubCard
+                title="Maximum Likelihood Estimation"
+                desc="The MLE maximises the likelihood over all θ. Log-likelihood, the score equation, equivariance, and examples for Bernoulli, Normal, and Uniform families."
+                to="/ch6/maximum-likelihood-estimation" isLocked={!isUnlocked('/ch6/maximum-likelihood-estimation')} isCompleted={isCompleted('/ch6/maximum-likelihood-estimation')}
+              />
+              <HubCard
+                title="Inferences Based on the MLE"
+                desc="Bias, MSE, confidence intervals (z- and t-based), hypothesis tests, P-values, power functions, and sample size determination."
+                to="/ch6/inferences-based-on-mle" isLocked={!isUnlocked('/ch6/inferences-based-on-mle')} isCompleted={isCompleted('/ch6/inferences-based-on-mle')}
+              />
+              <HubCard
+                title="Distribution-Free Methods"
+                desc="Method of moments, the bootstrap (resample-based SE and CIs), and the sign test for the median — no distributional assumptions required."
+                to="/ch6/distribution-free-methods" isLocked={!isUnlocked('/ch6/distribution-free-methods')} isCompleted={isCompleted('/ch6/distribution-free-methods')}
+              />
+              <HubCard
+                title="Asymptotics for the MLE"
+                desc="Fisher information, the Cramér–Rao lower bound, consistency, asymptotic normality of the MLE, and the delta method for derived parameters."
+                to="/ch6/mle-asymptotics" isLocked={!isUnlocked('/ch6/mle-asymptotics')} isCompleted={isCompleted('/ch6/mle-asymptotics')}
               />
             </div>
           </section>
