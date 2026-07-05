@@ -68,6 +68,14 @@ import {
   VizJensenFunctions,
 } from '../visualizations/VizExpectation';
 import {
+  VizInferenceMotivation,
+  VizProbInference,
+  VizStatModel,
+  VizEmpiricalCDF,
+  VizDescriptiveStats,
+  VizTypesOfInference,
+} from '../visualizations/VizStatisticalInference';
+import {
   VizGeometricMean,
   VizSampleMeanDist,
   VizSamplingConcept,
@@ -186,6 +194,13 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-chebyshev-comparison':       VizChebyshevComparison,
   'viz-cauchy-schwarz':             VizCauchySchwarz,
   'viz-jensen-functions':           VizJensenFunctions,
+  // Chapter 5 — Statistical Inference
+  'viz-ch5-inference-motivation': VizInferenceMotivation,
+  'viz-ch5-prob-inference':       VizProbInference,
+  'viz-ch5-stat-model':           VizStatModel,
+  'viz-ch5-empirical-cdf':        VizEmpiricalCDF,
+  'viz-ch5-descriptive-stats':    VizDescriptiveStats,
+  'viz-ch5-types-of-inference':   VizTypesOfInference,
   // Chapter 4 — Sampling Distributions & Limits
   'viz-ch4-geometric-mean':     VizGeometricMean,
   'viz-ch4-sample-mean-dist':   VizSampleMeanDist,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface HubCardProps {
@@ -67,6 +67,7 @@ export const Hub: React.FC = () => {
     { id: 'ch2concepts', label: 'Random Variables', icon: Layers, count: 10 },
     { id: 'ch3concepts', label: 'Expectation', icon: BarChart2, count: 6 },
     { id: 'ch4concepts', label: 'Sampling & Limits', icon: FlaskConical, count: 6 },
+    { id: 'ch5concepts', label: 'Statistical Inference', icon: Search, count: 5 },
     { id: 'distributions', label: 'Probability Distributions', icon: BarChart2, count: 14 },
     { id: 'properties', label: 'Distribution Properties', icon: Compass, count: 1 },
     { id: 'markov', label: 'Markov Chains', icon: Link2, count: 4 },
@@ -403,6 +404,46 @@ export const Hub: React.FC = () => {
                 title="Normal Distribution Theory"
                 desc="Linear combinations of normals, chi-squared, t-distribution, and exact sampling distributions for normal data."
                 to="/ch4/normal-distribution-theory" isLocked={!isUnlocked('/ch4/normal-distribution-theory')} isCompleted={isCompleted('/ch4/normal-distribution-theory')}
+              />
+            </div>
+          </section>
+
+          <hr className="hub-divider" />
+
+          {/* Category: Statistical Inference (Chapter 5) */}
+          <section id="ch5concepts" className="hub-section">
+            <div className="hub-section__header">
+              <div className="hub-section__title-group">
+                <div className="hub-section__icon"><Search size={20} /></div>
+                <h2 className="hub-section__title">Statistical Inference</h2>
+              </div>
+              <span className="hub-section__badge">5 topics</span>
+            </div>
+            <div className="topic-grid">
+              <HubCard
+                title="Why Do We Need Statistics?"
+                desc="Statistics addresses uncertainty about the true probability model. Data plus a statistical model yield inferences — the bridge from probability to real-world questions."
+                to="/ch5/why-statistics" isLocked={!isUnlocked('/ch5/why-statistics')} isCompleted={isCompleted('/ch5/why-statistics')}
+              />
+              <HubCard
+                title="Inference Using a Probability Model"
+                desc="When P is known but the response is not: predict an unknown value, construct a credible interval, or assess the plausibility of a specific value."
+                to="/ch5/inference-probability-model" isLocked={!isUnlocked('/ch5/inference-probability-model')} isCompleted={isCompleted('/ch5/inference-probability-model')}
+              />
+              <HubCard
+                title="Statistical Models"
+                desc="The family {P_θ : θ ∈ Ω} parameterises our uncertainty about P. Key examples: the Bernoulli model and the location-scale Normal model."
+                to="/ch5/statistical-models" isLocked={!isUnlocked('/ch5/statistical-models')} isCompleted={isCompleted('/ch5/statistical-models')}
+              />
+              <HubCard
+                title="Data Collection"
+                desc="Finite populations, population CDFs, simple random sampling, empirical CDFs, density histograms, and survey sampling."
+                to="/ch5/data-collection" isLocked={!isUnlocked('/ch5/data-collection')} isCompleted={isCompleted('/ch5/data-collection')}
+              />
+              <HubCard
+                title="Some Basic Inferences"
+                desc="Descriptive statistics (mean, median, quantiles, IQR), plotting data, and the three formal types of inference: estimation, confidence regions, and hypothesis assessment."
+                to="/ch5/basic-inferences" isLocked={!isUnlocked('/ch5/basic-inferences')} isCompleted={isCompleted('/ch5/basic-inferences')}
               />
             </div>
           </section>

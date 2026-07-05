@@ -1655,4 +1655,535 @@ for df in [1, 3, 10, 30, 100, 1000]:
       expectedHint: 'By df=1000, P(T>2) should be within 0.0001 of P(Z>2) ≈ 0.02275.',
     },
   ],
+
+  // ── Chapter 5: Statistical Inference ──────────────────────────────────────
+
+  'why-statistics': [
+    {
+      id: 'py-ch5-why-1',
+      number: '1',
+      title: 'Sample Mean as an Estimator',
+      description: 'Generate 30 samples from Exponential(1/200) and 52 from Exponential(1/400) (scales representing days). Compute each group\'s mean and explain what additional information is needed to conclude the treatment works.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(42)
+
+# TODO: Generate n_ctrl=30 samples from Exponential with scale=180 (mean 180 days)
+# and n_trt=52 samples from Exponential with scale=380 (mean 380 days)
+n_ctrl = 30
+n_trt  = 52
+ctrl   = None  # TODO
+trt    = None  # TODO
+
+# TODO: Compute and print the sample mean for each group
+mean_ctrl = None  # TODO
+mean_trt  = None  # TODO
+print(f"Control mean: {mean_ctrl:.1f} days")
+print(f"Treatment mean: {mean_trt:.1f} days")
+print(f"Difference: {mean_trt - mean_ctrl:.1f} days")
+
+# TODO: Print a brief explanation of why this difference alone is NOT enough
+# to conclude the treatment is effective
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(42)
+n_ctrl, n_trt = 30, 52
+ctrl = rng.exponential(scale=180, size=n_ctrl)
+trt  = rng.exponential(scale=380, size=n_trt)
+mean_ctrl = np.mean(ctrl)
+mean_trt  = np.mean(trt)
+print(f"Control mean: {mean_ctrl:.1f} days")
+print(f"Treatment mean: {mean_trt:.1f} days")
+print(f"Difference: {mean_trt - mean_ctrl:.1f} days")
+print()
+print("The observed difference could be due to random variation,")
+print("not necessarily the treatment. Statistical inference (e.g.,")
+print("a hypothesis test or confidence interval) is needed to assess")
+print("whether this difference is statistically significant.")
+`,
+      expectedHint: 'Typical output: Control mean ~160-200, Treatment mean ~350-410. The difference ~150-250 days, but we need a p-value or CI to draw conclusions.',
+    },
+    {
+      id: 'py-ch5-why-2',
+      number: '2',
+      title: 'Plausible Values of μ via Likelihood',
+      description: 'Given 16 values from N(μ,1), compute the log-likelihood L(μ) for μ in [−3, 3] and find the value that maximises it. Verify it equals the sample mean.',
+      starterCode:
+`import numpy as np
+
+rng  = np.random.default_rng(7)
+data = rng.normal(2.5, 1.0, size=16)
+print(f"Data: {np.round(data, 2)}")
+
+# TODO: Compute x_bar
+x_bar = None  # TODO
+
+# TODO: Define a grid of mu values from -3 to 3 (use 500 points)
+mu_grid = None  # TODO
+
+# TODO: For each mu in mu_grid, compute log L(mu | data)
+# log L(mu) = -0.5 * sum((data_i - mu)^2)   [dropping constant terms]
+log_L = None  # TODO
+
+# TODO: Find the mu that maximises log_L and compare to x_bar
+mu_mle = None  # TODO
+print(f"x_bar   = {x_bar:.4f}")
+print(f"MLE mu  = {mu_mle:.4f}")
+print(f"Match?  {np.isclose(x_bar, mu_mle, atol=0.01)}")
+`,
+      solution:
+`import numpy as np
+
+rng  = np.random.default_rng(7)
+data = rng.normal(2.5, 1.0, size=16)
+print(f"Data: {np.round(data, 2)}")
+x_bar   = np.mean(data)
+mu_grid = np.linspace(-3, 3, 500)
+log_L   = np.array([-0.5 * np.sum((data - mu)**2) for mu in mu_grid])
+mu_mle  = mu_grid[np.argmax(log_L)]
+print(f"x_bar   = {x_bar:.4f}")
+print(f"MLE mu  = {mu_mle:.4f}")
+print(f"Match?  {np.isclose(x_bar, mu_mle, atol=0.01)}")
+`,
+      expectedHint: 'x_bar and MLE mu should agree to within the grid resolution (~0.012). Both should be near 2.5.',
+    },
+  ],
+
+  'inference-probability-model': [
+    {
+      id: 'py-ch5-inf-1',
+      number: '1',
+      title: 'Credible Intervals for Exponential(λ)',
+      description: 'For X ~ Exponential(λ) with various λ values, compute the smallest interval (0, c) containing 95% of the probability. Print a table of λ vs c.',
+      starterCode:
+`import numpy as np
+
+lambdas = [0.5, 1.0, 1.5, 2.0, 3.0]
+
+print(f"{'lambda':>8}  {'E(X)=1/lambda':>14}  {'95% upper c':>12}")
+print("-" * 40)
+
+for lam in lambdas:
+    # TODO: Compute c such that P(X <= c) = 0.95 for Exp(lam)
+    # P(X <= c) = 1 - exp(-lam * c) = 0.95
+    # => exp(-lam * c) = 0.05
+    # => c = -ln(0.05) / lam
+    c = None  # TODO
+    mean_X = None  # TODO
+    print(f"{lam:>8.1f}  {mean_X:>14.4f}  {c:>12.4f}")
+`,
+      solution:
+`import numpy as np
+
+lambdas = [0.5, 1.0, 1.5, 2.0, 3.0]
+print(f"{'lambda':>8}  {'E(X)=1/lambda':>14}  {'95% upper c':>12}")
+print("-" * 40)
+for lam in lambdas:
+    c      = -np.log(0.05) / lam
+    mean_X = 1 / lam
+    print(f"{lam:>8.1f}  {mean_X:>14.4f}  {c:>12.4f}")
+`,
+      expectedHint: 'For lambda=1: c ≈ 2.9957. For lambda=2: c ≈ 1.4979. Note c = 2.9957/lambda always.',
+    },
+    {
+      id: 'py-ch5-inf-2',
+      number: '2',
+      title: 'Tail Probability Assessment',
+      description: 'For X ~ Exponential(1), compute P(X > x₀) for x₀ ∈ {1, 2, 3, 4, 5, 6}. Print which values are "implausible" (tail probability < 0.05).',
+      starterCode:
+`import numpy as np
+
+x0_values = [1, 2, 3, 4, 5, 6]
+
+print(f"{'x0':>4}  {'P(X > x0)':>12}  {'Implausible?':>14}")
+print("-" * 36)
+
+for x0 in x0_values:
+    # TODO: Compute P(X > x0) = exp(-x0) for Exp(1)
+    tail_p = None  # TODO
+    # TODO: Determine if implausible (tail_p < 0.05)
+    implausible = None  # TODO
+    print(f"{x0:>4}  {tail_p:>12.6f}  {'YES' if implausible else 'no':>14}")
+`,
+      solution:
+`import numpy as np
+
+x0_values = [1, 2, 3, 4, 5, 6]
+print(f"{'x0':>4}  {'P(X > x0)':>12}  {'Implausible?':>14}")
+print("-" * 36)
+for x0 in x0_values:
+    tail_p     = np.exp(-x0)
+    implausible = tail_p < 0.05
+    print(f"{x0:>4}  {tail_p:>12.6f}  {'YES' if implausible else 'no':>14}")
+`,
+      expectedHint: 'x0=3: P≈0.0498 (borderline), x0=4: P≈0.0183 (implausible), x0=5: P≈0.0067 (implausible).',
+    },
+  ],
+
+  'statistical-models': [
+    {
+      id: 'py-ch5-sm-1',
+      number: '1',
+      title: 'Bernoulli Model: MLE and Sample Proportion',
+      description: 'Simulate n=50 coin flips from Bernoulli(0.3). Compute the MLE (sample proportion) and plot the likelihood function L(θ).',
+      starterCode:
+`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(17)
+THETA_TRUE = 0.3
+n    = 50
+
+# TODO: Simulate n Bernoulli(THETA_TRUE) observations
+data = None  # TODO
+
+# TODO: Compute k (number of successes) and tau_bar (sample proportion = MLE)
+k      = None  # TODO
+tau_bar = None  # TODO
+
+print(f"n={n}, k={k}, MLE tau_bar = {tau_bar:.4f}  (true theta={THETA_TRUE})")
+
+# TODO: Define theta_grid from 0.001 to 0.999 (300 points)
+# Compute log_lik = k*log(theta) + (n-k)*log(1-theta) for each theta
+theta_grid = None  # TODO
+log_lik    = None  # TODO
+lik_norm   = np.exp(log_lik - log_lik.max())
+
+fig, ax = plt.subplots(figsize=(7, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(theta_grid, lik_norm, color='#7c6af7', lw=2)
+# TODO: Add vertical lines for tau_bar and THETA_TRUE
+ax.set_xlabel('theta', color='#94a3b8')
+ax.set_ylabel('Relative likelihood', color='#94a3b8')
+ax.set_title('Bernoulli Likelihood', color='white')
+ax.tick_params(colors='#94a3b8')
+plt.tight_layout()
+plt.show()
+`,
+      solution:
+`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(17)
+THETA_TRUE, n = 0.3, 50
+data   = rng.binomial(1, THETA_TRUE, size=n)
+k      = data.sum()
+tau_bar = k / n
+print(f"n={n}, k={k}, MLE tau_bar = {tau_bar:.4f}  (true theta={THETA_TRUE})")
+theta_grid = np.linspace(0.001, 0.999, 300)
+log_lik    = k*np.log(theta_grid) + (n-k)*np.log(1-theta_grid)
+lik_norm   = np.exp(log_lik - log_lik.max())
+
+fig, ax = plt.subplots(figsize=(7, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(theta_grid, lik_norm, color='#7c6af7', lw=2, label='L(theta|data)')
+ax.axvline(tau_bar,    color='#22d3ee', lw=2, ls='--', label=f'MLE={tau_bar:.3f}')
+ax.axvline(THETA_TRUE, color='#4ade80', lw=2, ls=':',  label=f'True={THETA_TRUE}')
+ax.set_xlabel('theta', color='#94a3b8'); ax.set_ylabel('Relative likelihood', color='#94a3b8')
+ax.set_title('Bernoulli Likelihood', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout(); plt.show()
+`,
+      expectedHint: 'tau_bar (MLE) should be close to 0.3. The likelihood peaks exactly at tau_bar.',
+    },
+    {
+      id: 'py-ch5-sm-2',
+      number: '2',
+      title: 'Normal Model: Sample Mean and Variance as Estimators',
+      description: 'For 1000 simulated datasets of size n=20 from N(3, 4), verify that E(x̄) ≈ μ = 3 and E(s²) ≈ σ² = 4 (unbiasedness).',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(88)
+MU, SIGMA2 = 3.0, 4.0
+SIGMA = np.sqrt(SIGMA2)
+n_sim = 1000
+n     = 20
+
+# TODO: Generate n_sim datasets, each of size n from N(MU, SIGMA^2)
+# For each dataset, compute x_bar and s^2
+# Store them in arrays x_bars and s_squares
+
+x_bars    = np.zeros(n_sim)
+s_squares = np.zeros(n_sim)
+
+for i in range(n_sim):
+    data = None  # TODO: generate one dataset
+    x_bars[i]    = None  # TODO: compute x_bar
+    s_squares[i] = None  # TODO: compute s^2 (ddof=1)
+
+# TODO: Print E[x_bar] and E[s^2] and compare to true mu and sigma^2
+print(f"True mu    = {MU},     E[x_bar]   = {x_bars.mean():.4f}")
+print(f"True sigma^2 = {SIGMA2},   E[s^2]     = {s_squares.mean():.4f}")
+print(f"Var(x_bar) = {x_bars.var():.4f}  (theory: sigma^2/n = {SIGMA2/n:.4f})")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(88)
+MU, SIGMA2, n_sim, n = 3.0, 4.0, 1000, 20
+SIGMA = np.sqrt(SIGMA2)
+x_bars    = np.zeros(n_sim)
+s_squares = np.zeros(n_sim)
+for i in range(n_sim):
+    data         = rng.normal(MU, SIGMA, size=n)
+    x_bars[i]    = data.mean()
+    s_squares[i] = data.var(ddof=1)
+print(f"True mu    = {MU},     E[x_bar]   = {x_bars.mean():.4f}")
+print(f"True sigma^2 = {SIGMA2},   E[s^2]     = {s_squares.mean():.4f}")
+print(f"Var(x_bar) = {x_bars.var():.4f}  (theory: sigma^2/n = {SIGMA2/n:.4f})")
+`,
+      expectedHint: 'E[x_bar] ≈ 3.0 (unbiased), E[s²] ≈ 4.0 (unbiased), Var(x_bar) ≈ 0.2 = 4/20.',
+    },
+  ],
+
+  'data-collection': [
+    {
+      id: 'py-ch5-dc-1',
+      number: '1',
+      title: 'Empirical CDF and Population CDF',
+      description: 'For a small population of N=20 measurements, compute F_X exactly, then approximate it with the empirical CDF F̂_X from samples of n=3, 5, 10.',
+      starterCode:
+`import numpy as np
+
+# Population of N=20 measurements (fertility scores from Example 5.4.1)
+population = np.array([4,8,6,7,8,3,7,5,4,6,
+                        9,5,7,5,8,3,4,7,8,3])
+N = len(population)
+
+# TODO: Compute F_X(x) for x in [0, 1, 2, ..., 10]
+# F_X(x) = |{pi: X(pi) <= x}| / N
+xs = np.arange(0, 11)
+F_X = None  # TODO: array of F_X(x) for each x in xs
+
+print("Population CDF F_X:")
+for x, fx in zip(xs, F_X):
+    print(f"  F_X({x}) = {fx:.3f}")
+
+# TODO: For sample sizes n=3, 5, 10:
+# Draw WITHOUT replacement from population, compute F_hat_X(x) for x in xs
+rng = np.random.default_rng(42)
+for n in [3, 5, 10]:
+    sample = None  # TODO: draw n elements without replacement
+    F_hat = None   # TODO: compute empirical CDF at each x in xs
+    max_dev = None # TODO: max |F_hat - F_X|
+    print(f"n={n}: max deviation from true CDF = {max_dev:.3f}")
+`,
+      solution:
+`import numpy as np
+
+population = np.array([4,8,6,7,8,3,7,5,4,6,9,5,7,5,8,3,4,7,8,3])
+N = len(population)
+xs  = np.arange(0, 11)
+F_X = np.array([np.sum(population <= x) / N for x in xs])
+
+print("Population CDF F_X:")
+for x, fx in zip(xs, F_X):
+    print(f"  F_X({x}) = {fx:.3f}")
+
+rng = np.random.default_rng(42)
+for n in [3, 5, 10]:
+    sample  = rng.choice(population, size=n, replace=False)
+    F_hat   = np.array([np.sum(sample <= x) / n for x in xs])
+    max_dev = np.max(np.abs(F_hat - F_X))
+    print(f"n={n}: max deviation from true CDF = {max_dev:.3f}")
+`,
+      expectedHint: 'max deviation should decrease as n increases. Population CDF has jumps at 3,4,5,6,7,8,9.',
+    },
+    {
+      id: 'py-ch5-dc-2',
+      number: '2',
+      title: 'Density Histogram and Bin Width Choice',
+      description: 'For n=500 samples from N(0,1), construct density histograms with bin widths 0.25, 0.5, 1.0, 2.0 and compute the L1 error ∫|h_X − f_X| dx for each.',
+      starterCode:
+`import numpy as np
+
+rng  = np.random.default_rng(31)
+data = rng.normal(0, 1, size=500)
+
+from scipy import stats
+
+bin_widths = [0.25, 0.5, 1.0, 2.0]
+print(f"{'Bin width':>10}  {'L1 error':>12}")
+print("-" * 28)
+
+for bw in bin_widths:
+    # TODO: Create bins from -5 to 5 with width bw
+    bins = None  # TODO
+    # TODO: Compute histogram counts and convert to density
+    counts, _ = None, None  # TODO: np.histogram(data, bins=bins)
+    # TODO: For each bin, compute the density h_X(x) = count / (n * bw)
+    # Then compute |h_X - f_X| * bw and sum (approximating the integral)
+    bin_centres = None  # TODO
+    h_X = None         # TODO
+    f_X = None         # TODO: stats.norm.pdf(bin_centres)
+    L1  = None         # TODO: sum |h_X - f_X| * bw
+    print(f"{bw:>10.2f}  {L1:>12.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng  = np.random.default_rng(31)
+data = rng.normal(0, 1, size=500)
+bin_widths = [0.25, 0.5, 1.0, 2.0]
+print(f"{'Bin width':>10}  {'L1 error':>12}")
+print("-" * 28)
+for bw in bin_widths:
+    bins  = np.arange(-5, 5 + bw, bw)
+    counts, _ = np.histogram(data, bins=bins)
+    h_X   = counts / (len(data) * bw)
+    bcs   = bins[:-1] + bw / 2
+    f_X   = stats.norm.pdf(bcs)
+    L1    = np.sum(np.abs(h_X - f_X)) * bw
+    print(f"{bw:>10.2f}  {L1:>12.4f}")
+`,
+      expectedHint: 'Smallest bw=0.25 should give smallest L1 error. L1 error decreases as bin width decreases (more resolution).',
+    },
+  ],
+
+  'basic-inferences': [
+    {
+      id: 'py-ch5-bi-1',
+      number: '1',
+      title: 'Computing Descriptive Statistics',
+      description: 'For the heights dataset from Example 5.5.6, compute mean, median, sample variance, Q1, Q3, IQR, and the 90th percentile.',
+      starterCode:
+`import numpy as np
+
+heights = np.array([64.9,61.4,66.3,64.3,65.1,64.4,59.8,63.6,66.5,65.0,
+                    64.9,64.3,62.5,63.1,65.0,65.8,63.4,61.9,66.6,60.9,
+                    61.6,64.0,61.5,64.2,66.8,66.4,65.8,71.4,67.8,66.3])
+n = len(heights)
+
+# TODO: Compute the following descriptive statistics
+x_bar  = None  # sample mean
+s2     = None  # sample variance (ddof=1)
+s      = None  # sample std (ddof=1)
+median = None  # sample median
+q1     = None  # 25th percentile
+q3     = None  # 75th percentile
+iqr    = None  # interquartile range
+p90    = None  # 90th percentile (quantile)
+
+print(f"n     = {n}")
+print(f"x_bar = {x_bar:.3f}")
+print(f"s^2   = {s2:.4f}")
+print(f"s     = {s:.4f}")
+print(f"Median = {median:.3f}")
+print(f"Q1    = {q1:.3f}")
+print(f"Q3    = {q3:.3f}")
+print(f"IQR   = {iqr:.3f}")
+print(f"90th percentile = {p90:.3f}")
+`,
+      solution:
+`import numpy as np
+
+heights = np.array([64.9,61.4,66.3,64.3,65.1,64.4,59.8,63.6,66.5,65.0,
+                    64.9,64.3,62.5,63.1,65.0,65.8,63.4,61.9,66.6,60.9,
+                    61.6,64.0,61.5,64.2,66.8,66.4,65.8,71.4,67.8,66.3])
+n = len(heights)
+x_bar  = heights.mean()
+s2     = heights.var(ddof=1)
+s      = heights.std(ddof=1)
+median = np.median(heights)
+q1     = np.percentile(heights, 25)
+q3     = np.percentile(heights, 75)
+iqr    = q3 - q1
+p90    = np.percentile(heights, 90)
+
+print(f"n     = {n}")
+print(f"x_bar = {x_bar:.3f}")
+print(f"s^2   = {s2:.4f}")
+print(f"s     = {s:.4f}")
+print(f"Median = {median:.3f}")
+print(f"Q1    = {q1:.3f}")
+print(f"Q3    = {q3:.3f}")
+print(f"IQR   = {iqr:.3f}")
+print(f"90th percentile = {p90:.3f}")
+`,
+      expectedHint: 'x_bar ≈ 64.517, s ≈ 2.379, median ≈ 64.95, IQR ≈ 2.525.',
+    },
+    {
+      id: 'py-ch5-bi-2',
+      number: '2',
+      title: 'Confidence Interval and t-Test',
+      description: 'Using the heights data, construct a 95% confidence interval for μ and perform a t-test for H₀: μ = 65. Verify using scipy.stats.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+heights = np.array([64.9,61.4,66.3,64.3,65.1,64.4,59.8,63.6,66.5,65.0,
+                    64.9,64.3,62.5,63.1,65.0,65.8,63.4,61.9,66.6,60.9,
+                    61.6,64.0,61.5,64.2,66.8,66.4,65.8,71.4,67.8,66.3])
+n     = len(heights)
+x_bar = heights.mean()
+s     = heights.std(ddof=1)
+MU0   = 65.0
+
+# TODO: Compute standard error se = s / sqrt(n)
+se = None  # TODO
+
+# TODO: Compute t-statistic
+t_stat = None  # TODO: (x_bar - MU0) / se
+
+# TODO: Compute 95% CI using t-distribution critical value (df = n-1)
+alpha = 0.05
+t_crit = None  # TODO: stats.t.ppf(1 - alpha/2, df=n-1)
+ci_lo  = None  # TODO
+ci_hi  = None  # TODO
+
+# TODO: Compute two-sided p-value
+p_val = None  # TODO: 2 * stats.t.sf(|t_stat|, df=n-1)
+
+print(f"x_bar = {x_bar:.3f}, s = {s:.3f}, n = {n}")
+print(f"SE    = {se:.4f}")
+print(f"t     = {t_stat:.4f}")
+print(f"95% CI: [{ci_lo:.3f}, {ci_hi:.3f}]")
+print(f"p-value (two-sided) = {p_val:.4f}")
+print(f"Decision: {'Reject H0' if p_val < 0.05 else 'Fail to reject H0'} (alpha=0.05)")
+
+# Verify with scipy
+t_scipy, p_scipy = stats.ttest_1samp(heights, popmean=MU0)
+print(f"\\nscipy verification: t={t_scipy:.4f}, p={p_scipy:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+heights = np.array([64.9,61.4,66.3,64.3,65.1,64.4,59.8,63.6,66.5,65.0,
+                    64.9,64.3,62.5,63.1,65.0,65.8,63.4,61.9,66.6,60.9,
+                    61.6,64.0,61.5,64.2,66.8,66.4,65.8,71.4,67.8,66.3])
+n, MU0 = len(heights), 65.0
+x_bar  = heights.mean()
+s      = heights.std(ddof=1)
+se     = s / np.sqrt(n)
+t_stat = (x_bar - MU0) / se
+alpha  = 0.05
+t_crit = stats.t.ppf(1 - alpha/2, df=n-1)
+ci_lo  = x_bar - t_crit * se
+ci_hi  = x_bar + t_crit * se
+p_val  = 2 * stats.t.sf(abs(t_stat), df=n-1)
+
+print(f"x_bar = {x_bar:.3f}, s = {s:.3f}, n = {n}")
+print(f"SE    = {se:.4f}")
+print(f"t     = {t_stat:.4f}")
+print(f"95% CI: [{ci_lo:.3f}, {ci_hi:.3f}]")
+print(f"p-value (two-sided) = {p_val:.4f}")
+print(f"Decision: {'Reject H0' if p_val < 0.05 else 'Fail to reject H0'} (alpha=0.05)")
+t_scipy, p_scipy = stats.ttest_1samp(heights, popmean=MU0)
+print(f"\\nscipy verification: t={t_scipy:.4f}, p={p_scipy:.4f}")
+`,
+      expectedHint: 't ≈ -1.112, p ≈ 0.276, CI ≈ [63.629, 65.405]. Fail to reject H0: μ=65 is plausible.',
+    },
+  ],
 };

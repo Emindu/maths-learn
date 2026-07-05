@@ -2302,4 +2302,483 @@ plt.suptitle('Linear combinations of independent Normals remain Normal', color='
 plt.tight_layout(); plt.show()`,
     },
   ],
+
+  // ── Chapter 5: Statistical Inference ──────────────────────────────────────
+
+  'why-statistics': [
+    {
+      id: 'ch5-why-lab-1',
+      title: 'Simulating the Heart Transplant Study',
+      description: 'Simulate two groups (control and treatment) from different distributions and compare their sample means — illustrating why statistics is needed.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+
+rng = np.random.default_rng(42)
+
+# Control group: Exp(1/200) -> mean ~200 days
+# Treatment group: Exp(1/400) -> mean ~400 days
+# Using exponential parameterised by scale (mean)
+n_ctrl = 30
+n_trt  = 52
+ctrl   = rng.exponential(scale=180, size=n_ctrl)
+trt    = rng.exponential(scale=380, size=n_trt)
+
+fig, axes = plt.subplots(1, 2, figsize=(9, 4), facecolor='#0f172a')
+
+def hist_plot(ax, data, color, label, binw=100):
+    bins = np.arange(0, max(data)+binw, binw)
+    ax.hist(data, bins=bins, density=True, color=color, alpha=0.75, edgecolor='#0f172a')
+    ax.axvline(np.mean(data), color='white', lw=2, ls='--',
+               label=f'Mean={np.mean(data):.0f}')
+    ax.axvline(np.median(data), color='yellow', lw=1.5, ls=':',
+               label=f'Median={np.median(data):.0f}')
+    ax.set_facecolor('#1e293b')
+    ax.set_title(label, color='white')
+    ax.tick_params(colors='#94a3b8')
+    ax.set_xlabel('Survival time (days)', color='#94a3b8')
+    ax.set_ylabel('Density', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+hist_plot(axes[0], ctrl, '#22d3ee', f'Control (n={n_ctrl})')
+hist_plot(axes[1], trt,  '#f59e0b', f'Treatment (n={n_trt})')
+
+print(f"Control   mean={np.mean(ctrl):.1f}  median={np.median(ctrl):.1f}  n={n_ctrl}")
+print(f"Treatment mean={np.mean(trt):.1f}  median={np.median(trt):.1f}  n={n_trt}")
+print(f"\\nDifference in means: {np.mean(trt)-np.mean(ctrl):.1f} days")
+print("Is this difference statistically significant? That is the question of inference!")
+
+plt.suptitle('Why Statistics? Two Groups, Unknown Distributions', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch5-why-lab-2',
+      title: 'Uncertainty About μ: Likelihood Surface',
+      description: 'For data from N(μ,1) with unknown μ, plot the likelihood L(μ) and see how it peaks near the true value.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng  = np.random.default_rng(7)
+MU_TRUE = 2.5
+data = rng.normal(MU_TRUE, 1.0, size=16)
+print(f"Data: {np.round(data,2)}")
+print(f"Sample mean x-bar = {np.mean(data):.3f}  (true mu = {MU_TRUE})")
+
+mu_grid = np.linspace(-1, 6, 400)
+log_L = np.array([
+    -0.5 * np.sum((data - mu)**2)   # log likelihood up to a constant
+    for mu in mu_grid
+])
+L = np.exp(log_L - log_L.max())  # normalise for plotting
+
+fig, ax = plt.subplots(figsize=(7, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(mu_grid, L, color='#7c6af7', lw=2, label='Likelihood L(mu | data)')
+ax.axvline(np.mean(data), color='#22d3ee', lw=2, ls='--', label=f'x-bar = {np.mean(data):.3f}')
+ax.axvline(MU_TRUE,       color='#4ade80', lw=2, ls=':',  label=f'True mu = {MU_TRUE}')
+ax.set_xlabel('mu', color='#94a3b8')
+ax.set_ylabel('Relative likelihood', color='#94a3b8')
+ax.set_title('Likelihood function: L(mu) peaks at the sample mean', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'inference-probability-model': [
+    {
+      id: 'ch5-inf-lab-1',
+      title: 'Credible Intervals for Exponential(1)',
+      description: 'Visualise prediction, 95% credible interval, and hypothesis assessment for X ~ Exp(1) — the three inference tasks.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+lam = 1.0
+xs  = np.linspace(0, 8, 400)
+pdf = lam * np.exp(-lam * xs)
+
+c90 = -np.log(0.10)   # 90% CI: P(X<=c) = 0.90
+c95 = -np.log(0.05)   # 95% CI
+x0  = 5.0
+tail_p = np.exp(-lam * x0)
+
+fig, axes = plt.subplots(1, 3, figsize=(11, 4), facecolor='#0f172a')
+titles = ['Prediction (mean)', '95% Credible Interval', f'Assess x0={x0}']
+colors = ['#4ade80', '#7c6af7', '#f59e0b']
+
+for ax, title, color in zip(axes, titles, colors):
+    ax.set_facecolor('#1e293b')
+    ax.plot(xs, pdf, color='#22d3ee', lw=2)
+    ax.set_title(title, color='white', fontsize=10)
+    ax.tick_params(colors='#94a3b8')
+    ax.set_xlabel('x', color='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+# Prediction
+axes[0].axvline(1/lam, color='#4ade80', lw=2, ls='--', label=f'E(X)=1')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+# 95% CI
+xs_fill = xs[xs <= c95]
+axes[1].fill_between(xs_fill, lam*np.exp(-lam*xs_fill), alpha=0.35, color='#7c6af7')
+axes[1].axvline(c95, color='#7c6af7', lw=2, ls='--', label=f'c={c95:.3f}')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+# Tail
+xs_tail = xs[xs >= x0]
+axes[2].fill_between(xs_tail, lam*np.exp(-lam*xs_tail), alpha=0.45, color='#f59e0b')
+axes[2].axvline(x0, color='#f59e0b', lw=2, ls='--', label=f'P(X>5)={tail_p:.4f}')
+axes[2].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+print(f"Prediction:  E(X) = {1/lam:.1f} year")
+print(f"95% CI:      (0, {c95:.4f})")
+print(f"P(X > {x0}): {tail_p:.6f}  -> {'IMPLAUSIBLE' if tail_p < 0.05 else 'plausible'}")
+
+plt.suptitle('Three Inference Tasks: Exp(1) Machine Lifelength', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch5-inf-lab-2',
+      title: 'Conditional Inference and Memorylessness',
+      description: 'Compare unconditional vs conditional inference for Exp(1), illustrating the memoryless property and the principle of conditional probability.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+lam  = 1.0
+t    = 1.0    # machine has already run t years
+c95u = -np.log(0.05)            # unconditional 95% upper bound
+c95c = t - np.log(0.05*np.exp(-lam*t)) / (-lam)  # conditional
+
+xs = np.linspace(0, 8, 400)
+pdf_uncond = lam * np.exp(-lam * xs)
+# Conditional pdf given X > t: f(x|X>t) = lam*exp(-lam*(x-t)) for x>t
+pdf_cond = np.where(xs > t, lam * np.exp(-lam*(xs - t)), 0)
+
+fig, axes = plt.subplots(1, 2, figsize=(9, 4), facecolor='#0f172a')
+
+for ax, pdf, label, col, ci in [
+        (axes[0], pdf_uncond, 'Unconditional f(x)', '#22d3ee', c95u),
+        (axes[1], pdf_cond,   f'Conditional f(x|X>{t})', '#f59e0b', c95c)]:
+    ax.set_facecolor('#1e293b')
+    ax.plot(xs, pdf, color=col, lw=2, label=label)
+    xs_fill = xs[(xs <= ci) & (xs >= (0 if col=='#22d3ee' else t))]
+    pdf_fill = lam*np.exp(-lam*xs_fill) if col=='#22d3ee' else lam*np.exp(-lam*(xs_fill-t))
+    ax.fill_between(xs_fill, pdf_fill, alpha=0.3, color=col)
+    ax.axvline(ci, color='white', lw=1.5, ls='--', label=f'95% upper={ci:.3f}')
+    ax.set_title(label, color='white', fontsize=10)
+    ax.tick_params(colors='#94a3b8')
+    ax.set_xlabel('x', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+# Conditional mean
+cond_mean = t + 1/lam
+tail_cond = np.exp(-lam * (5 - t))
+print(f"Unconditional: E(X) = {1/lam:.1f},  95% CI upper = {c95u:.4f}")
+print(f"Conditional (X>{t}): E(X|X>{t}) = {cond_mean:.1f},  95% CI upper = {c95c:.4f}")
+print(f"P(X>5|X>1) = exp(-4) = {tail_cond:.4f}")
+print(f"\\nMemoryless property: additional lifelength still Exp(1) regardless of age!")
+
+plt.suptitle('Conditional vs Unconditional Inference for Exp(1)', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'statistical-models': [
+    {
+      id: 'ch5-sm-lab-1',
+      title: 'Bernoulli Model: Likelihood over Parameter Space',
+      description: 'Visualise the likelihood function for the Bernoulli model and see how it identifies the true θ.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(99)
+THETA_TRUE = 0.35
+n = 20
+data = rng.binomial(1, THETA_TRUE, size=n)
+k = data.sum()
+print(f"n={n}, number of successes k={k}, sample proportion tau_bar={k/n:.3f}")
+print(f"True theta = {THETA_TRUE}")
+
+theta_grid = np.linspace(0.001, 0.999, 400)
+log_lik = k * np.log(theta_grid) + (n - k) * np.log(1 - theta_grid)
+lik_norm = np.exp(log_lik - log_lik.max())
+mle = k / n
+
+fig, ax = plt.subplots(figsize=(7, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(theta_grid, lik_norm, color='#7c6af7', lw=2, label='L(theta | data)')
+ax.axvline(mle,        color='#22d3ee', lw=2, ls='--', label=f'MLE = tau-bar = {mle:.3f}')
+ax.axvline(THETA_TRUE, color='#4ade80', lw=2, ls=':',  label=f'True theta = {THETA_TRUE}')
+ax.fill_between(theta_grid, lik_norm, where=(lik_norm >= np.exp(-0.5)),
+                alpha=0.2, color='#7c6af7', label='Likelihood interval (exp(-0.5))')
+ax.set_xlabel('theta (Bernoulli parameter)', color='#94a3b8')
+ax.set_ylabel('Relative likelihood', color='#94a3b8')
+ax.set_title(f'Bernoulli Model Likelihood (n={n}, k={k})', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch5-sm-lab-2',
+      title: 'Normal Location-Scale Model: Two Competing Parameters',
+      description: 'Given a sample from N(μ, σ²), visualise the likelihood surface over (μ, σ) and identify where the true parameters lie.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(13)
+MU_TRUE, SIG_TRUE = 3.0, 1.5
+n = 25
+data = rng.normal(MU_TRUE, SIG_TRUE, size=n)
+xbar = data.mean()
+s    = data.std(ddof=1)
+print(f"True: mu={MU_TRUE}, sigma={SIG_TRUE}")
+print(f"Sample: x-bar={xbar:.3f}, s={s:.3f}")
+
+mu_g  = np.linspace(0, 6, 100)
+sig_g = np.linspace(0.5, 3.5, 100)
+MU, SIG = np.meshgrid(mu_g, sig_g)
+
+def log_lik(mu, sig):
+    return -n*np.log(sig) - 0.5*np.sum((data - mu)**2) / sig**2
+
+logL = np.array([[log_lik(m, s_) for m in mu_g] for s_ in sig_g])
+logL -= logL.max()
+
+fig, ax = plt.subplots(figsize=(7, 5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+cp = ax.contourf(MU, SIG, logL, levels=20, cmap='magma')
+plt.colorbar(cp, ax=ax, label='log-likelihood (relative)')
+ax.plot(xbar, s, 'w*', ms=14, label=f'MLE (x-bar={xbar:.2f}, s={s:.2f})')
+ax.plot(MU_TRUE, SIG_TRUE, 'g^', ms=10, label=f'True (mu={MU_TRUE}, sigma={SIG_TRUE})')
+ax.set_xlabel('mu', color='#94a3b8')
+ax.set_ylabel('sigma', color='#94a3b8')
+ax.set_title('Log-Likelihood Surface for N(mu, sigma^2)', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'data-collection': [
+    {
+      id: 'ch5-dc-lab-1',
+      title: 'Empirical CDF Convergence',
+      description: 'Watch the empirical CDF F̂_X converge to the true CDF F_X as sample size n grows — a direct application of the WLLN.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(55)
+sample_sizes = [10, 50, 200, 1000]
+xs = np.linspace(-4, 4, 400)
+true_cdf = stats.norm.cdf(xs)
+
+fig, axes = plt.subplots(2, 2, figsize=(9, 7), facecolor='#0f172a')
+axes = axes.ravel()
+
+for ax, n in zip(axes, sample_sizes):
+    sample = rng.normal(0, 1, size=n)
+    # Empirical CDF
+    xs_sorted = np.sort(sample)
+    ecdf_y = np.arange(1, n+1) / n
+
+    ax.set_facecolor('#1e293b')
+    ax.step(xs_sorted, ecdf_y, color='#f59e0b', lw=1.5, where='post', label='Empirical CDF')
+    ax.plot(xs, true_cdf, color='#22d3ee', lw=2, label='True N(0,1) CDF')
+
+    # Max deviation (Kolmogorov-Smirnov statistic)
+    ks_stat, _ = stats.kstest(sample, 'norm')
+
+    ax.set_title(f'n = {n}  (KS stat = {ks_stat:.3f})', color='white')
+    ax.tick_params(colors='#94a3b8')
+    ax.set_xlabel('x', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    print(f"n={n:4d}: KS statistic = {ks_stat:.4f}  (smaller is better)")
+
+plt.suptitle('Empirical CDF Convergence to True N(0,1) CDF', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch5-dc-lab-2',
+      title: 'Density Histograms: Effect of Bin Width',
+      description: 'Demonstrate how the density histogram h_X approximates f_X as bin width shrinks — the bridge between discrete and continuous distributions.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(21)
+N = 10000
+data = rng.normal(0, 1, size=N)
+xs = np.linspace(-5, 5, 400)
+true_pdf = stats.norm.pdf(xs)
+
+bin_widths = [2.0, 1.0, 0.5, 0.25]
+fig, axes = plt.subplots(2, 2, figsize=(9, 7), facecolor='#0f172a')
+axes = axes.ravel()
+
+for ax, bw in zip(axes, bin_widths):
+    bins = np.arange(-5, 5 + bw, bw)
+    ax.set_facecolor('#1e293b')
+    ax.hist(data, bins=bins, density=True, color='#7c6af7', alpha=0.7,
+            edgecolor='#0f172a', label=f'h_X (bw={bw})')
+    ax.plot(xs, true_pdf, color='#22d3ee', lw=2, label='f_X = N(0,1)')
+    ax.set_title(f'Bin width = {bw}', color='white')
+    ax.tick_params(colors='#94a3b8')
+    ax.set_xlabel('x', color='#94a3b8')
+    ax.set_ylabel('density', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    # Compute max deviation from true pdf at bin centres
+    bcs = bins[:-1] + bw/2
+    h_vals = np.histogram(data, bins=bins, density=True)[0]
+    true_at_bcs = stats.norm.pdf(bcs)
+    max_dev = np.max(np.abs(h_vals - true_at_bcs))
+    print(f"Bin width {bw}: max |h_X - f_X| at bin centres = {max_dev:.4f}")
+
+plt.suptitle(f'Density Histogram hX → fX as bin width shrinks (N={N})', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'basic-inferences': [
+    {
+      id: 'ch5-bi-lab-1',
+      title: 'Descriptive Statistics: Mean vs Median under Skew and Outliers',
+      description: 'Compute and visualise descriptive statistics for samples from symmetric and skewed distributions, and see the effect of outliers.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(3)
+n = 30
+
+# Symmetric: Normal(0,1)
+sym   = rng.normal(0, 1, n)
+# Right-skewed: Exponential(1)
+skew  = rng.exponential(1, n)
+# With outlier: Normal(0,1) + one extreme value
+outl  = np.append(rng.normal(0, 1, n-1), 15.0)
+
+datasets = [('N(0,1) – Symmetric', sym, '#22d3ee'),
+            ('Exp(1) – Right Skewed', skew, '#f59e0b'),
+            ('N(0,1) + Outlier', outl, '#ef4444')]
+
+fig, axes = plt.subplots(1, 3, figsize=(11, 4), facecolor='#0f172a')
+
+for ax, (title, d, col) in zip(axes, datasets):
+    mn, med = np.mean(d), np.median(d)
+    q1, q3  = np.percentile(d, 25), np.percentile(d, 75)
+    iqr     = q3 - q1
+    ax.set_facecolor('#1e293b')
+    ax.scatter(d, np.random.uniform(-0.15, 0.15, len(d)), color=col, alpha=0.6, s=20)
+    ax.axvline(mn,  color='white', lw=2, ls='--', label=f'Mean={mn:.2f}')
+    ax.axvline(med, color='yellow', lw=2, ls=':', label=f'Median={med:.2f}')
+    ax.axvspan(q1, q3, alpha=0.15, color=col, label=f'IQR={iqr:.2f}')
+    ax.set_title(title, color='white', fontsize=9)
+    ax.set_yticks([])
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=7)
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    print(f"{title}: mean={mn:.3f}, median={med:.3f}, IQR={iqr:.3f}, s={np.std(d,ddof=1):.3f}")
+
+plt.suptitle('Mean vs Median: Symmetric, Skewed, and Outlier Contaminated', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch5-bi-lab-2',
+      title: 'Estimation, Confidence Intervals, and Hypothesis Testing',
+      description: 'For a Normal location-scale model, demonstrate all three types of inference: point estimation, 95% confidence interval, and t-test.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(42)
+MU_TRUE = 64.5
+SIG_TRUE = 2.4
+n  = 30
+MU0 = 65.0  # hypothesised mean
+
+data = rng.normal(MU_TRUE, SIG_TRUE, n)
+xbar = data.mean()
+s    = data.std(ddof=1)
+se   = s / np.sqrt(n)
+t_stat = (xbar - MU0) / se
+ci_lo, ci_hi = stats.t.interval(0.95, df=n-1, loc=xbar, scale=se)
+
+print(f"Sample: n={n}, x-bar={xbar:.3f}, s={s:.3f}")
+print(f"\\n--- Estimation ---")
+print(f"Point estimate of mu: {xbar:.3f}")
+print(f"\\n--- 95% Confidence Interval ---")
+print(f"CI = [{ci_lo:.3f}, {ci_hi:.3f}]  (half-width = {(ci_hi-ci_lo)/2:.3f})")
+print(f"True mu = {MU_TRUE} is {'inside' if ci_lo <= MU_TRUE <= ci_hi else 'OUTSIDE'} the CI")
+print(f"\\n--- Hypothesis Assessment (H0: mu={MU0}) ---")
+print(f"t = ({xbar:.3f} - {MU0}) / ({s:.3f}/sqrt({n})) = {t_stat:.4f}")
+p_val = 2 * stats.t.sf(abs(t_stat), df=n-1)
+print(f"Two-sided p-value = {p_val:.4f}  -> H0 is {'NOT rejected' if p_val > 0.05 else 'REJECTED'}")
+
+xs = np.linspace(MU0 - 5*se*5, MU0 + 5*se*5, 400)
+pdf_h0 = stats.norm.pdf(xs, MU0, se)
+fig, ax = plt.subplots(figsize=(8, 4), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(xs, pdf_h0, color='#7c6af7', lw=2, label=f'Sampling dist of x-bar under H0: N({MU0}, ({se:.3f})^2)')
+ax.axvline(xbar,  color='#22d3ee', lw=2, ls='--', label=f'Observed x-bar={xbar:.3f}')
+ax.axvline(ci_lo, color='#4ade80', lw=1.5, ls=':', label=f'95% CI: [{ci_lo:.3f}, {ci_hi:.3f}]')
+ax.axvline(ci_hi, color='#4ade80', lw=1.5, ls=':')
+ax.axvline(MU0,   color='white', lw=1.5, ls='-', alpha=0.5, label=f'H0: mu={MU0}')
+ax.fill_between(xs, pdf_h0, where=(xs <= ci_lo)|(xs >= ci_hi), alpha=0.25, color='#ef4444', label='5% rejection region')
+ax.tick_params(colors='#94a3b8')
+ax.set_xlabel('x-bar', color='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+ax.set_title('Three Types of Inference for Normal Location-Scale Model', color='white')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
 };

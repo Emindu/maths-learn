@@ -33,6 +33,12 @@ export const TOPIC_SEQUENCE = [
   '/ch4/monte-carlo-approx',
   '/ch4/normal-distribution-theory',
 
+  '/ch5/why-statistics',
+  '/ch5/inference-probability-model',
+  '/ch5/statistical-models',
+  '/ch5/data-collection',
+  '/ch5/basic-inferences',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',
