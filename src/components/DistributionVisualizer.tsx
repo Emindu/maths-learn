@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useProgress } from '../contexts/ProgressContext';
 import { distributionsData, DistributionConfig } from '../data/distributionsData';
 import { linspace } from '../data/mathHelpers';
 import { PythonPlayground } from './PythonPlayground';
@@ -49,6 +50,10 @@ declare global {
 export const DistributionVisualizer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const config: DistributionConfig | null = id ? distributionsData[id] : null;
+  const { markComplete, getNextTopic, isCompleted } = useProgress();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname;
 
   if (!config) {
     return (
@@ -584,6 +589,29 @@ export const DistributionVisualizer: React.FC = () => {
         )}
 
       </div>
+      
+      {/* Complete Button */}
+      <div style={{
+        marginTop: 'var(--space-24)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+      }}>
+        <button
+          className="btn btn-primary hover-lift"
+          onClick={() => {
+            markComplete(currentPath);
+            const nextTopic = getNextTopic(currentPath);
+            if (nextTopic) {
+              navigate(nextTopic);
+            } else {
+              navigate('/');
+            }
+          }}
+        >
+          {isCompleted(currentPath) ? 'Continue to Next' : 'Mark as Complete & Continue'}
+        </button>
+      </div>
+
     </div>
   );
 };

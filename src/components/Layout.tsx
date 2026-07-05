@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Trophy } from 'lucide-react';
+import { useProgress, TOPIC_SEQUENCE } from '../contexts/ProgressContext';
 
 interface ThemeContextType {
   theme: 'light' | 'dark';
@@ -49,41 +50,51 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const location = useLocation();
 
   return (
-    <div className="app-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-background)', color: 'var(--color-text)' }}>
+    <div className="app-container">
       {/* Site Header */}
-      <header className="site-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}>
-        <div className="site-header__inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--space-24)', height: 'var(--header-height, 64px)', maxWidth: 'var(--container-2xl)', margin: '0 auto' }}>
-          <Link to="/" className="site-header__brand" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-10)', textDecoration: 'none' }}>
-            <div className="site-header__logo" style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, var(--color-primary), #60A5FA)', borderRadius: 'var(--radius-md, 8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: 'var(--font-size-lg)', boxShadow: '0 2px 4px rgba(37,99,235,0.2)' }}>∑</div>
-            <span className="site-header__site-name" style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>Maths Learn</span>
+      <header className="site-header glass">
+        <div className="site-header__inner">
+          <Link to="/" className="site-header__brand">
+            <div className="site-header__logo">∑</div>
+            <span className="site-header__site-name">Maths Learn</span>
           </Link>
           
-          <div className="site-header__actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-16)' }}>
+          <div className="site-header__actions">
+            {(() => {
+              try {
+                // Safely try to get progress - will fail if outside ProgressProvider which shouldn't happen here
+                const { completedTopics } = useProgress();
+                const total = TOPIC_SEQUENCE.length;
+                // Only count completed topics that are actually in the sequence
+                const completedCount = completedTopics.filter(t => TOPIC_SEQUENCE.includes(t)).length;
+                const percent = Math.round((completedCount / total) * 100);
+                
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)', marginRight: 'var(--space-16)', background: 'var(--color-surface-raised)', padding: '4px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                    <Trophy size={14} style={{ color: percent === 100 ? '#f59e0b' : 'var(--color-text-secondary)' }} />
+                    <div style={{ width: '60px', height: '6px', background: 'var(--color-border)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                      <div style={{ width: `${percent}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.5s ease-out' }} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text)' }}>{percent}%</span>
+                  </div>
+                );
+              } catch (e) {
+                return null;
+              }
+            })()}
+
             {location.pathname !== '/' && (
-              <Link to="/" className="site-header__back" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-4)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', textDecoration: 'none', transition: 'color var(--duration-fast)' }}>
+              <Link to="/" className="site-header__back hover-lift">
                 ← Back to Home
               </Link>
             )}
             <button 
-              className="theme-toggle" 
+              className="theme-toggle hover-lift" 
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} 
               aria-label="Toggle dark mode"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '20px',
-                padding: 'var(--space-8)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--color-text)',
-                borderRadius: 'var(--radius-full)',
-                transition: 'background-color var(--duration-fast)'
-              }}
             >
-              {theme === 'dark' ? <Sun size={20} style={{ color: '#fbbf24' }} /> : <Moon size={20} />}
+              {theme === 'dark' ? <Sun size={20} style={{ color: '#ff9f0a' }} /> : <Moon size={20} />}
             </button>
           </div>
         </div>
@@ -95,12 +106,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       </div>
 
       {/* Footer */}
-      <footer className="hub-footer">
-        <Link to="/" className="hub-footer__brand" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-10)', textDecoration: 'none' }}>
-          <div className="hub-footer__logo">∑</div>
+      <footer className="hub-footer glass" style={{ marginTop: 'auto', borderRadius: 0, borderRight: 0, borderLeft: 0, borderBottom: 0, padding: 'var(--space-24)', textAlign: 'center' }}>
+        <Link to="/" className="hub-footer__brand" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-10)', textDecoration: 'none', justifyContent: 'center' }}>
+          <div className="hub-footer__logo" style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>∑</div>
           <span className="hub-footer__name">Maths Learn</span>
         </Link>
-        <p className="hub-footer__copy" style={{ margin: 0 }}>Interactive statistics &amp; probability education</p>
+        <p className="hub-footer__copy" style={{ margin: 'var(--space-8) 0 0 0', color: 'var(--color-text-secondary)' }}>Interactive statistics & probability education</p>
       </footer>
     </div>
   );

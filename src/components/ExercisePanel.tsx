@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronDown, ChevronRight, CheckCircle, XCircle, Lightbulb, BookOpen } from 'lucide-react';
 import { Exercise, ExercisePart } from '../data/exercisesData';
 
@@ -371,6 +371,10 @@ export const ExercisePanel: React.FC<{ exercises: Exercise[] }> = ({ exercises }
     exercises.map(ex => initExerciseState(ex))
   );
 
+  useEffect(() => {
+    setStates(exercises.map(ex => initExerciseState(ex)));
+  }, [exercises]);
+
   const solvedCount = states.filter(s => s.solved).length;
 
   const updateState = useCallback((idx: number, updater: (prev: ExerciseState) => ExerciseState) => {
@@ -426,7 +430,7 @@ export const ExercisePanel: React.FC<{ exercises: Exercise[] }> = ({ exercises }
   const toggleSolution = (idx: number) =>
     updateState(idx, s => ({ ...s, solutionOpen: !s.solutionOpen }));
 
-  if (exercises.length === 0) return null;
+  if (exercises.length === 0 || states.length !== exercises.length) return null;
 
   return (
     <div style={{

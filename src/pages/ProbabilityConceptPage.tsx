@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { BlockMath } from 'react-katex';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { getConceptById, ContentBlock, ProbabilityConcept } from '../data/probabilityConceptsData';
@@ -9,6 +9,7 @@ import { pythonLabsByConceptId } from '../data/pythonLabsData';
 import { ExercisePanel } from '../components/ExercisePanel';
 import { PythonLabPanel } from '../components/PythonLabPanel';
 import { PythonExercisePanel } from '../components/PythonExercisePanel';
+import { useProgress } from '../contexts/ProgressContext';
 import { VizCoinFlip }           from '../visualizations/VizCoinFlip';
 import { VizVennDiagram }        from '../visualizations/VizVennDiagram';
 import { VizInclusionExclusion } from '../visualizations/VizInclusionExclusion';
@@ -330,7 +331,12 @@ const SectionNavItem: React.FC<{ heading: string; index: number }> = ({ heading,
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref?: string }> = ({ concept, backHref = '/#concepts' }) => {
+export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: string }> = ({ concept, backHref }) => {
+  const { markComplete, getNextTopic, isCompleted } = useProgress();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname;
+
   const headings = concept.sections.filter(s => s.heading).map(s => s.heading!);
 
   return (
@@ -460,7 +466,8 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref?: 
         paddingTop: 'var(--space-24)',
         paddingBottom: 'var(--space-48)',
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
+        alignItems: 'center',
       }}>
         <Link
           to={backHref}
@@ -474,8 +481,23 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref?: 
             fontWeight: 500,
           }}
         >
-          <ArrowLeft size={14} /> All Concepts
+          <ArrowLeft size={14} /> Back to Hub
         </Link>
+
+        <button
+          className="btn btn-primary hover-lift"
+          onClick={() => {
+            markComplete(currentPath);
+            const nextTopic = getNextTopic(currentPath);
+            if (nextTopic) {
+              navigate(nextTopic);
+            } else {
+              navigate('/');
+            }
+          }}
+        >
+          {isCompleted(currentPath) ? 'Continue to Next' : 'Mark as Complete & Continue'}
+        </button>
       </div>
 
     </div>

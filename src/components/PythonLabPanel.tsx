@@ -20,6 +20,11 @@ export const PythonLabPanel: React.FC<{ demos: PythonLabDemo[] }> = ({ demos }) 
     demos.map(d => ({ code: d.code, output: '', plots: [], running: false, hasRun: false }))
   );
 
+  useEffect(() => {
+    setActiveIdx(0);
+    setLabStates(demos.map(d => ({ code: d.code, output: '', plots: [], running: false, hasRun: false })));
+  }, [demos]);
+
   const anyRunning = labStates.some(s => s.running);
   const active = labStates[activeIdx];
   const demo   = demos[activeIdx];
@@ -50,7 +55,7 @@ export const PythonLabPanel: React.FC<{ demos: PythonLabDemo[] }> = ({ demos }) 
     delete (window as any).render_matplotlib_plot;
   }, [isReady, anyRunning, activeIdx, labStates, runPython, update]);
 
-  if (demos.length === 0) return null;
+  if (demos.length === 0 || labStates.length !== demos.length) return null;
 
   const handleMount: OnMount = (editor, monaco) => {
     editor.addCommand(

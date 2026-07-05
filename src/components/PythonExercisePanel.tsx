@@ -310,6 +310,18 @@ export const PythonExercisePanel: React.FC<{ exercises: PythonExercise[] }> = ({
     }))
   );
 
+  useEffect(() => {
+    setCardStates(exercises.map(ex => ({
+      expanded: false,
+      code: ex.starterCode,
+      output: '',
+      plots: [],
+      running: false,
+      solutionOpen: false,
+      hasRun: false,
+    })));
+  }, [exercises]);
+
   const anyRunning = cardStates.some(s => s.running);
 
   // Register global matplotlib plot callback
@@ -342,7 +354,7 @@ export const PythonExercisePanel: React.FC<{ exercises: PythonExercise[] }> = ({
     delete (window as any).render_matplotlib_plot;
   }, [cardStates, runPython, update]);
 
-  if (exercises.length === 0) return null;
+  if (exercises.length === 0 || cardStates.length !== exercises.length) return null;
 
   return (
     <div style={{

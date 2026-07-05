@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useProgress } from '../contexts/ProgressContext';
 
 // Simple Error Boundary
 export class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -275,6 +277,11 @@ export const MontyHallGame: React.FC = () => {
   const [simulationResults, setSimulationResults] = useState<{ stayWinRate: number; switchWinRate: number } | null>(null);
   const [isWinner, setIsWinner] = useState(false);
   const [isLoser, setIsLoser] = useState(false);
+  
+  const { markComplete, getNextTopic, isCompleted } = useProgress();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname;
 
   const initializeGame = () => {
     setCarDoor(Math.floor(Math.random() * 3) + 1);
@@ -491,6 +498,30 @@ export const MontyHallGame: React.FC = () => {
           </p>
         </div>
       )}
+      
+      {/* Complete Button */}
+      <div style={{
+        marginTop: 'var(--space-48)',
+        paddingTop: 'var(--space-24)',
+        borderTop: '1px solid var(--color-border)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+      }}>
+        <button
+          className="btn btn-primary hover-lift"
+          onClick={() => {
+            markComplete(currentPath);
+            const nextTopic = getNextTopic(currentPath);
+            if (nextTopic) {
+              navigate(nextTopic);
+            } else {
+              navigate('/');
+            }
+          }}
+        >
+          {isCompleted(currentPath) ? 'Continue to Next' : 'Mark as Complete & Continue'}
+        </button>
+      </div>
     </div>
   );
 };

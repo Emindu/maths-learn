@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from './Layout';
+import { useProgress } from '../contexts/ProgressContext';
 
 interface LegacyModuleLoaderProps {
   modulePath?: string; // Optional hardcoded path, otherwise fallback to URL params
@@ -11,6 +12,10 @@ export const LegacyModuleLoader: React.FC<LegacyModuleLoaderProps> = ({ modulePa
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { markComplete, getNextTopic, isCompleted } = useProgress();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname;
 
   // If hardcoded modulePath is provided, use it. Otherwise construct from URL parameters.
   // E.g. /legacy/MontyHallGame.html or /legacy/gibbs-sampling-tutor/index.html
@@ -103,6 +108,32 @@ export const LegacyModuleLoader: React.FC<LegacyModuleLoaderProps> = ({ modulePa
           setTimeout(syncIframeTheme, 50);
         }}
       />
+      
+      {/* Bottom Nav Bar for Progress Tracking */}
+      <div style={{
+        padding: 'var(--space-16) var(--space-24)',
+        background: 'var(--color-surface)',
+        borderTop: '1px solid var(--color-border)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+      }}>
+        <button
+          className="btn btn-primary hover-lift"
+          onClick={() => {
+            markComplete(currentPath);
+            const nextTopic = getNextTopic(currentPath);
+            if (nextTopic) {
+              navigate(nextTopic);
+            } else {
+              navigate('/');
+            }
+          }}
+        >
+          {isCompleted(currentPath) ? 'Continue to Next' : 'Mark as Complete & Continue'}
+        </button>
+      </div>
+
     </div>
   );
 };
