@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 // ── Shared helpers ─────────────────────────────────────────────────────────────
 
-const W = 500, H = 270;
+const W = 500, H = 220;
 const PAD = { top: 20, right: 20, bottom: 40, left: 48 };
 const PW = W - PAD.left - PAD.right;
 const PH = H - PAD.top - PAD.bottom;
@@ -68,7 +68,7 @@ const containerStyle: React.CSSProperties = {
   background: 'var(--color-surface)',
   border: '1px solid var(--color-border)',
   borderRadius: '10px',
-  padding: '16px',
+  padding: '12px',
   margin: '16px 0',
   fontFamily: 'inherit',
 };
@@ -803,7 +803,7 @@ export const VizMCPi: React.FC = () => {
   const inside = points.filter((p) => p.x * p.x + p.y * p.y <= 1);
   const piEst = (4 * inside.length / N).toFixed(4);
 
-  const SZ = 220;
+  const SZ = 195;
   const toSvg = (v: number) => 40 + v * SZ;
 
   return (
@@ -816,7 +816,7 @@ export const VizMCPi: React.FC = () => {
         <input type="range" min={50} max={3000} step={50} value={N} onChange={(e) => setN(+e.target.value)} style={{ flex: 1 }} />
         <span style={{ color: 'var(--color-primary)', fontWeight: 700, minWidth: 80 }}>π̂ = {piEst}</span>
       </div>
-      <svg viewBox="0 0 500 280" style={{ width: '100%' }}>
+      <svg viewBox="0 0 500 260" style={{ width: '100%' }}>
         <rect x={40} y={30} width={SZ} height={SZ} fill="var(--color-surface)" stroke="var(--color-border)" />
         <path d={`M ${40} ${30 + SZ} A ${SZ} ${SZ} 0 0 1 ${40 + SZ} ${30 + SZ}`} fill="none" stroke="var(--color-primary)" strokeWidth={1.5} />
         {points.map((pt, i) => {
@@ -824,9 +824,9 @@ export const VizMCPi: React.FC = () => {
           return <circle key={i} cx={toSvg(pt.x)} cy={30 + SZ - pt.y * SZ} r={2}
             fill={isIn ? 'var(--color-success)' : '#ef4444'} opacity={0.7} />;
         })}
-        <g transform="translate(280, 60)">
-          <rect x={0} y={0} width={200} height={180} rx={8} fill="var(--color-surface)" stroke="var(--color-border)" />
-          <text x={100} y={28} textAnchor="middle" style={{ fontSize: '0.75rem', fontWeight: 700, fill: 'var(--color-text)' }}>Results</text>
+        <g transform="translate(248, 30)">
+          <rect x={0} y={0} width={210} height={175} rx={8} fill="var(--color-surface)" stroke="var(--color-border)" />
+          <text x={105} y={24} textAnchor="middle" style={{ fontSize: '0.75rem', fontWeight: 700, fill: 'var(--color-text)' }}>Results</text>
           {[
             ['Total darts N', N.toString()],
             ['Inside circle', inside.length.toString()],
@@ -836,8 +836,8 @@ export const VizMCPi: React.FC = () => {
             ['Error', Math.abs(parseFloat(piEst) - Math.PI).toFixed(4)],
           ].map(([label, val], i) => (
             <g key={label}>
-              <text x={16} y={52 + i * 22} style={{ fontSize: '0.68rem', fill: 'var(--color-text-secondary)' }}>{label}</text>
-              <text x={184} y={52 + i * 22} textAnchor="end" style={{ fontSize: '0.68rem', fontWeight: 600, fill: 'var(--color-text)' }}>{val}</text>
+              <text x={14} y={46 + i * 22} style={{ fontSize: '0.68rem', fill: 'var(--color-text-secondary)' }}>{label}</text>
+              <text x={196} y={46 + i * 22} textAnchor="end" style={{ fontSize: '0.68rem', fontWeight: 600, fill: 'var(--color-text)' }}>{val}</text>
             </g>
           ))}
         </g>
@@ -860,7 +860,7 @@ export const VizMCIntegration: React.FC = () => {
   }, [N]);
   const estimate = (points.filter((p) => p.below).length / N).toFixed(4);
 
-  const SZ = 220;
+  const SZ = 195;
   const toSvgX = (v: number) => 40 + v * SZ;
   const toSvgY = (v: number) => 30 + SZ - v * SZ;
   const curve = Array.from({ length: 60 }, (_, i) => {
@@ -878,7 +878,7 @@ export const VizMCIntegration: React.FC = () => {
         <input type="range" min={50} max={3000} step={50} value={N} onChange={(e) => setN(+e.target.value)} style={{ flex: 1 }} />
         <span style={{ color: 'var(--color-primary)', fontWeight: 700, minWidth: 80 }}>∫̂ = {estimate}</span>
       </div>
-      <svg viewBox="0 0 500 280" style={{ width: '100%' }}>
+      <svg viewBox="0 0 500 260" style={{ width: '100%' }}>
         <rect x={40} y={30} width={SZ} height={SZ} fill="var(--color-surface)" stroke="var(--color-border)" />
         <polyline points={curve.join(' ')} fill="none" stroke="var(--color-primary)" strokeWidth={2} />
         {points.map((pt, i) => (
@@ -888,9 +888,9 @@ export const VizMCIntegration: React.FC = () => {
         {[0, 0.5, 1].map((v) => (
           <text key={v} x={toSvgX(v)} y={30 + SZ + 14} textAnchor="middle" style={labelStyle}>{v}</text>
         ))}
-        <g transform="translate(280, 60)">
-          <rect x={0} y={0} width={200} height={130} rx={8} fill="var(--color-surface)" stroke="var(--color-border)" />
-          <text x={100} y={28} textAnchor="middle" style={{ fontSize: '0.75rem', fontWeight: 700, fill: 'var(--color-text)' }}>∫₀¹ x² dx</text>
+        <g transform="translate(248, 50)">
+          <rect x={0} y={0} width={210} height={130} rx={8} fill="var(--color-surface)" stroke="var(--color-border)" />
+          <text x={105} y={24} textAnchor="middle" style={{ fontSize: '0.75rem', fontWeight: 700, fill: 'var(--color-text)' }}>∫₀¹ x² dx</text>
           {[
             ['Estimate', estimate],
             ['True value', '0.3333…'],
@@ -898,8 +898,8 @@ export const VizMCIntegration: React.FC = () => {
             ['N', N.toString()],
           ].map(([label, val], i) => (
             <g key={label}>
-              <text x={16} y={50 + i * 22} style={{ fontSize: '0.68rem', fill: 'var(--color-text-secondary)' }}>{label}</text>
-              <text x={184} y={50 + i * 22} textAnchor="end" style={{ fontSize: '0.68rem', fontWeight: 600, fill: 'var(--color-text)' }}>{val}</text>
+              <text x={14} y={46 + i * 22} style={{ fontSize: '0.68rem', fill: 'var(--color-text-secondary)' }}>{label}</text>
+              <text x={196} y={46 + i * 22} textAnchor="end" style={{ fontSize: '0.68rem', fontWeight: 600, fill: 'var(--color-text)' }}>{val}</text>
             </g>
           ))}
         </g>

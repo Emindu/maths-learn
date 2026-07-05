@@ -1057,4 +1057,602 @@ for v,p in zip(vals,probs):
       expectedHint: 'Each simulated proportion should be within ±0.005 of the theoretical probability.',
     },
   ],
+
+  // ── Chapter 4 ─────────────────────────────────────────────────────────────
+
+  'sampling-distributions': [
+    {
+      id: 'py-samp-1',
+      number: 'Py 4.1.1',
+      title: 'Sampling Distribution by Simulation',
+      description:
+        'Simulate the sampling distribution of X̄ₙ for i.i.d. Exponential(1) samples. ' +
+        'Task: (a) For n = 1, 5, 20, draw N_SIM = 4000 sample means and store them in a dict keyed by n. ' +
+        '(b) Print the simulated mean and standard deviation of X̄ₙ for each n. ' +
+        '(c) Compare with theory: E[X̄ₙ] = 1, Std(X̄ₙ) = 1/√n.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(42)
+N_SIM = 4000
+
+# (a) Simulate sample means for n = 1, 5, 20
+ns = [1, 5, 20]
+means_dict = {}
+for n in ns:
+    samples = np.random.exponential(1.0, size=(N_SIM, n))
+    # TODO: compute sample mean across each row and store in means_dict[n]
+    means_dict[n] = samples.mean(axis=1)
+
+# (b) Print simulated mean and std
+for n in ns:
+    sim_mean = means_dict[n].mean()
+    sim_std  = means_dict[n].std()
+    # TODO: print results
+    print(f"n={n}: sim mean={sim_mean:.4f} (theory=1.0000), sim std={sim_std:.4f} (theory={1/np.sqrt(n):.4f})")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(42)
+N_SIM = 4000
+ns = [1, 5, 20]
+means_dict = {}
+
+for n in ns:
+    samples = np.random.exponential(1.0, size=(N_SIM, n))
+    means_dict[n] = samples.mean(axis=1)
+
+for n in ns:
+    sim_mean = means_dict[n].mean()
+    sim_std  = means_dict[n].std()
+    print(f"n={n}: sim mean={sim_mean:.4f} (theory=1.0000), sim std={sim_std:.4f} (theory={1/np.sqrt(n):.4f})")
+`,
+      expectedHint: 'For n=20 the simulated std should be close to 1/√20 ≈ 0.2236.',
+    },
+    {
+      id: 'py-samp-2',
+      number: 'Py 4.1.2',
+      title: 'Variance of the Sample Mean',
+      description:
+        'Verify Var(X̄ₙ) = σ²/n empirically for Bernoulli(0.4) samples. ' +
+        'Task: (a) For n = 1, 4, 16, 64 simulate N_SIM = 10000 sample means. ' +
+        '(b) Compute the empirical variance of X̄ₙ for each n. ' +
+        '(c) Confirm the ratio Var(X̄ₙ) × n is approximately constant (≈ σ² = 0.4×0.6 = 0.24).',
+      starterCode:
+`import numpy as np
+
+np.random.seed(0)
+N_SIM = 10_000
+p = 0.4
+sigma2 = p * (1 - p)  # = 0.24
+ns = [1, 4, 16, 64]
+
+print(f"True σ² = {sigma2:.4f}")
+print(f"{'n':>6}  {'Var(X̄ₙ)':>12}  {'Var×n':>10}  {'Theory σ²/n':>14}")
+for n in ns:
+    # TODO: simulate n×N_SIM Bernoulli(p) values and compute sample means
+    samps = (np.random.uniform(0, 1, (N_SIM, n)) < p).astype(float)
+    xbar  = samps.mean(axis=1)
+    var_xbar = xbar.var()
+    print(f"{n:>6}  {var_xbar:>12.6f}  {var_xbar*n:>10.6f}  {sigma2/n:>14.6f}")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(0)
+N_SIM = 10_000
+p = 0.4
+sigma2 = p * (1 - p)
+ns = [1, 4, 16, 64]
+
+print(f"True σ² = {sigma2:.4f}")
+print(f"{'n':>6}  {'Var(X̄ₙ)':>12}  {'Var×n':>10}  {'Theory σ²/n':>14}")
+for n in ns:
+    samps = (np.random.uniform(0, 1, (N_SIM, n)) < p).astype(float)
+    xbar  = samps.mean(axis=1)
+    var_xbar = xbar.var()
+    print(f"{n:>6}  {var_xbar:>12.6f}  {var_xbar*n:>10.6f}  {sigma2/n:>14.6f}")
+`,
+      expectedHint: 'The Var×n column should be approximately 0.24 for all n.',
+    },
+  ],
+
+  'convergence-probability': [
+    {
+      id: 'py-convp-1',
+      number: 'Py 4.2.1',
+      title: 'Chebyshev Bound vs Simulation',
+      description:
+        'Compare the Chebyshev bound with simulated probabilities for the WLLN. ' +
+        'Task: for Exp(1) samples, compute P(|X̄ₙ − 1| ≥ 0.2) both by simulation and by the Chebyshev bound, for n = 10, 25, 50, 100, 250.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(11)
+N_SIM = 20_000
+EPS = 0.2
+sigma2 = 1.0  # Exp(1) variance
+ns = [10, 25, 50, 100, 250]
+
+print(f"ε = {EPS}")
+print(f"{'n':>6}  {'Simulated P':>14}  {'Chebyshev bound':>18}")
+for n in ns:
+    # TODO: simulate N_SIM sample means and compute fraction outside ε band
+    samples = np.random.exponential(1.0, size=(N_SIM, n))
+    xbar = samples.mean(axis=1)
+    sim_prob = (np.abs(xbar - 1.0) >= EPS).mean()
+    # TODO: compute Chebyshev bound = σ²/(n·ε²)
+    cheby = sigma2 / (n * EPS**2)
+    print(f"{n:>6}  {sim_prob:>14.6f}  {cheby:>18.6f}")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(11)
+N_SIM = 20_000
+EPS = 0.2
+sigma2 = 1.0
+ns = [10, 25, 50, 100, 250]
+
+print(f"ε = {EPS}")
+print(f"{'n':>6}  {'Simulated P':>14}  {'Chebyshev bound':>18}")
+for n in ns:
+    samples = np.random.exponential(1.0, size=(N_SIM, n))
+    xbar = samples.mean(axis=1)
+    sim_prob = (np.abs(xbar - 1.0) >= EPS).mean()
+    cheby = sigma2 / (n * EPS**2)
+    print(f"{n:>6}  {sim_prob:>14.6f}  {cheby:>18.6f}")
+`,
+      expectedHint: 'At n=100 the simulated probability should be well below the Chebyshev bound of 0.25.',
+    },
+    {
+      id: 'py-convp-2',
+      number: 'Py 4.2.2',
+      title: 'WLLN Running Average',
+      description:
+        'Visualise the running sample mean for 5 independent Exponential(1) sequences up to n = 500. ' +
+        'Task: (a) Compute and plot the running mean for each sequence. ' +
+        '(b) Add a horizontal dashed line at μ = 1. ' +
+        '(c) Print the mean and std of the final sample mean (at n = 500) across the 5 paths.',
+      starterCode:
+`import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(99)
+N = 500
+N_PATHS = 5
+ns = np.arange(1, N + 1)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+
+final_means = []
+for i in range(N_PATHS):
+    # TODO: generate N Exp(1) samples and compute running mean
+    x = np.random.exponential(1.0, N)
+    running = np.cumsum(x) / ns
+    final_means.append(running[-1])
+    ax.plot(ns, running, alpha=0.8, linewidth=1.5)
+
+# TODO: add reference line at μ = 1
+ax.axhline(1.0, color='white', linestyle='--', linewidth=2, label='μ = 1')
+ax.set_xlabel('n', color='#94a3b8'); ax.set_ylabel('X̄ₙ', color='#94a3b8')
+ax.set_title('WLLN — Running mean of Exp(1)', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+plt.tight_layout(); plt.show()
+
+print(f"Final means at n=500: {[f'{m:.4f}' for m in final_means]}")
+`,
+      solution:
+`import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(99)
+N = 500
+N_PATHS = 5
+ns = np.arange(1, N + 1)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+
+final_means = []
+for i in range(N_PATHS):
+    x = np.random.exponential(1.0, N)
+    running = np.cumsum(x) / ns
+    final_means.append(running[-1])
+    ax.plot(ns, running, alpha=0.8, linewidth=1.5)
+
+ax.axhline(1.0, color='white', linestyle='--', linewidth=2, label='μ = 1')
+ax.set_xlabel('n', color='#94a3b8'); ax.set_ylabel('X̄ₙ', color='#94a3b8')
+ax.set_title('WLLN — Running mean of Exp(1)', color='white')
+ax.tick_params(colors='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+plt.tight_layout(); plt.show()
+print(f"Final means at n=500: {[f'{m:.4f}' for m in final_means]}")
+`,
+      expectedHint: 'All 5 final means should be close to 1.0 (within ±0.1).',
+    },
+  ],
+
+  'convergence-probability-1': [
+    {
+      id: 'py-as-1',
+      number: 'Py 4.3.1',
+      title: 'SLLN — Fraction Inside ε-Band',
+      description:
+        'Verify the SLLN by checking that, for large n, all running averages of N(0,1) are permanently inside a ε-band. ' +
+        'Task: simulate 100 paths of length N=1000 and, for each path, find the smallest n* such that |X̄ₖ| < ε for all k ≥ n*. Print the median n* and the fraction of paths that are permanently inside by n=500.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(7)
+N = 1000
+N_PATHS = 100
+EPS = 0.2
+ns = np.arange(1, N + 1)
+
+capture_times = []
+for i in range(N_PATHS):
+    z = np.random.standard_normal(N)
+    running = np.cumsum(z) / ns  # X̄ₙ
+
+    # TODO: find the first index n* such that all values from n* onward are inside ε band
+    n_star = N  # default: never captured
+    for start in range(N - 1, -1, -1):
+        if abs(running[start]) < EPS:
+            n_star = start + 1
+        else:
+            break
+    capture_times.append(n_star)
+
+capture_times = np.array(capture_times)
+print(f"Median capture time n*: {np.median(capture_times):.0f}")
+print(f"Fraction permanently inside by n=500: {(capture_times <= 500).mean():.2%}")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(7)
+N = 1000
+N_PATHS = 100
+EPS = 0.2
+ns = np.arange(1, N + 1)
+
+capture_times = []
+for i in range(N_PATHS):
+    z = np.random.standard_normal(N)
+    running = np.cumsum(z) / ns
+
+    n_star = N
+    for start in range(N - 1, -1, -1):
+        if abs(running[start]) < EPS:
+            n_star = start + 1
+        else:
+            break
+    capture_times.append(n_star)
+
+capture_times = np.array(capture_times)
+print(f"Median capture time n*: {np.median(capture_times):.0f}")
+print(f"Fraction permanently inside by n=500: {(capture_times <= 500).mean():.2%}")
+`,
+      expectedHint: 'Most paths should be permanently inside the ε-band well before n=500.',
+    },
+    {
+      id: 'py-as-2',
+      number: 'Py 4.3.2',
+      title: 'A.S. vs In-Probability — Empirical Comparison',
+      description:
+        'For sequences Xₙ = Zₙ/√n (in-prob only) and Yₙ = Zₙ/n (a.s.), compute and print the fraction of 500 paths that are within ε = 0.3 at each of n = 10, 50, 100, 200, 500.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(13)
+N_PATHS = 500
+N_MAX   = 500
+EPS     = 0.3
+check_ns = [10, 50, 100, 200, 500]
+
+# Generate all paths
+Z = np.random.standard_normal((N_PATHS, N_MAX))
+ns = np.arange(1, N_MAX + 1)
+# Xₙ = Zₙ/√n  (in-probability convergence)
+Xn = Z / np.sqrt(ns)
+# Yₙ = Zₙ/n   (a.s. convergence — faster shrinkage)
+Yn = Z / ns
+
+print(f"{'n':>6}  {'|Xₙ|<ε (in-prob)':>20}  {'|Yₙ|<ε (a.s.)':>18}")
+for n in check_ns:
+    frac_x = (np.abs(Xn[:, n-1]) < EPS).mean()
+    frac_y = (np.abs(Yn[:, n-1]) < EPS).mean()
+    print(f"{n:>6}  {frac_x:>20.4f}  {frac_y:>18.4f}")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(13)
+N_PATHS = 500
+N_MAX   = 500
+EPS     = 0.3
+check_ns = [10, 50, 100, 200, 500]
+
+Z  = np.random.standard_normal((N_PATHS, N_MAX))
+ns = np.arange(1, N_MAX + 1)
+Xn = Z / np.sqrt(ns)
+Yn = Z / ns
+
+print(f"{'n':>6}  {'|Xₙ|<ε (in-prob)':>20}  {'|Yₙ|<ε (a.s.)':>18}")
+for n in check_ns:
+    frac_x = (np.abs(Xn[:, n-1]) < EPS).mean()
+    frac_y = (np.abs(Yn[:, n-1]) < EPS).mean()
+    print(f"{n:>6}  {frac_x:>20.4f}  {frac_y:>18.4f}")
+`,
+      expectedHint: 'At n=500, both should be >99% inside the band, but Yₙ converges faster.',
+    },
+  ],
+
+  'convergence-distribution': [
+    {
+      id: 'py-clt-1',
+      number: 'Py 4.4.1',
+      title: 'CLT — Standardised Sample Mean',
+      description:
+        'Verify the CLT for Exponential(1) samples. ' +
+        'Task: for n = 1, 10, 50, simulate N_SIM = 5000 standardised sample means Zₙ = (X̄ₙ−1)/(1/√n) and compare with the N(0,1) CDF using a K-S test.',
+      starterCode:
+`import numpy as np
+from scipy.stats import kstest, norm
+
+np.random.seed(5)
+N_SIM = 5000
+
+print(f"{'n':>5}  {'KS statistic':>14}  {'p-value':>10}  {'Close to N(0,1)?':>18}")
+for n in [1, 5, 10, 30, 50]:
+    samples = np.random.exponential(1.0, size=(N_SIM, n))
+    xbar = samples.mean(axis=1)
+    # TODO: standardise xbar to get Zₙ
+    Zn = (xbar - 1.0) / (1.0 / np.sqrt(n))
+    # TODO: run K-S test against N(0,1)
+    ks_stat, p_val = kstest(Zn, 'norm')
+    close = "Yes" if p_val > 0.05 else "No"
+    print(f"{n:>5}  {ks_stat:>14.6f}  {p_val:>10.4f}  {close:>18}")
+`,
+      solution:
+`import numpy as np
+from scipy.stats import kstest
+
+np.random.seed(5)
+N_SIM = 5000
+
+print(f"{'n':>5}  {'KS statistic':>14}  {'p-value':>10}  {'Close to N(0,1)?':>18}")
+for n in [1, 5, 10, 30, 50]:
+    samples = np.random.exponential(1.0, size=(N_SIM, n))
+    xbar = samples.mean(axis=1)
+    Zn = (xbar - 1.0) / (1.0 / np.sqrt(n))
+    ks_stat, p_val = kstest(Zn, 'norm')
+    close = "Yes" if p_val > 0.05 else "No"
+    print(f"{n:>5}  {ks_stat:>14.6f}  {p_val:>10.4f}  {close:>18}")
+`,
+      expectedHint: 'For n ≥ 30, the K-S test should fail to reject normality (p > 0.05).',
+    },
+    {
+      id: 'py-clt-2',
+      number: 'Py 4.4.2',
+      title: 'Normal Approximation to Binomial',
+      description:
+        'Compare Binomial(n, p) probabilities with their Normal approximation. ' +
+        'Task: for n = 20, 50, 100 and p = 0.3, compute P(X ≤ k) for k = floor(np) using both the exact Binomial CDF and the Normal approximation. Print the absolute error.',
+      starterCode:
+`import numpy as np
+from scipy.stats import binom, norm
+
+p = 0.3
+print(f"p = {p}")
+print(f"{'n':>6}  {'k':>5}  {'Exact CDF':>12}  {'Normal approx':>15}  {'|Error|':>10}")
+for n in [20, 50, 100, 200]:
+    k = int(n * p)      # floor(np)
+    mu    = n * p
+    sigma = np.sqrt(n * p * (1 - p))
+    # TODO: compute exact Binomial CDF and Normal approximation CDF
+    exact  = binom.cdf(k, n, p)
+    approx = norm.cdf(k, mu, sigma)
+    error  = abs(exact - approx)
+    print(f"{n:>6}  {k:>5}  {exact:>12.6f}  {approx:>15.6f}  {error:>10.6f}")
+`,
+      solution:
+`import numpy as np
+from scipy.stats import binom, norm
+
+p = 0.3
+print(f"p = {p}")
+print(f"{'n':>6}  {'k':>5}  {'Exact CDF':>12}  {'Normal approx':>15}  {'|Error|':>10}")
+for n in [20, 50, 100, 200]:
+    k = int(n * p)
+    mu    = n * p
+    sigma = np.sqrt(n * p * (1 - p))
+    exact  = binom.cdf(k, n, p)
+    approx = norm.cdf(k, mu, sigma)
+    error  = abs(exact - approx)
+    print(f"{n:>6}  {k:>5}  {exact:>12.6f}  {approx:>15.6f}  {error:>10.6f}")
+`,
+      expectedHint: 'The error should decrease as n increases — the approximation gets better.',
+    },
+  ],
+
+  'monte-carlo-approx': [
+    {
+      id: 'py-mc-1',
+      number: 'Py 4.5.1',
+      title: 'Monte Carlo Integration',
+      description:
+        'Estimate ∫₀² eˣ dx using Monte Carlo. ' +
+        'Task: (a) Use N = 100, 1000, 10000 uniform samples from [0,2] to estimate the integral. ' +
+        '(b) Compare with the exact value e² − 1. ' +
+        '(c) Compute the MC standard error for each N.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(17)
+exact = np.e**2 - 1
+
+print(f"True value: {exact:.6f}")
+print(f"{'N':>8}  {'Estimate':>12}  {'Error':>10}  {'Std error':>12}")
+for N in [100, 1_000, 10_000, 100_000]:
+    # TODO: sample N uniform points on [0, 2] and estimate the integral
+    u = np.random.uniform(0, 2, N)
+    f = np.exp(u)
+    estimate = 2.0 * f.mean()         # (b-a) * E[f(U)]
+    std_err  = 2.0 * f.std() / np.sqrt(N)
+    error    = abs(estimate - exact)
+    print(f"{N:>8}  {estimate:>12.6f}  {error:>10.6f}  {std_err:>12.6f}")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(17)
+exact = np.e**2 - 1
+
+print(f"True value: {exact:.6f}")
+print(f"{'N':>8}  {'Estimate':>12}  {'Error':>10}  {'Std error':>12}")
+for N in [100, 1_000, 10_000, 100_000]:
+    u = np.random.uniform(0, 2, N)
+    f = np.exp(u)
+    estimate = 2.0 * f.mean()
+    std_err  = 2.0 * f.std() / np.sqrt(N)
+    error    = abs(estimate - exact)
+    print(f"{N:>8}  {estimate:>12.6f}  {error:>10.6f}  {std_err:>12.6f}")
+`,
+      expectedHint: 'At N=10000 the error should be well below 0.01.',
+    },
+    {
+      id: 'py-mc-2',
+      number: 'Py 4.5.2',
+      title: 'MC Error Rate — Verify 1/√N Scaling',
+      description:
+        'Empirically confirm that the Monte Carlo error scales as 1/√N. ' +
+        'Task: for N = 100, 400, 1600, 6400, 25600 repeat the π estimation experiment R = 50 times each and compute the mean absolute error. Then check whether doubling √N halves the error.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(33)
+R = 50  # repetitions per N
+Ns = [100, 400, 1600, 6400, 25600]
+
+print(f"{'N':>8}  {'Mean |error|':>14}  {'Ratio to prev':>15}")
+prev_err = None
+for N in Ns:
+    errors = []
+    for r in range(R):
+        # TODO: estimate π with N darts
+        x, y = np.random.uniform(0, 1, N), np.random.uniform(0, 1, N)
+        pi_est = 4 * (x**2 + y**2 <= 1).mean()
+        errors.append(abs(pi_est - np.pi))
+    mean_err = np.mean(errors)
+    ratio = (prev_err / mean_err) if prev_err else float('nan')
+    print(f"{N:>8}  {mean_err:>14.6f}  {ratio:>15.3f}")
+    prev_err = mean_err
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(33)
+R = 50
+Ns = [100, 400, 1600, 6400, 25600]
+
+print(f"{'N':>8}  {'Mean |error|':>14}  {'Ratio to prev':>15}")
+prev_err = None
+for N in Ns:
+    errors = []
+    for r in range(R):
+        x, y = np.random.uniform(0, 1, N), np.random.uniform(0, 1, N)
+        pi_est = 4 * (x**2 + y**2 <= 1).mean()
+        errors.append(abs(pi_est - np.pi))
+    mean_err = np.mean(errors)
+    ratio = (prev_err / mean_err) if prev_err else float('nan')
+    print(f"{N:>8}  {mean_err:>14.6f}  {ratio:>15.3f}")
+    prev_err = mean_err
+`,
+      expectedHint: 'Each 4× increase in N should give a ratio of approximately 2.0 (error halves).',
+    },
+  ],
+
+  'normal-distribution-theory': [
+    {
+      id: 'py-normth-1',
+      number: 'Py 4.6.1',
+      title: 'Constructing Chi-Squared from Normals',
+      description:
+        'Simulate χ²(k) as the sum of k squared standard normals and verify the mean and variance. ' +
+        'Task: for k = 1, 2, 4, 8, draw N = 50000 chi-squared samples and print simulated vs theoretical mean and variance.',
+      starterCode:
+`import numpy as np
+
+np.random.seed(20)
+N = 50_000
+
+print(f"{'k':>5}  {'Sim mean':>10}  {'Theory mean':>13}  {'Sim var':>10}  {'Theory var':>12}")
+for k in [1, 2, 4, 8]:
+    # TODO: simulate chi-squared(k) as sum of k squared standard normals
+    z = np.random.standard_normal((N, k))
+    v = (z**2).sum(axis=1)
+    sim_mean = v.mean()
+    sim_var  = v.var()
+    print(f"{k:>5}  {sim_mean:>10.4f}  {k:>13.4f}  {sim_var:>10.4f}  {2*k:>12.4f}")
+`,
+      solution:
+`import numpy as np
+
+np.random.seed(20)
+N = 50_000
+
+print(f"{'k':>5}  {'Sim mean':>10}  {'Theory mean':>13}  {'Sim var':>10}  {'Theory var':>12}")
+for k in [1, 2, 4, 8]:
+    z = np.random.standard_normal((N, k))
+    v = (z**2).sum(axis=1)
+    sim_mean = v.mean()
+    sim_var  = v.var()
+    print(f"{k:>5}  {sim_mean:>10.4f}  {k:>13.4f}  {sim_var:>10.4f}  {2*k:>12.4f}")
+`,
+      expectedHint: 'The simulated mean should be within 0.05 of k, and variance within 0.2 of 2k.',
+    },
+    {
+      id: 'py-normth-2',
+      number: 'Py 4.6.2',
+      title: 't-Distribution Tail Probability',
+      description:
+        'Confirm that t(df) → N(0,1) as df → ∞ by comparing tail probabilities. ' +
+        'Task: for df = 1, 3, 10, 30, 100, 1000, compute P(T > 2) using scipy and print the convergence to P(Z > 2) ≈ 0.02275.',
+      starterCode:
+`import numpy as np
+from scipy.stats import t as t_dist, norm
+
+z_tail = norm.sf(2)  # P(Z > 2)
+print(f"P(Z > 2) = {z_tail:.6f}")
+print()
+print(f"{'df':>8}  {'P(T>2)':>12}  {'|diff|':>10}")
+for df in [1, 3, 10, 30, 100, 1000]:
+    # TODO: compute P(T > 2) for t(df) using t_dist.sf
+    p_t = t_dist.sf(2, df)
+    diff = abs(p_t - z_tail)
+    print(f"{df:>8}  {p_t:>12.6f}  {diff:>10.6f}")
+`,
+      solution:
+`import numpy as np
+from scipy.stats import t as t_dist, norm
+
+z_tail = norm.sf(2)
+print(f"P(Z > 2) = {z_tail:.6f}")
+print()
+print(f"{'df':>8}  {'P(T>2)':>12}  {'|diff|':>10}")
+for df in [1, 3, 10, 30, 100, 1000]:
+    p_t = t_dist.sf(2, df)
+    diff = abs(p_t - z_tail)
+    print(f"{df:>8}  {p_t:>12.6f}  {diff:>10.6f}")
+`,
+      expectedHint: 'By df=1000, P(T>2) should be within 0.0001 of P(Z>2) ≈ 0.02275.',
+    },
+  ],
 };

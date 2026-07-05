@@ -1724,4 +1724,582 @@ print(f"  Chebych bound  = {1/(a-1)**2:.5f}")
 `,
     },
   ],
+
+  // ── Chapter 4 ─────────────────────────────────────────────────────────────
+
+  'sampling-distributions': [
+    {
+      id: 'ch4-samp-lab-1',
+      title: 'Sampling Distribution of the Mean',
+      description: 'Simulate the sampling distribution of X̄ₙ for n = 1, 5, 30 from an Exponential(1) population. Plot histograms side-by-side and overlay the theoretical Normal approximation predicted by the CLT.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+np.random.seed(42)
+N_SIM = 5000
+ns = [1, 5, 30]
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+
+for ax, n in zip(axes, ns):
+    ax.set_facecolor('#1e293b')
+    # Draw N_SIM samples of size n, compute means
+    samples = np.random.exponential(scale=1, size=(N_SIM, n))
+    means = samples.mean(axis=1)
+
+    mu, sigma = 1.0, 1.0 / np.sqrt(n)
+    ax.hist(means, bins=40, density=True, color='#3b82f6', alpha=0.7, label='Simulated')
+
+    x = np.linspace(mu - 4*sigma, mu + 4*sigma, 200)
+    ax.plot(x, norm.pdf(x, mu, sigma), color='#10b981', linewidth=2, label='N(μ,σ²/n)')
+
+    ax.set_title(f'n = {n}', color='white')
+    ax.set_xlabel('X̄ₙ', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+
+plt.suptitle('Sampling Distribution of X̄ₙ — Exponential(1) Population', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()
+
+# Print statistics for n=30
+samples30 = np.random.exponential(scale=1, size=(N_SIM, 30))
+means30 = samples30.mean(axis=1)
+print(f"n=30: simulated mean={means30.mean():.4f} (theory=1.0000)")
+print(f"n=30: simulated std ={means30.std():.4f} (theory={1/np.sqrt(30):.4f})")`,
+    },
+    {
+      id: 'ch4-samp-lab-2',
+      title: 'Geometric Mean Sampling Distribution',
+      description: 'Reproduce the Example 4.1.1 sampling distribution for Y₂ = √(X₁X₂) where X₁, X₂ are i.i.d. on {1,2,3} with equal probability 1/3. Verify the exact PMF by simulation.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from collections import Counter
+from fractions import Fraction
+
+np.random.seed(0)
+
+# Exact PMF from Example 4.1.1 — X on {1,2,3} uniform
+vals = [1, 2, 3]
+pairs = [(x1, x2) for x1 in vals for x2 in vals]
+exact_pmf = Counter()
+for x1, x2 in pairs:
+    y = round(np.sqrt(x1 * x2), 6)
+    exact_pmf[y] += Fraction(1, 9)
+
+print("Exact PMF of Y₂ = √(X₁X₂):")
+for y in sorted(exact_pmf):
+    print(f"  Y₂={y:.4f}  P={float(exact_pmf[y]):.4f}  ({exact_pmf[y]})")
+
+# Simulation
+N = 200_000
+x1 = np.random.choice(vals, size=N)
+x2 = np.random.choice(vals, size=N)
+y2 = np.sqrt(x1 * x2).round(6)
+sim_pmf = Counter(y2)
+
+print("\\nSimulated PMF (N=200,000):")
+for y in sorted(sim_pmf):
+    print(f"  Y₂={y:.4f}  P={sim_pmf[y]/N:.4f}")
+
+# Plot comparison
+fig, ax = plt.subplots(figsize=(7, 4))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+labels = [f"{y:.3f}" for y in sorted(exact_pmf)]
+exact_vals = [float(exact_pmf[y]) for y in sorted(exact_pmf)]
+sim_vals   = [sim_pmf.get(round(y, 6), 0) / N for y in sorted(exact_pmf)]
+x = np.arange(len(labels))
+ax.bar(x - 0.18, exact_vals, 0.35, label='Exact', color='#3b82f6', alpha=0.85)
+ax.bar(x + 0.18, sim_vals,   0.35, label='Simulated', color='#f59e0b', alpha=0.85)
+ax.set_xticks(x); ax.set_xticklabels(labels, rotation=45, color='#94a3b8')
+ax.tick_params(colors='#94a3b8')
+ax.set_title('PMF of Y₂ = √(X₁X₂)', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+plt.tight_layout(); plt.show()`,
+    },
+  ],
+
+  'convergence-probability': [
+    {
+      id: 'ch4-convp-lab-1',
+      title: 'Visualising Convergence in Probability',
+      description: 'Plot multiple paths of Xₙ = Zₙ/√n (where Zₙ ~ N(0,1)) and show how the fraction of paths outside a ε-band shrinks to zero as n grows, confirming convergence in probability.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(7)
+N_PATHS = 50
+N_MAX   = 200
+EPS     = 0.3
+
+# Simulate all paths
+Z = np.random.standard_normal((N_PATHS, N_MAX))
+ns = np.arange(1, N_MAX + 1)
+Xn = Z / np.sqrt(ns)  # shape (N_PATHS, N_MAX)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+
+# Left: sample paths
+ax = axes[0]
+ax.set_facecolor('#1e293b')
+for i in range(N_PATHS):
+    ax.plot(ns, Xn[i], alpha=0.25, linewidth=0.8, color='#3b82f6')
+ax.axhline(EPS,  color='#ef4444', linestyle='--', linewidth=1.5, label=f'±ε={EPS}')
+ax.axhline(-EPS, color='#ef4444', linestyle='--', linewidth=1.5)
+ax.axhline(0, color='white', linewidth=1, alpha=0.4)
+ax.set_xlabel('n', color='#94a3b8'); ax.set_ylabel('Xₙ', color='#94a3b8')
+ax.tick_params(colors='#94a3b8')
+ax.set_title('50 paths of Xₙ = Zₙ/√n', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+# Right: fraction outside ε-band vs n
+ax2 = axes[1]
+ax2.set_facecolor('#1e293b')
+frac_outside = (np.abs(Xn) >= EPS).mean(axis=0)
+ax2.plot(ns, frac_outside, color='#f59e0b', linewidth=2, label='Fraction |Xₙ|≥ε')
+# Chebyshev bound: 1/(n·ε²) — since Var(Xₙ)=1/n
+chebyshev = np.minimum(1.0, 1.0 / (ns * EPS**2))
+ax2.plot(ns, chebyshev, color='#ef4444', linestyle='--', linewidth=1.5, label='Chebyshev bound')
+ax2.set_xlabel('n', color='#94a3b8'); ax2.set_ylabel('P(|Xₙ|≥ε)', color='#94a3b8')
+ax2.tick_params(colors='#94a3b8')
+ax2.set_title(f'Fraction of paths outside ε={EPS} band', color='white')
+ax2.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+plt.tight_layout(); plt.show()`,
+    },
+    {
+      id: 'ch4-convp-lab-2',
+      title: 'WLLN — Running Sample Mean',
+      description: 'Demonstrate the Weak Law of Large Numbers for i.i.d. Cauchy-distributed samples (which have no mean) vs Exponential(1) samples (finite mean). Visualise how the running mean behaves for each.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+N = 2000
+ns = np.arange(1, N + 1)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+
+for ax, dist, title, mu_theory in zip(
+    axes,
+    ['exp', 'cauchy'],
+    ['Exponential(1) — WLLN holds (μ=1)', 'Cauchy — WLLN fails (no finite mean)'],
+    [1.0, None]
+):
+    ax.set_facecolor('#1e293b')
+    for seed in range(5):
+        np.random.seed(seed * 11)
+        if dist == 'exp':
+            x = np.random.exponential(1, N)
+        else:
+            x = np.random.standard_cauchy(N)
+        running_mean = np.cumsum(x) / ns
+        # Clip Cauchy display so it's visible
+        running_mean_clipped = np.clip(running_mean, -20, 20)
+        ax.plot(ns, running_mean_clipped, alpha=0.7, linewidth=1.2)
+    if mu_theory is not None:
+        ax.axhline(mu_theory, color='white', linestyle='--', linewidth=1.5, label=f'μ = {mu_theory}')
+    ax.set_xlabel('n', color='#94a3b8'); ax.set_ylabel('Running Mean X̄ₙ', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.set_title(title, color='white', fontsize=10)
+    if mu_theory:
+        ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+plt.suptitle('Running Sample Mean: WLLN holds iff E[X] is finite', color='white', fontsize=11)
+plt.tight_layout(); plt.show()`,
+    },
+  ],
+
+  'convergence-probability-1': [
+    {
+      id: 'ch4-slln-lab-1',
+      title: 'Strong LLN — All Paths Converge',
+      description: 'Simulate 20 independent running-average paths for N(0,1) samples. Unlike in-probability convergence, every single path visually converges to μ = 0 once n is large enough, illustrating the almost-sure nature of the SLLN.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(123)
+N = 500
+N_PATHS = 20
+ns = np.arange(1, N + 1)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+
+for i in range(N_PATHS):
+    z = np.random.standard_normal(N)
+    running_mean = np.cumsum(z) / ns
+    ax.plot(ns, running_mean, alpha=0.55, linewidth=1.2)
+
+ax.axhline(0, color='white', linestyle='--', linewidth=2, label='μ = 0')
+# ε band
+EPS = 0.15
+ax.axhline(EPS,  color='#10b981', linestyle=':', linewidth=1.5, label=f'±ε = {EPS}')
+ax.axhline(-EPS, color='#10b981', linestyle=':', linewidth=1.5)
+ax.fill_between(ns, -EPS, EPS, alpha=0.07, color='#10b981')
+
+ax.set_xlabel('n', color='#94a3b8', fontsize=12)
+ax.set_ylabel('X̄ₙ', color='#94a3b8', fontsize=12)
+ax.tick_params(colors='#94a3b8')
+ax.set_title('Strong LLN: all 20 running averages of N(0,1) converge to 0', color='white', fontsize=12)
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+plt.tight_layout(); plt.show()
+
+# Count how many paths are inside the ε-band for n ≥ 400
+paths = []
+for i in range(N_PATHS):
+    np.random.seed(i * 7 + 3)
+    z = np.random.standard_normal(N)
+    running_mean = np.cumsum(z) / ns
+    paths.append(running_mean)
+paths = np.array(paths)
+inside_after400 = (np.abs(paths[:, 399:]) < EPS).all(axis=1).mean()
+print(f"Fraction of paths permanently inside ε={EPS} band for n≥400: {inside_after400:.0%}")`,
+    },
+    {
+      id: 'ch4-slln-lab-2',
+      title: 'A.S. vs In-Probability: a Constructed Example',
+      description: 'Construct the classic "moving bump" sequence where Xₙ → 0 in probability but not almost surely. Compare it to Xₙ = Zₙ/n which converges a.s. Plot empirical fractions outside a ε-band.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(99)
+N = 1000
+N_PATHS = 500
+ns = np.arange(1, N + 1)
+EPS = 0.4
+
+# Sequence 1: Xₙ = Z_n / sqrt(n) — converges in prob but NOT a.s.
+# (individual paths oscillate indefinitely, just with decreasing probability)
+# Sequence 2: Xₙ = Z_n / n — converges a.s. (since Σ1/n² < ∞ by Borel-Cantelli)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+
+sequences = {
+    'In-prob only: Zₙ/√n': lambda z: z / np.sqrt(ns),
+    'Almost sure: Zₙ/n':   lambda z: z / ns,
+}
+
+for ax, (title, seq_fn) in zip(axes, sequences.items()):
+    ax.set_facecolor('#1e293b')
+    outside_frac = np.zeros(N)
+    for i in range(N_PATHS):
+        z = np.random.standard_normal(N)
+        x = seq_fn(z)
+        outside_frac += (np.abs(x) >= EPS)
+        if i < 5:
+            ax.plot(ns, np.clip(x, -2, 2), alpha=0.5, linewidth=0.8)
+    outside_frac /= N_PATHS
+    ax.plot(ns, outside_frac, color='#ef4444', linewidth=2, label=f'P(|Xₙ|≥{EPS})')
+    ax.axhline(0, color='#10b981', linestyle='--', linewidth=1.5, label='→ 0')
+    ax.set_title(title, color='white', fontsize=10)
+    ax.set_xlabel('n', color='#94a3b8'); ax.set_ylabel('Fraction outside ε-band', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+
+plt.suptitle('Convergence in Probability vs Almost Sure', color='white', fontsize=11)
+plt.tight_layout(); plt.show()`,
+    },
+  ],
+
+  'convergence-distribution': [
+    {
+      id: 'ch4-clt-lab-1',
+      title: 'Central Limit Theorem — Multiple Distributions',
+      description: 'Demonstrate the CLT starting from three very different parent distributions: Exponential, Bernoulli, and a bimodal mixture. Show that, regardless of the parent shape, the standardised sample mean converges to N(0,1).',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+np.random.seed(0)
+N_SIM = 5000
+n = 30
+
+distributions = {
+    'Exponential(1) μ=1, σ²=1': {
+        'sample': lambda: np.random.exponential(1, (N_SIM, n)),
+        'mu': 1.0, 'sigma': 1.0,
+    },
+    'Bernoulli(0.3) μ=0.3, σ²=0.21': {
+        'sample': lambda: (np.random.uniform(0,1,(N_SIM,n)) < 0.3).astype(float),
+        'mu': 0.3, 'sigma': np.sqrt(0.3*0.7),
+    },
+    'Bimodal mixture μ=0, σ²=1': {
+        'sample': lambda: np.where(
+            np.random.uniform(0,1,(N_SIM,n)) < 0.5,
+            np.random.normal(-2, 0.5, (N_SIM,n)),
+            np.random.normal( 2, 0.5, (N_SIM,n))
+        ),
+        'mu': 0.0, 'sigma': np.sqrt(4 + 0.25),
+    },
+}
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+fig.patch.set_facecolor('#0f172a')
+
+for ax, (title, cfg) in zip(axes, distributions.items()):
+    ax.set_facecolor('#1e293b')
+    samples = cfg['sample']()
+    means = samples.mean(axis=1)
+    sigma_xbar = cfg['sigma'] / np.sqrt(n)
+    Z = (means - cfg['mu']) / sigma_xbar
+
+    ax.hist(Z, bins=40, density=True, color='#3b82f6', alpha=0.7, label='Simulated Zₙ')
+    x = np.linspace(-4, 4, 200)
+    ax.plot(x, norm.pdf(x), color='#10b981', linewidth=2.5, label='N(0,1)')
+    ax.set_title(title, color='white', fontsize=9)
+    ax.set_xlabel('Zₙ', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=7)
+
+plt.suptitle(f'CLT with n={n}: three very different parent distributions', color='white', fontsize=12)
+plt.tight_layout(); plt.show()`,
+    },
+    {
+      id: 'ch4-clt-lab-2',
+      title: 'CLT Accuracy vs Sample Size',
+      description: 'Quantify how well the CLT Normal approximation fits the actual distribution of X̄ₙ for n = 1, 5, 15, 50. Use a Q-Q plot to visualise normality as n grows.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+np.random.seed(42)
+N_SIM = 3000
+ns = [1, 5, 15, 50]
+
+fig, axes = plt.subplots(2, 4, figsize=(14, 7))
+fig.patch.set_facecolor('#0f172a')
+
+for col, n in enumerate(ns):
+    samples = np.random.exponential(1, (N_SIM, n))
+    means   = samples.mean(axis=1)
+    sigma_xbar = 1.0 / np.sqrt(n)
+    Z = (means - 1.0) / sigma_xbar
+
+    # Top row: histogram
+    ax_hist = axes[0, col]
+    ax_hist.set_facecolor('#1e293b')
+    ax_hist.hist(Z, bins=35, density=True, color='#3b82f6', alpha=0.75)
+    x = np.linspace(-4, 4, 200)
+    ax_hist.plot(x, stats.norm.pdf(x), color='#10b981', linewidth=2)
+    ax_hist.set_title(f'n={n}', color='white')
+    ax_hist.tick_params(colors='#94a3b8')
+    ax_hist.set_xlabel('Zₙ', color='#94a3b8')
+
+    # Bottom row: Q-Q plot
+    ax_qq = axes[1, col]
+    ax_qq.set_facecolor('#1e293b')
+    (osm, osr), (slope, intercept, r) = stats.probplot(Z, dist='norm')
+    ax_qq.scatter(osm, osr, alpha=0.3, s=4, color='#f59e0b')
+    ax_qq.plot([-3,3], [-3,3], color='#ef4444', linewidth=1.5)
+    ax_qq.set_title(f'Q-Q n={n}, R²={r**2:.3f}', color='white', fontsize=9)
+    ax_qq.tick_params(colors='#94a3b8')
+    ax_qq.set_xlabel('Theoretical', color='#94a3b8')
+    ax_qq.set_ylabel('Sample', color='#94a3b8')
+
+plt.suptitle('CLT accuracy vs n — Exponential(1) source', color='white', fontsize=12)
+plt.tight_layout(); plt.show()`,
+    },
+  ],
+
+  'monte-carlo-approx': [
+    {
+      id: 'ch4-mc-lab-1',
+      title: 'Monte Carlo π Estimation',
+      description: 'Estimate π using the dart-board method for increasing N. Plot the estimate vs N and show the 1/√N convergence of the error.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(21)
+Ns = np.logspace(1, 5, 50).astype(int)  # 10 to 100,000
+
+estimates = []
+errors    = []
+for N in Ns:
+    x, y = np.random.uniform(0, 1, N), np.random.uniform(0, 1, N)
+    inside = (x**2 + y**2 <= 1).sum()
+    pi_est = 4 * inside / N
+    estimates.append(pi_est)
+    errors.append(abs(pi_est - np.pi))
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+
+ax = axes[0]
+ax.set_facecolor('#1e293b')
+ax.semilogx(Ns, estimates, color='#3b82f6', linewidth=1.5, label='π̂')
+ax.axhline(np.pi, color='#ef4444', linestyle='--', linewidth=2, label=f'True π = {np.pi:.5f}')
+ax.set_xlabel('N (log scale)', color='#94a3b8')
+ax.set_ylabel('Estimate of π', color='#94a3b8')
+ax.tick_params(colors='#94a3b8')
+ax.set_title('MC π estimate vs N', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+ax2 = axes[1]
+ax2.set_facecolor('#1e293b')
+ax2.loglog(Ns, errors, color='#f59e0b', linewidth=1.5, label='|π̂ − π|')
+theory = 1.5 / np.sqrt(Ns)
+ax2.loglog(Ns, theory, color='#10b981', linestyle='--', linewidth=2, label='1.5/√N')
+ax2.set_xlabel('N (log scale)', color='#94a3b8')
+ax2.set_ylabel('Absolute error (log scale)', color='#94a3b8')
+ax2.tick_params(colors='#94a3b8')
+ax2.set_title('MC error — log-log shows 1/√N rate', color='white')
+ax2.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+plt.tight_layout(); plt.show()
+print(f"At N=100,000: π̂ = {estimates[-1]:.6f}, error = {errors[-1]:.6f}")`,
+    },
+    {
+      id: 'ch4-mc-lab-2',
+      title: 'Monte Carlo Integration — General Functions',
+      description: 'Use Monte Carlo to estimate several definite integrals and compare with exact values. Visualise the convergence and compute the empirical standard error.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(55)
+
+integrals = [
+    ('∫₀¹ x² dx',        lambda x: x**2,          0,1,  1/3),
+    ('∫₀¹ eˣ dx',         lambda x: np.exp(x),     0,1,  np.e - 1),
+    ('∫₀π sin(x) dx',     lambda x: np.sin(x),     0,np.pi, 2.0),
+    ('∫₀¹ 4√(1-x²) dx',  lambda x: 4*np.sqrt(np.maximum(0,1-x**2)), 0,1, np.pi),
+]
+
+Ns = np.logspace(1.5, 5, 40).astype(int)
+
+fig, axes = plt.subplots(2, 4, figsize=(14, 6))
+fig.patch.set_facecolor('#0f172a')
+
+for col, (label, f, a, b, exact) in enumerate(integrals):
+    ests, errs = [], []
+    for N in Ns:
+        u = np.random.uniform(a, b, N)
+        est = (b - a) * f(u).mean()
+        ests.append(est)
+        errs.append(abs(est - exact))
+
+    ax = axes[0, col]; ax.set_facecolor('#1e293b')
+    ax.semilogx(Ns, ests, color='#3b82f6', linewidth=1.5)
+    ax.axhline(exact, color='#ef4444', linestyle='--', linewidth=1.5, label=f'True={exact:.4f}')
+    ax.set_title(label, color='white', fontsize=9)
+    ax.tick_params(colors='#94a3b8'); ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=7)
+
+    ax2 = axes[1, col]; ax2.set_facecolor('#1e293b')
+    ax2.loglog(Ns, errs, color='#f59e0b', linewidth=1.5, label='Error')
+    ax2.loglog(Ns, 1/np.sqrt(Ns), color='#10b981', linestyle='--', linewidth=1.5, label='1/√N')
+    ax2.tick_params(colors='#94a3b8'); ax2.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=7)
+
+plt.suptitle('Monte Carlo Integration — four functions, 1/√N error rate', color='white', fontsize=11)
+plt.tight_layout(); plt.show()`,
+    },
+  ],
+
+  'normal-distribution-theory': [
+    {
+      id: 'ch4-normth-lab-1',
+      title: 'Chi-Squared and t-Distributions',
+      description: 'Simulate chi-squared and t random variables from Normal draws, verify their distributions against theoretical PDFs, and explore how the t-distribution converges to N(0,1) as df increases.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import chi2, t as t_dist, norm
+
+np.random.seed(7)
+N = 50_000
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+fig.patch.set_facecolor('#0f172a')
+
+# Panel 1: χ²(k) for several k values
+ax = axes[0]; ax.set_facecolor('#1e293b')
+for k, color in [(1,'#ef4444'),(2,'#f59e0b'),(3,'#3b82f6'),(5,'#10b981'),(10,'#8b5cf6')]:
+    z = np.random.standard_normal((N, k))
+    v = (z**2).sum(axis=1)
+    ax.hist(v, bins=60, density=True, histtype='step', linewidth=1.5, color=color, label=f'k={k}')
+x = np.linspace(0, 25, 300)
+for k, color in [(1,'#ef4444'),(3,'#3b82f6'),(10,'#8b5cf6')]:
+    ax.plot(x, chi2.pdf(x, k), '--', color=color, linewidth=1.5, alpha=0.8)
+ax.set_xlim(0, 25); ax.set_ylim(0, 0.5)
+ax.set_title('χ²(k) — sum of k Normal squares', color='white')
+ax.tick_params(colors='#94a3b8'); ax.set_xlabel('x', color='#94a3b8')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+
+# Panel 2: t(df) vs N(0,1) for several df
+ax2 = axes[1]; ax2.set_facecolor('#1e293b')
+x = np.linspace(-5, 5, 300)
+for df, color in [(1,'#ef4444'),(3,'#f59e0b'),(10,'#3b82f6'),(30,'#10b981')]:
+    ax2.plot(x, t_dist.pdf(x, df), color=color, linewidth=1.8, label=f'df={df}')
+ax2.plot(x, norm.pdf(x), '--', color='white', linewidth=2, label='N(0,1)')
+ax2.set_title('t(df) → N(0,1) as df → ∞', color='white')
+ax2.tick_params(colors='#94a3b8'); ax2.set_xlabel('x', color='#94a3b8')
+ax2.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+
+# Panel 3: t tail probability vs Normal
+ax3 = axes[2]; ax3.set_facecolor('#1e293b')
+dfs = [1, 2, 3, 5, 10, 20, 50, 100]
+tail_t = [2 * t_dist.sf(2, df) for df in dfs]
+ax3.plot(dfs, tail_t, 'o-', color='#3b82f6', linewidth=2, label='P(|T|>2) for t(df)')
+ax3.axhline(2 * norm.sf(2), color='#ef4444', linestyle='--', linewidth=1.5, label='P(|Z|>2) Normal')
+ax3.set_xlabel('Degrees of freedom', color='#94a3b8'); ax3.set_ylabel('Tail probability', color='#94a3b8')
+ax3.tick_params(colors='#94a3b8')
+ax3.set_title('Heavier tails: P(|T|>2) vs df', color='white')
+ax3.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+
+plt.tight_layout(); plt.show()
+print(f"t(1) P(|T|>2) = {2*t_dist.sf(2,1):.4f}")
+print(f"t(10) P(|T|>2) = {2*t_dist.sf(2,10):.4f}")
+print(f"N(0,1) P(|Z|>2) = {2*norm.sf(2):.4f}")`,
+    },
+    {
+      id: 'ch4-normth-lab-2',
+      title: 'Linear Combinations of Independent Normals',
+      description: 'Verify empirically that X + Y ~ N(μ₁+μ₂, σ₁²+σ₂²) for independent normals, and explore the distribution of aX + bY for general constants a, b.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+np.random.seed(3)
+N = 100_000
+
+# Three scenarios: (μ₁,σ₁,μ₂,σ₂,a,b)
+scenarios = [
+    (0,  1, 0,  1, 1, 1,  'X+Y, both N(0,1)'),
+    (2,  1, 3,  2, 1, 1,  'X+Y, N(2,1)+N(3,4)'),
+    (0,  1, 0,  1, 2, -1, '2X-Y, both N(0,1)'),
+]
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+fig.patch.set_facecolor('#0f172a')
+
+for ax, (mu1, s1, mu2, s2, a, b, title) in zip(axes, scenarios):
+    ax.set_facecolor('#1e293b')
+    X = np.random.normal(mu1, s1, N)
+    Y = np.random.normal(mu2, s2, N)
+    Z = a*X + b*Y
+
+    # Theoretical parameters
+    mu_z  = a*mu1 + b*mu2
+    var_z = (a*s1)**2 + (b*s2)**2
+    sig_z = np.sqrt(var_z)
+
+    ax.hist(Z, bins=60, density=True, color='#3b82f6', alpha=0.7, label='Simulated')
+    x = np.linspace(mu_z - 4*sig_z, mu_z + 4*sig_z, 300)
+    ax.plot(x, norm.pdf(x, mu_z, sig_z), color='#ef4444', linewidth=2.5,
+            label=f'N({mu_z:.1f},{var_z:.1f})')
+    ax.set_title(title, color='white', fontsize=9)
+    ax.set_xlabel('Value', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    print(f"{title}: sim μ={Z.mean():.3f} (theory {mu_z:.3f}), sim σ={Z.std():.3f} (theory {sig_z:.3f})")
+
+plt.suptitle('Linear combinations of independent Normals remain Normal', color='white', fontsize=11)
+plt.tight_layout(); plt.show()`,
+    },
+  ],
 };
