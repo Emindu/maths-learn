@@ -7,6 +7,7 @@ import { LegacyModuleLoader } from './components/LegacyModuleLoader';
 import { MontyHallGame } from './pages/MontyHallGame';
 import { ProbabilityConceptPage } from './pages/ProbabilityConceptPage';
 import { Ch2ConceptPage } from './pages/Ch2ConceptPage';
+import { Ch3ConceptPage } from './pages/Ch3ConceptPage';
 
 export const App: React.FC = () => {
   const basename = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -30,6 +31,9 @@ export const App: React.FC = () => {
 
             {/* Random Variables & Distributions (Chapter 2) */}
             <Route path="/ch2/:id" element={<Ch2ConceptPage />} />
+
+            {/* Expectation (Chapter 3) */}
+            <Route path="/ch3/:id" element={<Ch3ConceptPage />} />
             
             {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
             <Route path="/legacy/*" element={<LegacyModuleLoader />} />

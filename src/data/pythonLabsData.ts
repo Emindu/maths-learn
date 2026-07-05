@@ -1373,4 +1373,355 @@ plt.show()
 `,
     },
   ],
+
+  // ── Chapter 3: Expectation ────────────────────────────────────────────────
+
+  'expectation-discrete': [
+    {
+      id: 'exp-disc-1',
+      title: 'Verifying E(X) via Simulation (LLN)',
+      description: 'Simulate 50,000 fair die rolls and watch the running average converge to E(X) = 3.5 — a direct illustration of the Law of Large Numbers.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+N = 50_000
+rolls = np.random.randint(1, 7, size=N)
+
+running_mean = np.cumsum(rolls) / np.arange(1, N + 1)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+    ax.tick_params(colors='#94a3b8')
+    for s in ax.spines.values(): s.set_edgecolor('#334155')
+
+# Running mean convergence
+axes[0].plot(running_mean, color='#3b82f6', linewidth=1.2, alpha=0.9)
+axes[0].axhline(3.5, color='#ef4444', linestyle='--', linewidth=2, label='E(X) = 3.5')
+axes[0].set_xscale('log')
+axes[0].set_xlabel('Number of rolls (log scale)', color='#94a3b8')
+axes[0].set_ylabel('Running average', color='#94a3b8')
+axes[0].set_title('Running Mean Converges to E(X) = 3.5', color='white', fontsize=11)
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+# PMF bar chart
+vals, counts = np.unique(rolls, return_counts=True)
+probs = counts / N
+axes[1].bar(vals, probs, color='#8b5cf6', alpha=0.8, edgecolor='#a78bfa')
+axes[1].axhline(1/6, color='#ef4444', linestyle='--', linewidth=2, label='Exact: 1/6')
+for v, p in zip(vals, probs):
+    axes[1].text(v, p + 0.003, f'{p:.3f}', ha='center', color='#94a3b8', fontsize=9)
+axes[1].set_title('Simulated PMF (should be ≈ 1/6 each)', color='white', fontsize=11)
+axes[1].set_xlabel('Die value', color='#94a3b8')
+axes[1].set_ylabel('Frequency', color='#94a3b8')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+print(f"Simulated E(X) = {rolls.mean():.4f}  (exact: 3.5)")
+plt.tight_layout()
+plt.show()
+`,
+    },
+    {
+      id: 'exp-disc-2',
+      title: 'Binomial vs Poisson Mean & Variance',
+      description: 'Compare the simulated means and variances of Binomial(100, 0.04) and Poisson(4) side by side. Both share the same theoretical mean λ=4 and similar variance.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import binom, poisson
+
+np.random.seed(7)
+N = 30_000
+n, p, lam = 100, 0.04, 4
+
+binom_samples = np.random.binomial(n, p, N)
+pois_samples  = np.random.poisson(lam, N)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig.patch.set_facecolor('#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+    ax.tick_params(colors='#94a3b8')
+    for s in ax.spines.values(): s.set_edgecolor('#334155')
+
+ks = np.arange(0, 15)
+for ax, samp, dist_pmf, label, color in [
+    (axes[0], binom_samples, binom.pmf(ks, n, p), f'Binomial({n},{p})', '#3b82f6'),
+    (axes[1], pois_samples,  poisson.pmf(ks, lam), f'Poisson({lam})',   '#10b981'),
+]:
+    vals, counts = np.unique(samp, return_counts=True)
+    ax.bar(vals[vals < 15], counts[vals < 15] / N, color=color, alpha=0.5, label='Simulated', width=0.4, align='edge')
+    ax.plot(ks, dist_pmf, 'o-', color='#f59e0b', linewidth=1.5, markersize=4, label='Exact PMF')
+    ax.set_title(label, color='white', fontsize=11)
+    ax.set_xlabel('k', color='#94a3b8')
+    ax.set_ylabel('P(X=k)', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+    print(f"{label}: E[X]={samp.mean():.3f} (exact={lam}), Var={samp.var():.3f} (exact≈{n*p*(1-p):.3f})")
+
+plt.suptitle('Binomial vs Poisson — same mean λ=4', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()
+`,
+    },
+  ],
+
+  'expectation-continuous': [
+    {
+      id: 'exp-cont-1',
+      title: 'Centre of Mass of a PDF',
+      description: 'Numerically verify that E(X) = ∫x·f(x)dx equals the theoretical formula for three continuous distributions: Uniform, Exponential, and Normal.',
+      code: `import numpy as np
+from scipy import integrate
+import matplotlib.pyplot as plt
+from scipy.stats import uniform, expon, norm
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+fig.patch.set_facecolor('#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b'); ax.tick_params(colors='#94a3b8')
+
+configs = [
+    ('Uniform[1, 5]', uniform(1, 4), (0.5, 5.5), '#3b82f6', 3.0),
+    ('Exponential(λ=2)', expon(scale=0.5), (0, 3), '#10b981', 0.5),
+    ('Normal(μ=2, σ=1)', norm(2, 1), (-1, 5), '#8b5cf6', 2.0),
+]
+
+for ax, (title, dist, xlim, color, exact_mean) in zip(axes, configs):
+    xs = np.linspace(*xlim, 500)
+    ys = dist.pdf(xs)
+    ax.fill_between(xs, ys, alpha=0.3, color=color)
+    ax.plot(xs, ys, color=color, linewidth=2)
+
+    # Numerical E(X)
+    ev, _ = integrate.quad(lambda x: x * dist.pdf(x), *xlim)
+    ax.axvline(ev, color='#ef4444', linewidth=2, linestyle='--', label=f'E(X)={ev:.3f}')
+
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    ax.set_title(title, color='white', fontsize=10)
+    ax.set_xlabel('x', color='#94a3b8')
+    ax.set_ylabel('f(x)', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+    print(f"{title}: numerical E(X)={ev:.4f}, exact={exact_mean}")
+
+plt.suptitle('E(X) = ∫ x·f(x)dx — centre of mass of the density', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()
+`,
+    },
+  ],
+
+  'variance-covariance': [
+    {
+      id: 'var-cov-1',
+      title: 'Covariance and Correlation from Samples',
+      description: 'Generate bivariate normal samples for ρ = −0.8, 0, +0.8 and compute sample covariance and correlation. Compare to the population values.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+N = 2000
+rhos = [-0.8, 0.0, 0.8]
+colors = ['#ef4444', '#94a3b8', '#10b981']
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+fig.patch.set_facecolor('#0f172a')
+
+for ax, rho, color in zip(axes, rhos, colors):
+    cov_matrix = [[1, rho], [rho, 1]]
+    data = np.random.multivariate_normal([0, 0], cov_matrix, N)
+    X, Y = data[:, 0], data[:, 1]
+
+    ax.set_facecolor('#1e293b')
+    ax.scatter(X, Y, s=4, alpha=0.4, color=color)
+    ax.set_aspect('equal')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    ax.tick_params(colors='#94a3b8')
+
+    sample_cov = np.cov(X, Y)[0, 1]
+    sample_corr = np.corrcoef(X, Y)[0, 1]
+    ax.set_title(f'ρ = {rho}', color='white', fontsize=11)
+    ax.set_xlabel('X', color='#94a3b8')
+    ax.set_ylabel('Y', color='#94a3b8')
+    ax.text(0.05, 0.92, f'Cov={sample_cov:.3f}\\nCorr={sample_corr:.3f}',
+            transform=ax.transAxes, color='white', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='#0f172a', alpha=0.7))
+    print(f"ρ={rho}: sample Cov={sample_cov:.4f}, sample Corr={sample_corr:.4f}")
+
+plt.suptitle('Covariance & Correlation for Different ρ Values', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()
+`,
+    },
+    {
+      id: 'var-cov-2',
+      title: 'Variance of a Sum',
+      description: 'Verify Var(X+Y) = Var(X) + Var(Y) + 2·Cov(X,Y) numerically by simulating correlated pairs and comparing to the formula.',
+      code: `import numpy as np
+
+np.random.seed(42)
+N = 100_000
+
+for rho in [-0.7, 0, 0.5, 0.9]:
+    cov_matrix = [[4, rho * 2 * 3], [rho * 2 * 3, 9]]  # Var(X)=4, Var(Y)=9
+    data = np.random.multivariate_normal([0, 0], cov_matrix, N)
+    X, Y = data[:, 0], data[:, 1]
+
+    var_x   = np.var(X, ddof=1)
+    var_y   = np.var(Y, ddof=1)
+    cov_xy  = np.cov(X, Y, ddof=1)[0, 1]
+    var_sum_formula = var_x + var_y + 2 * cov_xy
+    var_sum_direct  = np.var(X + Y, ddof=1)
+
+    print(f"ρ={rho:+.1f} | Var(X)={var_x:.3f} Var(Y)={var_y:.3f} "
+          f"Cov={cov_xy:.3f} | Formula={var_sum_formula:.3f} Direct={var_sum_direct:.3f}")
+
+print("\\nFormula and direct measurement agree — Var(X+Y) = Var(X)+Var(Y)+2·Cov(X,Y) ✓")
+`,
+    },
+  ],
+
+  'generating-functions': [
+    {
+      id: 'mgf-1',
+      title: 'MGF Moments vs Simulated Moments',
+      description: 'Compare the theoretical moments E[X], E[X²], Var(X) obtained from the MGF formulas against simulation for Binomial, Poisson, and Normal.',
+      code: `import numpy as np
+from scipy.stats import binom, poisson, norm
+
+np.random.seed(0)
+N = 100_000
+
+print("Distribution        | E[X] (exact / sim)  | Var(X) (exact / sim)")
+print("-" * 65)
+
+# Binomial(20, 0.3)
+n, p = 20, 0.3
+s = binom.rvs(n, p, size=N)
+print(f"Binomial(20, 0.3)   | {n*p:.3f} / {s.mean():.3f}       | {n*p*(1-p):.3f} / {s.var():.3f}")
+
+# Poisson(5)
+lam = 5
+s = poisson.rvs(lam, size=N)
+print(f"Poisson(5)          | {lam:.3f} / {s.mean():.3f}       | {lam:.3f} / {s.var():.3f}")
+
+# Normal(3, 4)
+mu, sigma2 = 3, 4
+s = norm.rvs(mu, np.sqrt(sigma2), size=N)
+print(f"Normal(3, 4)        | {mu:.3f} / {s.mean():.3f}       | {sigma2:.3f} / {s.var():.3f}")
+
+print("\\nMGF derivatives at s=0 reproduce the exact means and variances.")
+`,
+    },
+  ],
+
+  'conditional-expectation': [
+    {
+      id: 'cond-exp-1',
+      title: 'Law of Total Expectation — Simulation',
+      description: 'Simulate E(X) two ways: directly, and via E[E(X|Y)]. Both should match. Model: Y ~ Uniform{1..6}, X|Y=y ~ Binomial(y, 0.5).',
+      code: `import numpy as np
+
+np.random.seed(42)
+N = 200_000
+
+# X|Y=y ~ Binomial(y, 0.5);  Y ~ Uniform{1,...,6}
+Y = np.random.randint(1, 7, N)
+X = np.array([np.random.binomial(y, 0.5) for y in Y])
+
+# 1. Direct E(X)
+direct_mean = X.mean()
+
+# 2. E[E(X|Y)] — average the conditional means
+cond_means = {y: X[Y == y].mean() for y in range(1, 7)}
+prob_y = 1 / 6
+total_exp = sum(cond_means[y] * prob_y for y in range(1, 7))
+
+# Theoretical: E(X|Y=y) = y/2, so E(X) = E(Y/2) = E(Y)/2 = 3.5/2 = 1.75
+print(f"Direct E(X)           = {direct_mean:.4f}")
+print(f"E[E(X|Y)]             = {total_exp:.4f}")
+print(f"Theoretical E(X)      = {3.5/2:.4f}  (E[Y]/2)")
+print()
+print("Conditional means E(X|Y=y):")
+for y in range(1, 7):
+    print(f"  E(X|Y={y}) = {cond_means[y]:.4f}  (exact: {y/2:.2f})")
+print("\\nLaw of Total Expectation verified: direct ≈ E[E(X|Y)] ✓")
+`,
+    },
+    {
+      id: 'cond-exp-2',
+      title: 'Variance Decomposition (Law of Total Variance)',
+      description: 'Verify Var(X) = Var(E(X|Y)) + E(Var(X|Y)) using the same Y ~ Uniform{1..6}, X|Y ~ Binomial(Y, 0.5) model.',
+      code: `import numpy as np
+
+np.random.seed(42)
+N = 500_000
+
+Y = np.random.randint(1, 7, N)
+X = np.array([np.random.binomial(y, 0.5) for y in Y])
+
+# Total variance
+total_var = X.var()
+
+# Var(E(X|Y)) — variance of conditional means
+cond_mean_of_y = Y / 2   # E(X|Y=y) = y/2
+var_of_cond_means = cond_mean_of_y.var()
+
+# E(Var(X|Y)) — average conditional variance; Var(X|Y=y) = y*(0.5)*(0.5) = y/4
+cond_var_of_y = Y / 4
+avg_cond_var = cond_var_of_y.mean()
+
+print(f"Var(X)                = {total_var:.5f}")
+print(f"Var(E(X|Y))           = {var_of_cond_means:.5f}  (between-group variance)")
+print(f"E(Var(X|Y))           = {avg_cond_var:.5f}  (within-group variance)")
+print(f"Sum                   = {var_of_cond_means + avg_cond_var:.5f}")
+print()
+print("Law of Total Variance: Var(X) = Var(E(X|Y)) + E(Var(X|Y)) ✓")
+`,
+    },
+  ],
+
+  'expectation-inequalities': [
+    {
+      id: 'ineq-1',
+      title: 'Markov vs Chebyshev vs Exact Tail Probabilities',
+      description: 'For X ~ Exponential(1), compare P(X≥a) exactly, the Markov bound E(X)/a, and the Chebyshev bound Var(X)/(a-1)² for a > 1.',
+      code: `import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import expon
+
+a_vals = np.linspace(1.1, 6, 200)
+lam = 1  # Exp(1): mean=1, var=1
+
+exact   = expon.sf(a_vals)             # P(X >= a)
+markov  = 1 / a_vals                   # E(X)/a = 1/a
+# Chebyshev: P(|X-1| >= a-1) <= Var(X)/(a-1)^2 = 1/(a-1)^2
+cheb    = np.minimum(1.0, 1 / (a_vals - 1)**2)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+fig.patch.set_facecolor('#0f172a')
+ax.set_facecolor('#1e293b')
+ax.tick_params(colors='#94a3b8')
+for s in ax.spines.values(): s.set_edgecolor('#334155')
+
+ax.semilogy(a_vals, exact,  color='#22c55e', linewidth=2.5, label='Exact P(X≥a)')
+ax.semilogy(a_vals, markov, color='#3b82f6', linewidth=2, linestyle='--', label="Markov: E(X)/a")
+ax.semilogy(a_vals, cheb,   color='#f59e0b', linewidth=2, linestyle=':', label="Chebyshev: 1/(a−1)²")
+
+ax.set_xlabel('a', color='#94a3b8')
+ax.set_ylabel('Probability (log scale)', color='#94a3b8')
+ax.set_title('Tail Bound Comparison — Exp(1)', color='white', fontsize=12)
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.grid(True, color='#334155', alpha=0.5)
+
+plt.tight_layout()
+plt.show()
+
+print("At a=3:")
+a = 3
+print(f"  Exact   P(X≥3) = {expon.sf(a):.5f}")
+print(f"  Markov  bound  = {1/a:.5f}")
+print(f"  Chebych bound  = {1/(a-1)**2:.5f}")
+`,
+    },
+  ],
 };

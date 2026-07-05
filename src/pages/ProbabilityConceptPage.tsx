@@ -30,6 +30,19 @@ import { VizJointPMF, VizMarginalDist, VizJointDensity, VizBivariateNormal } fro
 import { VizConditionalDiscrete, VizConditionalContinuous, VizIndependenceCheck, VizIIDTrials } from '../visualizations/VizConditioningIndependence';
 import { VizSumDifference, VizJacobianDet, VizConvolution } from '../visualizations/VizMultidimCov';
 import { VizDiscreteSimulation, VizInverseCDF, VizBoxMuller } from '../visualizations/VizSimulatingDistributions';
+import {
+  VizDiscreteExpectation,
+  VizStPetersburg,
+  VizContinuousExpectation,
+  VizVarianceSpread,
+  VizCovarianceSign,
+  VizMGFTable,
+  VizConditionalMean,
+  VizTotalExpectation,
+  VizMarkovBound,
+  VizChebyshevBound,
+  VizJensenInequality,
+} from '../visualizations/VizExpectation';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -94,6 +107,18 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-discrete-sim':    VizDiscreteSimulation,
   'viz-inverse-cdf':     VizInverseCDF,
   'viz-box-muller':      VizBoxMuller,
+  // Chapter 3 — Expectation
+  'viz-discrete-expectation': VizDiscreteExpectation,
+  'viz-st-petersburg':        VizStPetersburg,
+  'viz-continuous-expectation': VizContinuousExpectation,
+  'viz-variance-spread':      VizVarianceSpread,
+  'viz-covariance-sign':      VizCovarianceSign,
+  'viz-mgf-table':            VizMGFTable,
+  'viz-conditional-mean':     VizConditionalMean,
+  'viz-total-expectation':    VizTotalExpectation,
+  'viz-markov-bound':         VizMarkovBound,
+  'viz-chebyshev-bound':      VizChebyshevBound,
+  'viz-jensen-inequality':    VizJensenInequality,
 };
 
 // ── Box components ────────────────────────────────────────────────────────────

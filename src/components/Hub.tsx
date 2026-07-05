@@ -39,6 +39,7 @@ export const Hub: React.FC = () => {
   const categories = [
     { id: 'concepts', label: 'Probability Concepts', icon: BookOpen, count: 6 },
     { id: 'ch2concepts', label: 'Random Variables', icon: Layers, count: 10 },
+    { id: 'ch3concepts', label: 'Expectation', icon: BarChart2, count: 6 },
     { id: 'distributions', label: 'Probability Distributions', icon: BarChart2, count: 14 },
     { id: 'properties', label: 'Distribution Properties', icon: Compass, count: 1 },
     { id: 'markov', label: 'Markov Chains', icon: Link2, count: 4 },
@@ -99,15 +100,15 @@ export const Hub: React.FC = () => {
           </p>
           <div className="hub-hero__stats">
             <div className="hub-stat">
-              <span className="hub-stat__number">36+</span>
+              <span className="hub-stat__number">42+</span>
               <span className="hub-stat__label">Topics</span>
             </div>
             <div className="hub-stat">
-              <span className="hub-stat__number">7</span>
+              <span className="hub-stat__number">8</span>
               <span className="hub-stat__label">Categories</span>
             </div>
             <div className="hub-stat">
-              <span className="hub-stat__number">15+</span>
+              <span className="hub-stat__number">26+</span>
               <span className="hub-stat__label">React Modules</span>
             </div>
           </div>
@@ -205,6 +206,7 @@ export const Hub: React.FC = () => {
               </div>
               <span className="hub-section__badge">10 topics</span>
             </div>
+
             <div className="topic-grid">
               <HubCard
                 title="Random Variables"
@@ -255,6 +257,51 @@ export const Hub: React.FC = () => {
                 title="Simulating Distributions"
                 desc="Generating samples from arbitrary distributions: the inverse CDF method, Box-Muller transform, and rejection sampling."
                 to="/ch2/simulating-distributions"
+              />
+            </div>
+          </section>
+
+          <hr className="hub-divider" />
+
+          {/* Category: Expectation (Chapter 3) */}
+          <section id="ch3concepts" className="hub-section">
+            <div className="hub-section__header">
+              <div className="hub-section__title-group">
+                <div className="hub-section__icon"><BarChart2 size={20} /></div>
+                <h2 className="hub-section__title">Expectation</h2>
+              </div>
+              <span className="hub-section__badge">6 topics</span>
+            </div>
+            <div className="topic-grid">
+              <HubCard
+                title="Expectation: The Discrete Case"
+                desc="E(X) = Σ x·P(X=x). Expected values of Bernoulli, Binomial, Geometric and Poisson; linearity; the St. Petersburg paradox."
+                to="/ch3/expectation-discrete"
+              />
+              <HubCard
+                title="Expectation: The Continuous Case"
+                desc="E(X) = ∫x·f(x)dx. Means of Uniform, Exponential, and Normal distributions; LOTUS for continuous variables."
+                to="/ch3/expectation-continuous"
+              />
+              <HubCard
+                title="Variance, Covariance & Correlation"
+                desc="Var(X) = E[X²]−(E[X])². Covariance as joint spread; correlation bounded in [−1, 1]; variance of a sum with 2·Cov term."
+                to="/ch3/variance-covariance"
+              />
+              <HubCard
+                title="Generating Functions"
+                desc="PGF, MGF m(s) = E[eˢˣ], and characteristic functions. Derivatives yield moments; product rule for independent sums."
+                to="/ch3/generating-functions"
+              />
+              <HubCard
+                title="Conditional Expectation"
+                desc="E(X|Y=y), E(X|Y) as a random variable, the law of total expectation, and the variance decomposition formula."
+                to="/ch3/conditional-expectation"
+              />
+              <HubCard
+                title="Probability Inequalities"
+                desc="Markov's, Chebyshev's, Cauchy–Schwarz, and Jensen's inequalities — bounding tail probabilities with moments alone."
+                to="/ch3/expectation-inequalities"
               />
             </div>
           </section>
