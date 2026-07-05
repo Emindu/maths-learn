@@ -67,6 +67,26 @@ import {
   VizCauchySchwarz,
   VizJensenFunctions,
 } from '../visualizations/VizExpectation';
+import {
+  VizGeometricMean,
+  VizSampleMeanDist,
+  VizSamplingConcept,
+  VizConvProbScatter,
+  VizCoinFracConverge,
+  VizWLLNGeneral,
+  VizAlmostSurePath,
+  VizStrongLLN,
+  VizAsVsProb,
+  VizCLTHistogram,
+  VizCLTUniform,
+  VizBinomialNormal,
+  VizMCPi,
+  VizMCIntegration,
+  VizMCError,
+  VizNormalLinearComb,
+  VizChiSquared,
+  VizTDistribution,
+} from '../visualizations/VizSamplingLimits';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -166,6 +186,25 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-chebyshev-comparison':       VizChebyshevComparison,
   'viz-cauchy-schwarz':             VizCauchySchwarz,
   'viz-jensen-functions':           VizJensenFunctions,
+  // Chapter 4 — Sampling Distributions & Limits
+  'viz-ch4-geometric-mean':     VizGeometricMean,
+  'viz-ch4-sample-mean-dist':   VizSampleMeanDist,
+  'viz-ch4-sampling-concept':   VizSamplingConcept,
+  'viz-ch4-conv-prob-scatter':  VizConvProbScatter,
+  'viz-ch4-wlln-coins':         VizCoinFracConverge,
+  'viz-ch4-wlln-general':       VizWLLNGeneral,
+  'viz-ch4-as-conv-path':       VizAlmostSurePath,
+  'viz-ch4-strong-lln':         VizStrongLLN,
+  'viz-ch4-as-vs-prob':         VizAsVsProb,
+  'viz-ch4-clt-histogram':      VizCLTHistogram,
+  'viz-ch4-clt-uniform':        VizCLTUniform,
+  'viz-ch4-binomial-normal':    VizBinomialNormal,
+  'viz-ch4-mc-pi':              VizMCPi,
+  'viz-ch4-mc-integration':     VizMCIntegration,
+  'viz-ch4-mc-error':           VizMCError,
+  'viz-ch4-normal-linear-comb': VizNormalLinearComb,
+  'viz-ch4-chi-squared':        VizChiSquared,
+  'viz-ch4-t-distribution':     VizTDistribution,
 };
 
 // ── Box components ────────────────────────────────────────────────────────────

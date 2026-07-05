@@ -7,7 +7,7 @@ export const TOPIC_SEQUENCE = [
   '/concepts/uniform-probability',
   '/concepts/conditional-probability',
   '/concepts/continuity-of-p',
-  
+
   '/ch2/rv-intro',
   '/ch2/rv-distributions',
   '/ch2/discrete-distributions',
@@ -18,14 +18,21 @@ export const TOPIC_SEQUENCE = [
   '/ch2/conditioning-independence',
   '/ch2/multidim-cov',
   '/ch2/simulating-distributions',
-  
+
   '/ch3/expectation-discrete',
   '/ch3/expectation-continuous',
   '/ch3/variance-covariance',
   '/ch3/generating-functions',
   '/ch3/conditional-expectation',
   '/ch3/expectation-inequalities',
-  
+
+  '/ch4/sampling-distributions',
+  '/ch4/convergence-probability',
+  '/ch4/convergence-probability-1',
+  '/ch4/convergence-distribution',
+  '/ch4/monte-carlo-approx',
+  '/ch4/normal-distribution-theory',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',
@@ -40,20 +47,20 @@ export const TOPIC_SEQUENCE = [
   '/distribution/uniform',
   '/distribution/zscore',
   '/distribution/Dirichlet',
-  
+
   '/legacy/skewness-kurtosis-edu/index.html',
-  
+
   '/legacy/markovChain.html',
   '/legacy/markovChainC.html',
   '/legacy/markov-chains-edu/index.html',
   '/legacy/continuous-probability-learning/index.html',
-  
+
   '/legacy/metropolis-hastings-learn/index.html',
   '/legacy/gibbs-sampling-tutor/index.html',
-  
+
   '/legacy/MonteCarloPiEstimationVisualization.html',
   '/game/monty-hall',
-  
+
   '/legacy/mixture-model-explorer/index.html',
   '/legacy/likelihood-mle-dashboard/index.html',
   '/legacy/trinity-uncertainty-dashboard/index.html',
@@ -68,6 +75,8 @@ interface ProgressContextType {
   isUnlocked: (path: string) => boolean;
   isCompleted: (path: string) => boolean;
   getNextTopic: (path: string) => string | null;
+  devMode: boolean;
+  toggleDevMode: () => void;
 }
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -86,9 +95,19 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [devMode, setDevMode] = useState<boolean>(() => {
+    return localStorage.getItem('maths-learn-dev-mode') === 'true';
+  });
+
   useEffect(() => {
     localStorage.setItem('maths-learn-progress', JSON.stringify(completedTopics));
   }, [completedTopics]);
+
+  useEffect(() => {
+    localStorage.setItem('maths-learn-dev-mode', String(devMode));
+  }, [devMode]);
+
+  const toggleDevMode = () => setDevMode((prev) => !prev);
 
   const markComplete = (path: string) => {
     setCompletedTopics((prev) => {
@@ -99,15 +118,13 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   };
 
-  const isCompleted = (path: string) => {
-    return completedTopics.includes(path);
-  };
+  const isCompleted = (path: string) => completedTopics.includes(path);
 
   const isUnlocked = (path: string) => {
+    if (devMode) return true;
     const idx = TOPIC_SEQUENCE.indexOf(path);
-    if (idx <= 0) return true; // First topic (or unknown path) is always unlocked
-    const previousPath = TOPIC_SEQUENCE[idx - 1];
-    return isCompleted(previousPath);
+    if (idx <= 0) return true;
+    return isCompleted(TOPIC_SEQUENCE[idx - 1]);
   };
 
   const getNextTopic = (path: string) => {
@@ -119,7 +136,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <ProgressContext.Provider value={{ completedTopics, markComplete, isUnlocked, isCompleted, getNextTopic }}>
+    <ProgressContext.Provider value={{ completedTopics, markComplete, isUnlocked, isCompleted, getNextTopic, devMode, toggleDevMode }}>
       {children}
     </ProgressContext.Provider>
   );

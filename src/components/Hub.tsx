@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface HubCardProps {
@@ -60,12 +60,13 @@ const HubCard: React.FC<HubCardProps> = ({ title, desc, to, isLegacy = false, is
 export const Hub: React.FC = () => {
   const location = useLocation();
   const [activeCategory, setActiveCategory] = useState('concepts');
-  const { isUnlocked, isCompleted } = useProgress();
+  const { isUnlocked, isCompleted, devMode, toggleDevMode } = useProgress();
 
   const categories = [
     { id: 'concepts', label: 'Probability Concepts', icon: BookOpen, count: 6 },
     { id: 'ch2concepts', label: 'Random Variables', icon: Layers, count: 10 },
     { id: 'ch3concepts', label: 'Expectation', icon: BarChart2, count: 6 },
+    { id: 'ch4concepts', label: 'Sampling & Limits', icon: FlaskConical, count: 6 },
     { id: 'distributions', label: 'Probability Distributions', icon: BarChart2, count: 14 },
     { id: 'properties', label: 'Distribution Properties', icon: Compass, count: 1 },
     { id: 'markov', label: 'Markov Chains', icon: Link2, count: 4 },
@@ -126,15 +127,15 @@ export const Hub: React.FC = () => {
           </p>
           <div className="hub-hero__stats">
             <div className="hub-stat">
-              <span className="hub-stat__number">42+</span>
+              <span className="hub-stat__number">48+</span>
               <span className="hub-stat__label">Topics</span>
             </div>
             <div className="hub-stat">
-              <span className="hub-stat__number">8</span>
+              <span className="hub-stat__number">9</span>
               <span className="hub-stat__label">Categories</span>
             </div>
             <div className="hub-stat">
-              <span className="hub-stat__number">26+</span>
+              <span className="hub-stat__number">44+</span>
               <span className="hub-stat__label">React Modules</span>
             </div>
           </div>
@@ -173,6 +174,35 @@ export const Hub: React.FC = () => {
               );
             })}
           </nav>
+          <div style={{ marginTop: 'var(--space-24)', paddingTop: 'var(--space-16)', borderTop: '1px solid var(--color-border)' }}>
+            <button
+              onClick={toggleDevMode}
+              title="Dev mode bypasses topic unlock requirements"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-8)',
+                padding: 'var(--space-8) var(--space-10)',
+                borderRadius: '6px',
+                border: `1px solid ${devMode ? 'var(--color-success)' : 'var(--color-border)'}`,
+                background: devMode ? 'color-mix(in srgb, var(--color-success) 12%, transparent)' : 'transparent',
+                color: devMode ? 'var(--color-success)' : 'var(--color-text-muted)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              <FlaskConical size={13} />
+              <span>Dev Mode {devMode ? 'ON' : 'OFF'}</span>
+            </button>
+            {devMode && (
+              <p style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-6)', lineHeight: 1.4, padding: '0 var(--space-4)' }}>
+                All topics unlocked. Progress not required.
+              </p>
+            )}
+          </div>
         </aside>
 
         {/* Content Area */}
@@ -328,6 +358,51 @@ export const Hub: React.FC = () => {
                 title="Probability Inequalities"
                 desc="Markov's, Chebyshev's, Cauchy–Schwarz, and Jensen's inequalities — bounding tail probabilities with moments alone."
                 to="/ch3/expectation-inequalities" isLocked={!isUnlocked('/ch3/expectation-inequalities')} isCompleted={isCompleted('/ch3/expectation-inequalities')}
+              />
+            </div>
+          </section>
+
+          <hr className="hub-divider" />
+
+          {/* Category: Sampling Distributions & Limits (Chapter 4) */}
+          <section id="ch4concepts" className="hub-section">
+            <div className="hub-section__header">
+              <div className="hub-section__title-group">
+                <div className="hub-section__icon"><FlaskConical size={20} /></div>
+                <h2 className="hub-section__title">Sampling Distributions &amp; Limits</h2>
+              </div>
+              <span className="hub-section__badge">6 topics</span>
+            </div>
+            <div className="topic-grid">
+              <HubCard
+                title="Sampling Distributions"
+                desc="Distribution of Y = h(X₁,…,Xₙ) for i.i.d. sequences. Exact computation vs CLT approximation vs Monte Carlo."
+                to="/ch4/sampling-distributions" isLocked={!isUnlocked('/ch4/sampling-distributions')} isCompleted={isCompleted('/ch4/sampling-distributions')}
+              />
+              <HubCard
+                title="Convergence in Probability"
+                desc="X_n →^P Y if P(|X_n−Y|≥ε)→0. The Weak Law of Large Numbers: sample means converge to μ."
+                to="/ch4/convergence-probability" isLocked={!isUnlocked('/ch4/convergence-probability')} isCompleted={isCompleted('/ch4/convergence-probability')}
+              />
+              <HubCard
+                title="Convergence with Probability 1"
+                desc="Almost sure (a.s.) convergence and the Strong Law of Large Numbers — a strictly stronger result than WLLN."
+                to="/ch4/convergence-probability-1" isLocked={!isUnlocked('/ch4/convergence-probability-1')} isCompleted={isCompleted('/ch4/convergence-probability-1')}
+              />
+              <HubCard
+                title="Convergence in Distribution &amp; CLT"
+                desc="CDF convergence, the Central Limit Theorem: (M_n−μ)/(σ/√n) →^D N(0,1), and the Poisson approximation."
+                to="/ch4/convergence-distribution" isLocked={!isUnlocked('/ch4/convergence-distribution')} isCompleted={isCompleted('/ch4/convergence-distribution')}
+              />
+              <HubCard
+                title="Monte Carlo Approximations"
+                desc="E[h(X)] ≈ (1/N)Σh(Xᵢ) justified by the LLN. Error O(1/√N). π estimation and numerical integration."
+                to="/ch4/monte-carlo-approx" isLocked={!isUnlocked('/ch4/monte-carlo-approx')} isCompleted={isCompleted('/ch4/monte-carlo-approx')}
+              />
+              <HubCard
+                title="Normal Distribution Theory"
+                desc="Linear combinations of normals, chi-squared, t-distribution, and exact sampling distributions for normal data."
+                to="/ch4/normal-distribution-theory" isLocked={!isUnlocked('/ch4/normal-distribution-theory')} isCompleted={isCompleted('/ch4/normal-distribution-theory')}
               />
             </div>
           </section>

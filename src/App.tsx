@@ -8,6 +8,7 @@ import { MontyHallGame } from './pages/MontyHallGame';
 import { ProbabilityConceptPage } from './pages/ProbabilityConceptPage';
 import { Ch2ConceptPage } from './pages/Ch2ConceptPage';
 import { Ch3ConceptPage } from './pages/Ch3ConceptPage';
+import { Ch4ConceptPage } from './pages/Ch4ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -37,6 +38,9 @@ export const App: React.FC = () => {
 
               {/* Expectation (Chapter 3) */}
               <Route path="/ch3/:id" element={<ProtectedRoute><Ch3ConceptPage /></ProtectedRoute>} />
+
+              {/* Sampling Distributions & Limits (Chapter 4) */}
+              <Route path="/ch4/:id" element={<ProtectedRoute><Ch4ConceptPage /></ProtectedRoute>} />
               
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />
