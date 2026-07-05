@@ -69,6 +69,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             title: 'Poisson(λ)',
             body: 'E(Y) = λ. The mean of a Poisson random variable equals its rate parameter — a clean result that makes λ easy to interpret.',
           },
+          { type: 'viz', vizId: 'viz-distribution-ev-compare' },
         ],
       },
       {
@@ -92,6 +93,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             title: 'E[X²] for a Fair Die',
             body: 'E[X²] = 1²(1/6) + 2²(1/6) + ··· + 6²(1/6) = (1+4+9+16+25+36)/6 = 91/6 ≈ 15.17. Notice E[X²] = 15.17 ≠ (E[X])² = 12.25 — a key distinction that motivates variance.',
           },
+          { type: 'viz', vizId: 'viz-lotus-demo' },
         ],
       },
       {
@@ -116,6 +118,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             body: 'Flip a fair coin repeatedly until the first head. If head first appears on flip k, win $2ᵏ. The expected payoff is Σₖ₌₁^∞ (1/2ᵏ)·2ᵏ = Σ 1 = ∞. Yet most people would pay at most a few dollars to play. Infinite expected value does not capture risk aversion — expected utility theory is needed for realistic decision-making.',
           },
           { type: 'viz', vizId: 'viz-st-petersburg' },
+          { type: 'viz', vizId: 'viz-linearity-demo' },
         ],
       },
       {
@@ -133,6 +136,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'Warning: the converse fails. E[XY] = E[X]E[Y] only implies zero covariance (uncorrelatedness), which is weaker than independence.',
           },
+          { type: 'viz', vizId: 'viz-running-average' },
         ],
       },
     ],
@@ -169,6 +173,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
               'Geometrically, E(X) is the centre of mass of the density curve — the balance point of the probability "weight" spread along the x-axis.',
           },
           { type: 'viz', vizId: 'viz-continuous-expectation' },
+          { type: 'viz', vizId: 'viz-riemann-expectation' },
         ],
       },
       {
@@ -198,6 +203,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             latex:
               '\\text{Uniform}[L,R]: \\tfrac{L+R}{2} \\qquad \\text{Exp}(\\lambda): \\tfrac{1}{\\lambda} \\qquad N(\\mu,\\sigma^2): \\mu',
           },
+          { type: 'viz', vizId: 'viz-continuous-dist-means' },
         ],
       },
       {
@@ -221,6 +227,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             title: 'E[X²] for Exponential(λ)',
             body: 'E[X²] = ∫₀^∞ x² λe^{−λx} dx = 2/λ². Since E[X] = 1/λ, we get Var(X) = E[X²] − (E[X])² = 2/λ² − 1/λ² = 1/λ² — a result we formalise in Section 3.3.',
           },
+          { type: 'viz', vizId: 'viz-continuous-lotus' },
         ],
       },
     ],
@@ -274,6 +281,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'Adding a constant b shifts the distribution but does not change its spread. Multiplying by a scales the spread by |a| (and hence variance by a²).',
           },
+          { type: 'viz', vizId: 'viz-variance-scaling' },
         ],
       },
       {
@@ -297,6 +305,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             title: 'Normal N(μ, σ²)',
             body: 'Var(X) = σ². The parameter σ² directly encodes the variance, which is why the notation N(μ, σ²) is standard.',
           },
+          { type: 'viz', vizId: 'viz-bernoulli-variance-curve' },
         ],
       },
       {
@@ -327,6 +336,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
               'Correlation lies in [−1, 1]. Values near ±1 indicate strong linear association; 0 means no linear relationship (though nonlinear dependence may still exist).',
           },
           { type: 'viz', vizId: 'viz-covariance-sign' },
+          { type: 'viz', vizId: 'viz-covariance-decomposition' },
         ],
       },
       {
@@ -344,6 +354,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'If X and Y are independent, then Cov(X,Y) = 0, so Var(X+Y) = Var(X) + Var(Y). This additive rule extends to any number of independent variables and underpins the Central Limit Theorem.',
           },
+          { type: 'viz', vizId: 'viz-variance-sum-breakdown' },
         ],
       },
     ],
@@ -379,6 +390,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'The k-th derivative of r_X at t = 0, divided by k!, recovers P(X = k). Evaluating r_X(1) = 1 verifies normalisation. The first derivative at 1 gives E(X).',
           },
+          { type: 'viz', vizId: 'viz-pgf-coefficients' },
         ],
       },
       {
@@ -403,6 +415,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             text: 'If m_X(s) exists in an open interval around s = 0, then all moments of X exist, and',
             formula: "E[X^k] = m_X^{(k)}(0) = \\frac{d^k}{ds^k} m_X(s)\\Big|_{s=0}",
           },
+          { type: 'viz', vizId: 'viz-mgf-shape' },
         ],
       },
       {
@@ -444,6 +457,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             text: 'If X and Y are independent, then',
             formula: 'm_{X+Y}(s) = m_X(s) \\cdot m_Y(s)',
           },
+          { type: 'viz', vizId: 'viz-mgf-product-rule' },
           {
             type: 'theorem',
             number: '3.4.3',
@@ -465,6 +479,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'A compound distribution arises when the number of summands N is itself random. If S = X₁ + ··· + X_N where the Xᵢ are i.i.d. and independent of N, then by the law of total expectation E(S) = E(X₁)·E(N), and the MGF satisfies m_S(s) = r_N(m_{X₁}(s)).',
           },
+          { type: 'viz', vizId: 'viz-compound-poisson' },
         ],
       },
     ],
@@ -501,6 +516,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             title: 'Die Roll Given Even',
             body: 'Roll a fair die. Given the result is even (A = {2,4,6}), E(X|A) = (2+4+6)/3 = 4. The conditional expectation is higher than the unconditional mean of 3.5.',
           },
+          { type: 'viz', vizId: 'viz-conditional-event-update' },
         ],
       },
       {
@@ -526,6 +542,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             formula: 'E(X \\mid Y=y) = \\int_{-\\infty}^{\\infty} x \\cdot f_{X|Y}(x \\mid y)\\,dx',
           },
           { type: 'viz', vizId: 'viz-conditional-mean' },
+          { type: 'viz', vizId: 'viz-conditional-bar-chart' },
         ],
       },
       {
@@ -549,6 +566,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
               'Intuitively: average the conditional means over all possible values of Y, weighted by the probability of each Y-value, and you recover the unconditional mean.',
           },
           { type: 'viz', vizId: 'viz-total-expectation' },
+          { type: 'viz', vizId: 'viz-tower-property' },
         ],
       },
       {
@@ -566,6 +584,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'The total variance of X splits into: (1) the variance of the conditional means — how much the mean of X varies across different Y-values, and (2) the average conditional variance — how spread out X is within each Y-slice. This decomposition is fundamental to ANOVA and hierarchical models.',
           },
+          { type: 'viz', vizId: 'viz-total-variance-decomp' },
         ],
       },
     ],
@@ -603,6 +622,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             body: 'Let X ~ Exp(2), so E(X) = 0.5. Markov gives P(X ≥ 3) ≤ 0.5/3 ≈ 0.167. The exact value is e^{−6} ≈ 0.0025 — Markov is quite loose, but it requires no information beyond the mean.',
           },
           { type: 'viz', vizId: 'viz-markov-bound' },
+          { type: 'viz', vizId: 'viz-markov-tightness' },
         ],
       },
       {
@@ -627,6 +647,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             body: 'For N(5, 9), Chebyshev gives P(|Z−5| ≥ 30) ≤ 9/900 = 1/100. The bound is conservative — the exact probability from the normal tables is astronomically smaller.',
           },
           { type: 'viz', vizId: 'viz-chebyshev-bound' },
+          { type: 'viz', vizId: 'viz-chebyshev-comparison' },
         ],
       },
       {
@@ -644,6 +665,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             content:
               'Dividing both sides by SD(X)·SD(Y) immediately gives |Corr(X,Y)| ≤ 1 — the fundamental bound on the correlation coefficient. Equality holds if and only if Y = aX + b for some constants a and b (exact linear relationship).',
           },
+          { type: 'viz', vizId: 'viz-cauchy-schwarz' },
         ],
       },
       {
@@ -681,6 +703,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
             body: 'Since log is concave (−log is convex), Jensen gives E[log X] ≤ log E[X]. The arithmetic mean is always at least the geometric mean — the AM-GM inequality as a consequence of Jensen.',
           },
           { type: 'viz', vizId: 'viz-jensen-inequality' },
+          { type: 'viz', vizId: 'viz-jensen-functions' },
         ],
       },
     ],
