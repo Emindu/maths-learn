@@ -3840,4 +3840,636 @@ plt.tight_layout()
 plt.show()`,
     },
   ],
+
+  'optimal-unbiased-estimation': [
+    {
+      id: 'ch8-ue-lab-1',
+      title: 'Rao-Blackwell & Cramér-Rao Bound',
+      description: 'Compare the variance of a naive estimator (X₁) vs the Rao-Blackwellized estimator (x̄) for Poisson(λ). Overlay the Cramér-Rao bound.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+TRUE_LAM = 3.0
+N_OBS   = 5
+N_SIM   = 5000
+rng = np.random.default_rng(7)
+
+samples = rng.poisson(TRUE_LAM, (N_SIM, N_OBS))
+T_naive = samples[:, 0]           # T = X₁ ~ Poisson(λ), Var=λ
+T_rao   = samples.mean(axis=1)    # T_U = x̄, Var=λ/n
+
+cr_bound = TRUE_LAM / N_OBS       # Cramér-Rao: (ψ\'(λ))²/I(λ) = 1/(n/λ) = λ/n
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+# Left: sampling distributions
+bins = np.linspace(-1, 10, 40)
+axes[0].hist(T_naive, bins=bins, density=True, color='#fb923c', alpha=0.6, label=f'T=X₁  Var={T_naive.var():.3f}')
+axes[0].hist(T_rao,   bins=bins, density=True, color='#38bdf8', alpha=0.7, label=f'T_U=x̄ Var={T_rao.var():.3f}')
+axes[0].axvline(TRUE_LAM, color='#34d399', lw=2, ls='--', label=f'True λ={TRUE_LAM}')
+axes[0].set_xlabel('Estimate', color='#94a3b8'); axes[0].set_ylabel('Density', color='#94a3b8')
+axes[0].set_title('Rao-Blackwell: Variance Reduction', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: CR bound vs empirical variance as n varies
+ns = np.arange(1, 31)
+cr_bounds  = TRUE_LAM / ns
+var_xbar   = np.array([rng.poisson(TRUE_LAM, (2000, n)).mean(axis=1).var() for n in ns])
+
+axes[1].plot(ns, cr_bounds, color='#818cf8', lw=2.5, label='CR bound = λ/n')
+axes[1].plot(ns, var_xbar,  color='#34d399', lw=2, ls='--', label='Empirical Var(x̄)')
+axes[1].axhline(TRUE_LAM, color='#fb923c', lw=1.5, ls=':', label='Var(X₁) = λ')
+axes[1].set_xlabel('n', color='#94a3b8'); axes[1].set_ylabel('Variance', color='#94a3b8')
+axes[1].set_title('Cramér-Rao Bound vs Empirical Variance', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+print(f"Var(T=X₁) = {T_naive.var():.4f}  (theoretical: {TRUE_LAM:.1f})")
+print(f"Var(T_U=x̄) = {T_rao.var():.4f}  (theoretical: {TRUE_LAM/N_OBS:.2f})")
+print(f"CR bound = λ/n = {cr_bound:.2f}")
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch8-ue-lab-2',
+      title: 'UMVU for Poisson e^{-λ}',
+      description: 'Compare the UMVU estimator (1−1/n)^{nX̄} with the plug-in MLE e^{-X̄} and the naive estimator 1_{X₁=0} for estimating P(X=0)=e^{-λ}.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+TRUE_LAM  = 2.0
+TRUE_PROB = np.exp(-TRUE_LAM)   # P(X=0)
+N_SIM     = 4000
+rng = np.random.default_rng(13)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+for ax, n in zip(axes, [3, 10, 50]):
+    data = rng.poisson(TRUE_LAM, (N_SIM, n))
+    xbar = data.mean(axis=1)
+    nxbar = data.sum(axis=1)
+
+    T_naive = (data[:, 0] == 0).astype(float)          # 1_{X₁=0}
+    T_mle   = np.exp(-xbar)                             # Plug-in MLE
+    T_umvu  = (1 - 1/n) ** nxbar                        # UMVU
+
+    bins = np.linspace(-0.05, 1.05, 40)
+    ax.hist(T_naive, bins=bins, density=True, color='#fb923c', alpha=0.5, label=f'1_{{X₁=0}} bias={T_naive.mean()-TRUE_PROB:.3f}')
+    ax.hist(T_mle,   bins=bins, density=True, color='#818cf8', alpha=0.6, label=f'MLE bias={T_mle.mean()-TRUE_PROB:.4f}')
+    ax.hist(T_umvu,  bins=bins, density=True, color='#34d399', alpha=0.7, label=f'UMVU bias={T_umvu.mean()-TRUE_PROB:.5f}')
+    ax.axvline(TRUE_PROB, color='white', lw=2, ls='--', label=f'True={TRUE_PROB:.3f}')
+    ax.set_title(f'n={n}', color='white', fontsize=11)
+    ax.set_xlabel('Estimate of e^{{-λ}}', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=7)
+
+    print(f"n={n:2d}: Var(naive)={T_naive.var():.5f}  Var(MLE)={T_mle.var():.6f}  Var(UMVU)={T_umvu.var():.6f}")
+
+plt.suptitle(f'Estimators of e^{{-λ}} = P(X=0)  (true λ={TRUE_LAM}, e^{{-λ}}={TRUE_PROB:.3f})',
+             color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'optimal-hypothesis-testing': [
+    {
+      id: 'ch8-ht-lab-1',
+      title: 'Neyman-Pearson Power Function',
+      description: 'Plot the power function of the UMP z-test for the Normal location model. Show how power depends on effect size, sample size, and significance level.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+MU0   = 0.0
+SIGMA = 1.0
+ALPHA = 0.05
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+mu = np.linspace(-1, 4, 300)
+z_alpha = stats.norm.ppf(1 - ALPHA)
+
+# Left: power curves for different n
+for n, col in zip([5, 10, 25, 100], ['#fb923c', '#38bdf8', '#34d399', '#818cf8']):
+    se  = SIGMA / np.sqrt(n)
+    c   = MU0 + z_alpha * se
+    power = 1 - stats.norm.cdf((c - mu) / se)
+    axes[0].plot(mu, power, color=col, lw=2, label=f'n={n}')
+
+axes[0].axhline(ALPHA, color='#64748b', lw=1.5, ls=':', label=f'Size α={ALPHA}')
+axes[0].axvline(MU0,   color='#64748b', lw=1, ls='--')
+axes[0].set_xlabel('True μ', color='#94a3b8'); axes[0].set_ylabel('Power β(μ)', color='#94a3b8')
+axes[0].set_title(f'Power vs Sample Size (H₀: μ={MU0}, α={ALPHA})', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: power at μ=1 vs n
+ns     = np.arange(1, 101)
+powers = []
+for n in ns:
+    se = SIGMA / np.sqrt(n); c = MU0 + z_alpha * se
+    powers.append(1 - stats.norm.cdf((c - 1.0) / se))
+
+axes[1].plot(ns, powers, color='#34d399', lw=2.5)
+axes[1].axhline(0.8,   color='#fb923c', lw=1.5, ls='--', label='Power=0.8')
+axes[1].axhline(0.9,   color='#818cf8', lw=1.5, ls='--', label='Power=0.9')
+n80 = next((n for n,p in zip(ns, powers) if p >= 0.8), None)
+n90 = next((n for n,p in zip(ns, powers) if p >= 0.9), None)
+if n80: axes[1].axvline(n80, color='#fb923c', lw=1, ls=':'); axes[1].text(n80+1, 0.5, f'n={n80}', color='#fb923c', fontsize=9)
+if n90: axes[1].axvline(n90, color='#818cf8', lw=1, ls=':'); axes[1].text(n90+1, 0.4, f'n={n90}', color='#818cf8', fontsize=9)
+axes[1].set_xlabel('Sample size n', color='#94a3b8'); axes[1].set_ylabel('Power at μ=1', color='#94a3b8')
+axes[1].set_title('Sample Size for Target Power (μ=1, σ=1)', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch8-ht-lab-2',
+      title: 'Likelihood Ratio Test & Type I/II Errors',
+      description: 'Visualise the likelihood ratio for Bernoulli hypothesis testing and the trade-off between Type I and Type II errors as the critical value changes.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+THETA0 = 0.3
+THETA1 = 0.7
+N      = 10
+
+ks = np.arange(N + 1)
+f0 = stats.binom.pmf(ks, N, THETA0)
+f1 = stats.binom.pmf(ks, N, THETA1)
+lr = f1 / np.maximum(f0, 1e-15)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+# Left: likelihood ratios
+crit = 4   # reject if k >= crit
+colors = ['#34d399' if k >= crit else '#38bdf8' for k in ks]
+axes[0].bar(ks, lr, color=colors, edgecolor='#0f172a', linewidth=1, alpha=0.85)
+axes[0].axvline(crit - 0.5, color='#fb923c', lw=2, ls='--', label=f'Critical k={crit}')
+axes[0].set_xlabel('k (successes)', color='#94a3b8')
+axes[0].set_ylabel('Likelihood Ratio f(k|θ₁)/f(k|θ₀)', color='#94a3b8')
+axes[0].set_title(f'Likelihood Ratio (θ₀={THETA0}, θ₁={THETA1}, n={N})', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: Type I / Type II error trade-off
+crits = np.arange(0, N + 2)
+type1 = [1 - stats.binom.cdf(c - 1, N, THETA0) for c in crits]
+type2 = [stats.binom.cdf(c - 1, N, THETA1) for c in crits]
+
+axes[1].step(crits, type1, color='#fb923c', lw=2.5, label='Type I = P(reject|θ₀)')
+axes[1].step(crits, type2, color='#818cf8', lw=2.5, label='Type II = P(accept|θ₁)')
+axes[1].axvline(crit, color='#34d399', lw=1.5, ls='--', label=f'c={crit}')
+axes[1].set_xlabel('Critical value c (reject if k ≥ c)', color='#94a3b8')
+axes[1].set_ylabel('Error probability', color='#94a3b8')
+axes[1].set_title('Type I vs Type II Error Trade-off', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+for c in [3, 4, 5, 6]:
+    print(f"c={c}: Type I={1-stats.binom.cdf(c-1,N,THETA0):.4f}, Type II={stats.binom.cdf(c-1,N,THETA1):.4f}")
+
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'optimal-bayesian-inferences': [
+    {
+      id: 'ch8-bi-lab-1',
+      title: 'Bayes Estimator vs MLE: Shrinkage',
+      description: 'Compare the Bayes estimator (posterior mean) with the MLE for different prior strengths. Show how the Bayes estimator shrinks toward the prior mean.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.6
+ALPHA0, BETA0 = 2, 2   # Prior: Beta(α₀, β₀), prior mean = α₀/(α₀+β₀)
+rng = np.random.default_rng(77)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+ns = [3, 5, 10, 20, 50, 100, 500]
+N_SIM = 3000
+
+mse_mle   = []
+mse_bayes = []
+bias_bayes = []
+var_bayes  = []
+
+for n in ns:
+    data = rng.binomial(n, TRUE_THETA, N_SIM)
+    mle  = data / n
+    post_a = ALPHA0 + data
+    post_b = BETA0 + n - data
+    bayes  = post_a / (post_a + post_b)   # posterior mean
+
+    mse_mle.append(((mle - TRUE_THETA)**2).mean())
+    mse_bayes.append(((bayes - TRUE_THETA)**2).mean())
+    bias_bayes.append(bayes.mean() - TRUE_THETA)
+    var_bayes.append(bayes.var())
+
+axes[0].plot(ns, mse_mle,   color='#fb923c', lw=2.5, label='MSE(MLE = x̄)', marker='o', ms=5)
+axes[0].plot(ns, mse_bayes, color='#34d399', lw=2.5, label='MSE(Bayes)', marker='s', ms=5)
+axes[0].set_xscale('log'); axes[0].set_yscale('log')
+axes[0].set_xlabel('Sample size n', color='#94a3b8'); axes[0].set_ylabel('MSE (log scale)', color='#94a3b8')
+axes[0].set_title(f'Bayes vs MLE MSE (true θ={TRUE_THETA}, prior Beta({ALPHA0},{BETA0}))', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+axes[1].plot(ns, bias_bayes, color='#fb923c', lw=2, label='Bias(Bayes)', marker='o', ms=5)
+axes[1].plot(ns, var_bayes,  color='#818cf8', lw=2, label='Var(Bayes)',  marker='s', ms=5)
+axes[1].axhline(0, color='#64748b', lw=1, ls='--')
+axes[1].set_xscale('log')
+axes[1].set_xlabel('Sample size n', color='#94a3b8'); axes[1].set_ylabel('Value', color='#94a3b8')
+axes[1].set_title('Bias-Variance of Bayes Estimator', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch8-bi-lab-2',
+      title: 'Optimal Bayesian Hypothesis Test',
+      description: 'Implement the Bayes rule for hypothesis testing (Theorem 8.3.2): reject H₀ when the posterior probability of H₀ is ≤ 1/2. Visualise the decision boundary.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+# Testing H₀: θ = 0.5 vs H_a: θ ≠ 0.5 for Bernoulli data
+# Prior: p₀·δ(θ=0.5) + (1-p₀)·Beta(1,1) on θ∈(0,1)
+P0     = 0.5   # Prior probability of H₀
+N      = 20    # Number of trials
+rng = np.random.default_rng(31)
+
+ks = np.arange(N + 1)
+
+# Under H₀: P(k|θ=0.5) = Binomial(N, 0.5)
+p_k_H0 = stats.binom.pmf(ks, N, 0.5)
+
+# Under H_a: P(k|Ha) = ∫₀¹ Bin(k;N,θ)·1 dθ = 1/(N+1) (Beta-Binomial with Uniform prior)
+p_k_Ha = np.ones(N + 1) / (N + 1)
+
+# Posterior probability of H₀ given k
+# Π(H₀|k) = P₀·p(k|H₀) / [P₀·p(k|H₀) + (1-P₀)·p(k|Ha)]
+pi_H0_given_k = P0 * p_k_H0 / (P0 * p_k_H0 + (1 - P0) * p_k_Ha)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+# Left: posterior probability of H₀
+reject = pi_H0_given_k <= 0.5
+colors = ['#34d399' if r else '#38bdf8' for r in reject]
+axes[0].bar(ks, pi_H0_given_k, color=colors, edgecolor='#0f172a', lw=1, alpha=0.85)
+axes[0].axhline(0.5, color='#fb923c', lw=2, ls='--', label='Decision boundary (0.5)')
+axes[0].set_xlabel('k (successes)', color='#94a3b8')
+axes[0].set_ylabel('Π(H₀ | k)', color='#94a3b8')
+axes[0].set_title(f'Posterior Prob of H₀: θ=0.5 (n={N}, P₀={P0})', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: Bayes factor vs k
+bayes_factor = p_k_H0 / p_k_Ha
+axes[1].bar(ks, bayes_factor, color=['#34d399' if r else '#818cf8' for r in reject],
+            edgecolor='#0f172a', lw=1, alpha=0.85)
+axes[1].axhline(1.0, color='#fb923c', lw=2, ls='--', label='BF=1')
+axes[1].set_xlabel('k (successes)', color='#94a3b8')
+axes[1].set_ylabel('Bayes Factor p(k|H₀)/p(k|Ha)', color='#94a3b8')
+axes[1].set_title('Bayes Factor for each observation k', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+print("k | P(H₀|k) | Decision")
+for k in ks:
+    dec = "Reject H₀" if pi_H0_given_k[k] <= 0.5 else "Accept H₀"
+    print(f"{k:2d} | {pi_H0_given_k[k]:.4f}  | {dec}")
+
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'decision-theory': [
+    {
+      id: 'ch8-dt-lab-1',
+      title: 'Risk Functions & Admissibility',
+      description: 'Plot risk functions R_δ(θ) for several estimators of the Normal mean. Identify which are admissible and compare Bayes, minimax, and MLE risks.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+SIGMA2 = 1.0
+N      = 10
+
+theta = np.linspace(-3, 3, 300)
+
+# Risk functions under squared error loss
+R_xbar     = np.full_like(theta, SIGMA2 / N)                      # UMVU/minimax: constant
+R_const0   = theta ** 2                                            # T=0: constant estimator
+R_shrink   = (0.2 * theta) ** 2 + 0.64 * SIGMA2 / N              # T=0.8·x̄ (biased)
+R_jstype   = np.maximum(0, 1 - (N - 2) * SIGMA2 / (N * theta**2 + 1e-9)) ** 2 * theta**2 + SIGMA2/N  # JS-type
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+axes[0].plot(theta, R_xbar,   color='#34d399', lw=2.5, label='R(x̄) = σ²/n   [UMVU, minimax]')
+axes[0].plot(theta, R_shrink, color='#818cf8', lw=2.5, label='R(0.8·x̄)  [biased shrinkage]')
+axes[0].plot(theta, R_const0, color='#fb923c', lw=2.5, ls='--', label='R(T=0) = θ²  [inadmissible]')
+axes[0].axhline(SIGMA2/N, color='#34d399', lw=0.5, ls=':')
+axes[0].set_ylim(0, 1.1); axes[0].set_xlim(-3, 3)
+axes[0].set_xlabel('θ', color='#94a3b8'); axes[0].set_ylabel('Risk R_δ(θ)', color='#94a3b8')
+axes[0].set_title(f'Risk Functions (σ²={SIGMA2}, n={N})', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: prior risk (Bayes risk) under different priors N(0, τ²)
+taus = np.linspace(0.1, 5, 200)
+# Bayes risk of x̄ under N(0,τ²): ∫R(x̄,θ)·N(θ;0,τ²)dθ = σ²/n (constant integrand)
+br_xbar = SIGMA2 / N * np.ones_like(taus)
+# Bayes rule under N(0,τ²) prior: T* = n/(n+σ²/τ²) · x̄, Bayes risk = σ²/n · τ²/(τ²+σ²/n)
+inv = SIGMA2 / N
+br_bayes = inv * taus**2 / (taus**2 + inv)
+
+axes[1].plot(taus, br_xbar,  color='#34d399', lw=2.5, label='Prior risk of x̄ = σ²/n')
+axes[1].plot(taus, br_bayes, color='#818cf8', lw=2.5, label='Bayes risk (Bayes estimator)')
+axes[1].set_xlabel('Prior std τ', color='#94a3b8'); axes[1].set_ylabel('Prior risk', color='#94a3b8')
+axes[1].set_title('Prior Risk: Bayes Estimator vs x̄', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+print(f"Max risk x̄      = {R_xbar.max():.4f}")
+print(f"Max risk T=0     = {R_const0.max():.4f}")
+print(f"Max risk shrink  = {R_shrink.max():.4f}")
+
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch8-dt-lab-2',
+      title: 'Minimax Decision Rule Simulation',
+      description: 'Verify that x̄ is the minimax estimator for the Normal location model by showing no estimator achieves a strictly lower maximum risk.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+SIGMA2 = 1.0
+N      = 10
+N_SIM  = 5000
+rng = np.random.default_rng(42)
+
+# Evaluate risk of several decision rules empirically
+thetas = np.linspace(-2, 2, 25)
+
+estimators = {
+    'x̄  (MLE/UMVU)':   lambda data: data.mean(axis=1),
+    '0.5·x̄ (shrink)':  lambda data: 0.5 * data.mean(axis=1),
+    'T=0 (constant)':   lambda data: np.zeros(data.shape[0]),
+    'median':            lambda data: np.median(data, axis=1),
+}
+colors = ['#34d399', '#818cf8', '#fb923c', '#38bdf8']
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+max_risks = {}
+for (name, est), col in zip(estimators.items(), colors):
+    risks = []
+    for theta in thetas:
+        data = rng.normal(theta, np.sqrt(SIGMA2), (N_SIM, N))
+        est_vals = est(data)
+        risks.append(((est_vals - theta) ** 2).mean())
+    axes[0].plot(thetas, risks, color=col, lw=2.5, label=name, marker='o', ms=4)
+    max_risks[name] = max(risks)
+
+axes[0].set_xlabel('True θ', color='#94a3b8'); axes[0].set_ylabel('Empirical Risk', color='#94a3b8')
+axes[0].set_title('Empirical Risk Functions (N=10, σ²=1)', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: bar chart of maximum risks
+names_short = ['x̄', '0.5·x̄', 'T=0', 'median']
+max_r_vals  = [max_risks[k] for k in estimators]
+bars = axes[1].bar(names_short, max_r_vals, color=colors, edgecolor='#0f172a', lw=1, alpha=0.85)
+axes[1].axhline(SIGMA2/N, color='#34d399', lw=2, ls='--', label=f'Minimax = σ²/n={SIGMA2/N:.2f}')
+for bar, v in zip(bars, max_r_vals):
+    axes[1].text(bar.get_x()+bar.get_width()/2, v+0.002, f'{v:.4f}',
+                 ha='center', color='white', fontsize=9, fontweight='bold')
+axes[1].set_ylabel('Maximum Risk', color='#94a3b8')
+axes[1].set_title('Maximum Risk: Which Estimator is Minimax?', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+for name, mr in max_risks.items():
+    print(f"{name:25s}: max risk = {mr:.5f}")
+print(f"Theoretical minimax = σ²/n = {SIGMA2/N:.5f}")
+
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'optimal-inferences-proofs': [
+    {
+      id: 'ch8-pf-lab-1',
+      title: 'Completeness & Sufficiency Verification',
+      description: 'Numerically verify completeness of x̄ in the Normal model: check that E_μ(h(x̄)) = 0 for all μ only when h ≡ 0, and verify the sufficiency condition P_θ(s|U=u) is constant in θ.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+SIGMA0 = 1.0
+N      = 8
+
+# Completeness check: try functions h(x̄) = x̄ - c and verify mean is only 0 when c=mu
+mu_vals = np.linspace(-2, 2, 9)
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+# Left: E_mu[h(x̄)] for h(t) = t^2 - (sigma^2/n + mu^2), which should be ≈ 0 by completeness of x̄
+# (complete means: if E_mu(h) = 0 for all mu, then h = 0 a.s.)
+# h(t) = t - mu should have E_mu[h]=0 but is not in the "completeness" class; we test:
+# h_k(t) = t^k - E_mu[x̄^k] for k=1,2,3
+rng = np.random.default_rng(55)
+N_SIM = 8000
+
+ks = [1, 2, 3]
+for k, col in zip(ks, ['#38bdf8', '#34d399', '#fb923c']):
+    means = []
+    for mu in mu_vals:
+        xbar = rng.normal(mu, SIGMA0/np.sqrt(N), N_SIM)
+        # h_k(t) = (t - mu)^k  -- this has E_mu = 0 for k=1 (odd), non-zero for k=2
+        h_val = (xbar - mu) ** k
+        means.append(h_val.mean())
+    axes[0].plot(mu_vals, means, color=col, lw=2, marker='o', ms=5, label=f'E_μ[(x̄−μ)^{k}]')
+
+axes[0].axhline(0, color='#64748b', lw=1.5, ls='--')
+axes[0].set_xlabel('μ', color='#94a3b8'); axes[0].set_ylabel('E_μ[h(x̄)]', color='#94a3b8')
+axes[0].set_title('Central Moments of x̄ vs μ', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Right: verify sufficiency — P_mu(xbar ≈ u) is proportional to Gaussian regardless of mu
+u_target = 0.5  # fix U = x̄ ≈ u_target
+eps = 0.15
+
+probs = []
+mu_range = np.linspace(-2, 2, 15)
+for mu in mu_range:
+    xbar = rng.normal(mu, SIGMA0/np.sqrt(N), N_SIM)
+    # P(x̄ ∈ [u-eps, u+eps] | mu)
+    probs.append(((xbar > u_target - eps) & (xbar < u_target + eps)).mean())
+
+# Normalized (for sufficiency: P(s | u=u_target) ∝ f(s) not depending on mu)
+probs_norm = np.array(probs) / np.array(probs).mean()
+axes[1].plot(mu_range, probs, color='#38bdf8', lw=2.5, marker='o', ms=5, label='P(x̄≈u|μ) raw')
+axes[1].set_xlabel('μ', color='#94a3b8'); axes[1].set_ylabel('P(x̄ ≈ 0.5 | μ)', color='#94a3b8')
+axes[1].set_title('Conditional Probability P(x̄≈u|μ) — not constant in μ', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+print("P(x̄ ≈ 0.5 | μ) for different μ (shows unconditional dependence on μ):")
+for mu, p in zip(mu_range[::3], probs[::3]):
+    print(f"  μ={mu:.2f}: {p:.4f}")
+print("Note: the CONDITIONAL distribution of X₁,...,Xₙ given x̄=u does not depend on μ (sufficiency).")
+
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch8-pf-lab-2',
+      title: 'Neyman-Pearson Theorem Verification',
+      description: 'Numerically verify that the likelihood ratio test maximises power at exact size α, and that any other size-α test has lower or equal power.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+# Simple vs simple: H₀: μ=0 vs H_a: μ=1, N(μ,1) single observation
+MU0 = 0.0; MU1 = 1.0; SIGMA = 1.0
+ALPHA = 0.05
+N_SIM = 50000
+rng = np.random.default_rng(99)
+
+# NP test: reject when X > z_{1-α} = 1.645
+z_alpha = stats.norm.ppf(1 - ALPHA)
+c_np = MU0 + z_alpha * SIGMA
+
+# Alternative tests of size ≤ α
+# Test 1: Left-tail (reject X < -z_{1-α}) — size α but wrong direction
+c_left = MU0 - z_alpha * SIGMA
+# Test 2: Two-sided (reject |X|>z_{1-α/2}) — size α
+c_two = stats.norm.ppf(1 - ALPHA/2)
+# Test 3: Randomised (reject with prob α regardless) — always size α but minimal power
+# Test 4: Random rejection region at X > some other point
+
+data_H0 = rng.normal(MU0, SIGMA, N_SIM)
+data_Ha = rng.normal(MU1, SIGMA, N_SIM)
+
+tests = {
+    'NP (right-tail, optimal)': (data_Ha > c_np).mean(),
+    'Left-tail (wrong dir)':    (data_Ha < c_left).mean(),
+    'Two-sided':                (np.abs(data_Ha - MU0) > c_two).mean(),
+    'Randomised (unif α)':      ALPHA,
+}
+sizes = {
+    'NP (right-tail, optimal)': (data_H0 > c_np).mean(),
+    'Left-tail (wrong dir)':    (data_H0 < c_left).mean(),
+    'Two-sided':                (np.abs(data_H0 - MU0) > c_two).mean(),
+    'Randomised (unif α)':      ALPHA,
+}
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+names  = list(tests.keys())
+powers = [tests[k] for k in names]
+sizes_ = [sizes[k] for k in names]
+cols   = ['#34d399', '#fb923c', '#818cf8', '#38bdf8']
+x      = np.arange(len(names))
+
+axes[0].bar(x, powers, color=cols, edgecolor='#0f172a', lw=1, alpha=0.85)
+for xi, p in zip(x, powers):
+    axes[0].text(xi, p+0.005, f'{p:.4f}', ha='center', color='white', fontsize=8, fontweight='bold')
+axes[0].set_xticks(x); axes[0].set_xticklabels(names, color='#94a3b8', fontsize=7, rotation=10)
+axes[0].set_ylabel('Power = P(reject | μ=1)', color='#94a3b8')
+axes[0].set_title('Power of Different Size-α Tests (NP is max)', color='white')
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+axes[1].bar(x, sizes_, color=cols, edgecolor='#0f172a', lw=1, alpha=0.85)
+axes[1].axhline(ALPHA, color='#fb923c', lw=2, ls='--', label=f'α={ALPHA}')
+for xi, s in zip(x, sizes_):
+    axes[1].text(xi, s+0.001, f'{s:.4f}', ha='center', color='white', fontsize=8, fontweight='bold')
+axes[1].set_xticks(x); axes[1].set_xticklabels(names, color='#94a3b8', fontsize=7, rotation=10)
+axes[1].set_ylabel('Size = P(reject | μ=0)', color='#94a3b8')
+axes[1].set_title('Actual Size of Each Test', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+print("\\nTest                       | Size   | Power")
+for name in names:
+    print(f"{name:35s}| {sizes[name]:.4f} | {tests[name]:.4f}")
+print(f"\\nNP theorem: right-tail test achieves size ≤ α={ALPHA} with maximum power.")
+
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
 };

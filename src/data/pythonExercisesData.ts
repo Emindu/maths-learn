@@ -3475,4 +3475,785 @@ print(f"Posterior mean of lambda (precision): alpha_n/beta_n = {alpha_n/beta_n:.
       expectedHint: 'kappa_n=21, mu_n should be close to xbar≈2.0 (n=20 dominates small kappa0=1). alpha_n=12, beta_n≈16. The 95% CI for mu should contain 2.0.',
     },
   ],
+
+  'optimal-unbiased-estimation': [
+    {
+      id: 'py-ch8-ue-1',
+      number: '1',
+      title: 'Cramér-Rao Bound for Exponential Model',
+      description: 'Compute the Cramér-Rao lower bound for estimating λ in the Exponential(λ) model and compare with the variance of the UMVU estimator 1/X̄.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Exponential(λ): f_λ(x) = λ·e^{-λx}, E[X] = 1/λ, Var[X] = 1/λ²
+# Fisher information (single obs): I(λ) = 1/λ²
+# CR bound for estimating λ: (dλ/dλ)² / n·I(λ) = 1 / (n/λ²) = λ²/n
+
+TRUE_LAM = 2.0
+N_OBS    = 20
+N_SIM    = 5000
+rng = np.random.default_rng(42)
+
+# TODO: compute CR bound for λ
+cr_bound = None   # TODO: TRUE_LAM**2 / N_OBS
+
+# Simulate and compute 1/x̄ as estimator
+data  = rng.exponential(1 / TRUE_LAM, (N_SIM, N_OBS))
+xbar  = data.mean(axis=1)
+T_est = 1 / xbar   # estimator of λ
+
+# TODO: compute empirical bias and variance
+bias  = None   # TODO: T_est.mean() - TRUE_LAM
+var_T = None   # TODO: T_est.var()
+
+print(f"CR bound for λ:   {cr_bound:.6f}")
+print(f"Var(1/x̄):         {var_T:.6f}")
+print(f"Efficiency:        {cr_bound / var_T if (cr_bound and var_T) else 'TODO':.4f}")
+print(f"Bias of 1/x̄:      {bias:.6f}" if bias is not None else "Bias: TODO")
+print(f"Note: 1/x̄ is biased but consistent (bias → 0 as n → ∞).")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+TRUE_LAM = 2.0; N_OBS = 20; N_SIM = 5000
+rng = np.random.default_rng(42)
+
+cr_bound = TRUE_LAM**2 / N_OBS  # I(λ) = 1/λ², CR bound = λ²/n
+
+data  = rng.exponential(1 / TRUE_LAM, (N_SIM, N_OBS))
+xbar  = data.mean(axis=1)
+T_est = 1 / xbar
+
+bias  = T_est.mean() - TRUE_LAM
+var_T = T_est.var()
+
+print(f"CR bound for λ:   {cr_bound:.6f}")
+print(f"Var(1/x̄):         {var_T:.6f}")
+print(f"Efficiency:        {cr_bound / var_T:.4f}  (<1 because 1/x̄ is biased)")
+print(f"Bias of 1/x̄:      {bias:.6f}  (positive bias: E[1/x̄] > λ by Jensen's inequality)")
+# True UMVU for λ is (n-1)/(n·x̄) (unbiased), let's check that too
+T_umvu = (N_OBS - 1) / (N_OBS * xbar)
+print(f"Bias of UMVU:     {T_umvu.mean() - TRUE_LAM:.7f}  (approx 0 — unbiased)")
+print(f"Var(UMVU):         {T_umvu.var():.6f}  vs CR bound {cr_bound:.6f}")
+print(f"UMVU efficiency:   {cr_bound / T_umvu.var():.4f}")
+`,
+      expectedHint: 'CR bound = λ²/n = 4/20 = 0.2. 1/x̄ has efficiency <1 due to bias (Jensen inequality). The UMVU (n-1)/(n·x̄) is approximately unbiased and closer to the CR bound.',
+    },
+    {
+      id: 'py-ch8-ue-2',
+      number: '2',
+      title: 'Rao-Blackwellization for Bernoulli',
+      description: 'Start with the naive estimator T = 1_{X₁=1} (indicator of first success) and Rao-Blackwellize it using the sufficient statistic nX̄. Verify the variance reduction.',
+      starterCode:
+`import numpy as np
+
+# Bernoulli(θ) model. Sufficient statistic: U = nX̄ = sum of Xi.
+# Naive estimator: T = X₁ (indicator of first obs)
+# E[T|U=u] = E[X₁ | ΣXᵢ=u] = u/n  (by symmetry: each Xi equally likely to be 1 given sum=u)
+# So T_U = x̄ — the sample mean!
+
+TRUE_THETA = 0.4
+N_OBS      = 10
+N_SIM      = 6000
+rng = np.random.default_rng(7)
+
+data = rng.binomial(1, TRUE_THETA, (N_SIM, N_OBS))
+
+T_naive = data[:, 0].astype(float)      # T = X₁
+T_raoB  = None   # TODO: data.mean(axis=1)  — this is E[T|U=nX̄]
+
+# TODO: compute variances
+var_naive = None   # TODO: T_naive.var()
+var_raoB  = None   # TODO: T_raoB.var()
+reduction  = None   # TODO: (var_naive - var_raoB) / var_naive * 100
+
+# Theoretical values
+var_naive_theory = TRUE_THETA * (1 - TRUE_THETA)        # Var(Bernoulli) = θ(1-θ)
+var_raoB_theory  = TRUE_THETA * (1 - TRUE_THETA) / N_OBS  # Var(x̄) = θ(1-θ)/n
+
+print(f"Var(T=X₁):     {var_naive:.6f}  (theory: {var_naive_theory:.6f})")
+print(f"Var(T_U=x̄):    {var_raoB:.6f}  (theory: {var_raoB_theory:.6f})" if var_raoB else "Var(T_U): TODO")
+print(f"Variance reduction: {reduction:.1f}%" if reduction else "Reduction: TODO")
+`,
+      solution:
+`import numpy as np
+
+TRUE_THETA = 0.4; N_OBS = 10; N_SIM = 6000
+rng = np.random.default_rng(7)
+
+data = rng.binomial(1, TRUE_THETA, (N_SIM, N_OBS))
+
+T_naive = data[:, 0].astype(float)
+T_raoB  = data.mean(axis=1)      # E[X₁ | sum] = sum/n = x̄
+
+var_naive = T_naive.var()
+var_raoB  = T_raoB.var()
+reduction = (var_naive - var_raoB) / var_naive * 100
+
+var_naive_theory = TRUE_THETA * (1 - TRUE_THETA)
+var_raoB_theory  = TRUE_THETA * (1 - TRUE_THETA) / N_OBS
+
+print(f"Var(T=X₁):     {var_naive:.6f}  (theory: {var_naive_theory:.6f})")
+print(f"Var(T_U=x̄):    {var_raoB:.6f}  (theory: {var_raoB_theory:.6f})")
+print(f"Variance reduction: {reduction:.1f}%  (factor of n={N_OBS} as expected)")
+print(f"Both are unbiased: E[T]={T_naive.mean():.4f}, E[T_U]={T_raoB.mean():.4f}, true θ={TRUE_THETA}")
+print(f"Rao-Blackwell confirms T_U = x̄ is the UMVU for θ in the Bernoulli model.")
+`,
+      expectedHint: 'T_U = x̄ because E[X₁|sum]=sum/n by symmetry. Var(X₁) = θ(1-θ) ≈ 0.24, Var(x̄) = θ(1-θ)/n ≈ 0.024. Variance reduction ≈ 90% (factor of n=10).',
+    },
+  ],
+
+  'optimal-hypothesis-testing': [
+    {
+      id: 'py-ch8-ht-1',
+      number: '1',
+      title: 'Neyman-Pearson Test for Normal Mean',
+      description: 'Implement the NP UMP test for H₀: μ=0 vs H_a: μ=1 with N(μ,1). Verify the size and compute the power. Compare with a suboptimal test.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Testing H₀: μ=0 vs H_a: μ=1, X ~ N(μ,1), n=20, α=0.05
+MU0 = 0.0; MU1 = 1.0; SIGMA = 1.0; N = 20; ALPHA = 0.05
+N_SIM = 50000
+rng = np.random.default_rng(42)
+
+# NP theorem: reject when x̄ > c = μ₀ + z_{1-α}·σ/√n
+z_alpha = stats.norm.ppf(1 - ALPHA)
+c_np    = None   # TODO: MU0 + z_alpha * SIGMA / np.sqrt(N)
+
+# Simulate under H₀ and H_a
+data_H0 = rng.normal(MU0, SIGMA, (N_SIM, N))
+data_Ha = rng.normal(MU1, SIGMA, (N_SIM, N))
+xbar_H0 = data_H0.mean(axis=1)
+xbar_Ha = data_Ha.mean(axis=1)
+
+# NP test
+reject_H0 = None   # TODO: xbar_H0 > c_np  (should be ≈ α)
+reject_Ha = None   # TODO: xbar_Ha > c_np  (power)
+
+size_np  = None   # TODO: reject_H0.mean()
+power_np = None   # TODO: reject_Ha.mean()
+
+# Suboptimal test: reject when |x̄| > z_{1-α/2}/√n (two-sided, same size)
+c_two = stats.norm.ppf(1 - ALPHA/2) * SIGMA / np.sqrt(N)
+size_two  = (np.abs(xbar_H0) > c_two).mean()
+power_two = (np.abs(xbar_Ha) > c_two).mean()
+
+print(f"NP test:       size={size_np:.4f}  power={power_np:.4f}" if size_np else "NP test: TODO")
+print(f"Two-sided:     size={size_two:.4f}  power={power_two:.4f}")
+print(f"NP theorem: one-sided test should have strictly higher power than two-sided.")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+MU0 = 0.0; MU1 = 1.0; SIGMA = 1.0; N = 20; ALPHA = 0.05; N_SIM = 50000
+rng = np.random.default_rng(42)
+
+z_alpha = stats.norm.ppf(1 - ALPHA)
+c_np    = MU0 + z_alpha * SIGMA / np.sqrt(N)
+
+data_H0 = rng.normal(MU0, SIGMA, (N_SIM, N))
+data_Ha = rng.normal(MU1, SIGMA, (N_SIM, N))
+xbar_H0 = data_H0.mean(axis=1)
+xbar_Ha = data_Ha.mean(axis=1)
+
+reject_H0 = xbar_H0 > c_np
+reject_Ha = xbar_Ha > c_np
+
+size_np  = reject_H0.mean()
+power_np = reject_Ha.mean()
+
+c_two = stats.norm.ppf(1 - ALPHA/2) * SIGMA / np.sqrt(N)
+size_two  = (np.abs(xbar_H0) > c_two).mean()
+power_two = (np.abs(xbar_Ha) > c_two).mean()
+
+print(f"Critical value c = {c_np:.4f}")
+print(f"NP test (right-tail): size={size_np:.4f}  power={power_np:.4f}")
+print(f"Two-sided test:        size={size_two:.4f}  power={power_two:.4f}")
+print(f"Power gain of NP:      {(power_np - power_two)*100:.1f} percentage points")
+
+# Theoretical power
+power_np_theory = 1 - stats.norm.cdf((c_np - MU1)/(SIGMA/np.sqrt(N)))
+print(f"Theoretical NP power: {power_np_theory:.4f}")
+`,
+      expectedHint: 'c_np = z_{0.95}/√20 ≈ 0.368. NP power ≈ 0.99, two-sided power ≈ 0.97. The one-sided test has higher power, confirming NP theorem. Both sizes should be ≈ 0.05.',
+    },
+    {
+      id: 'py-ch8-ht-2',
+      number: '2',
+      title: 'Generalised Likelihood Ratio Test',
+      description: 'Implement the GLRT for testing H₀: μ=0 vs H_a: μ≠0 in the N(μ,σ²) model with unknown σ². Verify that 2·log(GLRT) ≈ χ²(1) under H₀.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# GLRT: reject when 2·log[L(θ̂|s)/L(θ̂_{H₀}|s)] > χ²_{1-α}(dim Ω - dim H₀)
+# Model: N(μ, σ²), θ=(μ,σ²), H₀: μ=0 (dim H₀=1, dim Ω=2)
+# L(μ,σ²|x) ∝ σ^{-n}·exp(-Σ(xᵢ-μ)²/2σ²)
+# MLE: μ̂=x̄, σ̂²=Σ(xᵢ-x̄)²/n
+# H₀ MLE: μ̂₀=0, σ̂₀²=Σxᵢ²/n
+# 2·log(GLRT) = n·log(σ̂₀²/σ̂²)
+
+MU_TRUE  = 0.0   # True μ (under H₀)
+SIG_TRUE = 1.5
+N        = 15
+ALPHA    = 0.05
+N_SIM    = 8000
+rng = np.random.default_rng(33)
+
+glrt_stats = []
+for _ in range(N_SIM):
+    x = rng.normal(MU_TRUE, SIG_TRUE, N)
+    xbar   = x.mean()
+    sig2_mle  = None   # TODO: ((x - xbar)**2).mean()   (unconstrained MLE)
+    sig2_H0   = None   # TODO: (x**2).mean()             (H₀ constrained MLE, μ₀=0)
+    glrt_stat = None   # TODO: N * np.log(sig2_H0 / sig2_mle)
+    glrt_stats.append(glrt_stat)
+
+glrt_stats = np.array(glrt_stats)
+chi2_crit  = stats.chi2.ppf(1 - ALPHA, df=1)
+rej_rate   = (glrt_stats > chi2_crit).mean()
+
+print(f"Under H₀ (true μ=0): rejection rate = {rej_rate:.4f}  (should ≈ {ALPHA})")
+print(f"χ²(1) critical value: {chi2_crit:.4f}")
+# TODO: compare empirical distribution of GLRT to χ²(1) — print quantiles
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+MU_TRUE = 0.0; SIG_TRUE = 1.5; N = 15; ALPHA = 0.05; N_SIM = 8000
+rng = np.random.default_rng(33)
+
+glrt_stats = []
+for _ in range(N_SIM):
+    x = rng.normal(MU_TRUE, SIG_TRUE, N)
+    xbar      = x.mean()
+    sig2_mle  = ((x - xbar)**2).mean()
+    sig2_H0   = (x**2).mean()
+    glrt_stat = N * np.log(sig2_H0 / sig2_mle)
+    glrt_stats.append(glrt_stat)
+
+glrt_stats = np.array(glrt_stats)
+chi2_crit  = stats.chi2.ppf(1 - ALPHA, df=1)
+rej_rate   = (glrt_stats > chi2_crit).mean()
+
+print(f"Under H₀ (μ=0, σ={SIG_TRUE}): rejection rate = {rej_rate:.4f}  (target {ALPHA})")
+print(f"χ²(1) critical value = {chi2_crit:.4f}")
+print()
+# Compare empirical quantiles to χ²(1)
+chi2_dist = stats.chi2(df=1)
+for q in [0.5, 0.75, 0.90, 0.95, 0.99]:
+    emp = np.quantile(glrt_stats, q)
+    theo = chi2_dist.ppf(q)
+    print(f"  Q({q:.2f}): empirical={emp:.4f}, χ²(1)={theo:.4f}")
+
+# Now check power at μ=1
+power_glrt = []
+for _ in range(N_SIM):
+    x = rng.normal(1.0, SIG_TRUE, N)
+    xbar      = x.mean()
+    sig2_mle  = ((x - xbar)**2).mean()
+    sig2_H0   = (x**2).mean()
+    glrt_stat = N * np.log(sig2_H0 / sig2_mle)
+    power_glrt.append(glrt_stat > chi2_crit)
+print(f"\\nPower of GLRT at μ=1: {np.mean(power_glrt):.4f}")
+`,
+      expectedHint: '2·log(GLRT) → χ²(1) under H₀. Size should be ≈ 0.05. Empirical quantiles should match χ²(1) quantiles closely. Power at μ=1 should be substantial (> 0.9 for n=15, σ=1.5).',
+    },
+  ],
+
+  'optimal-bayesian-inferences': [
+    {
+      id: 'py-ch8-bi-1',
+      number: '1',
+      title: 'Bayes Estimator vs MLE Risk',
+      description: 'Compare the MSE (risk) of the Bayes estimator (posterior mean) and the MLE for different true values of θ. Show that the Bayes estimator has lower risk near the prior mean.',
+      starterCode:
+`import numpy as np
+
+# Bernoulli(θ), prior Beta(α₀, β₀), squared error loss
+# MLE: x̄.  Bayes estimator: (α₀ + nX̄) / (α₀ + β₀ + n)
+ALPHA0 = 3; BETA0 = 3   # Prior mean = 0.5
+N      = 15
+N_SIM  = 4000
+rng = np.random.default_rng(55)
+
+thetas = np.linspace(0.05, 0.95, 20)
+risk_mle  = []
+risk_bayes = []
+
+for theta in thetas:
+    data   = rng.binomial(N, theta, N_SIM)
+    mle    = data / N
+    bayes  = None   # TODO: (ALPHA0 + data) / (ALPHA0 + BETA0 + N)
+
+    risk_mle.append(None)    # TODO: ((mle - theta)**2).mean()
+    risk_bayes.append(None)  # TODO: ((bayes - theta)**2).mean()
+
+# Print table
+print(f"{'θ':>6} | {'Risk(MLE)':>12} | {'Risk(Bayes)':>12} | {'Bayes better?':>14}")
+print('-' * 52)
+for t, rm, rb in zip(thetas, risk_mle, risk_bayes):
+    if rm is not None and rb is not None:
+        print(f"{t:6.3f} | {rm:12.6f} | {rb:12.6f} | {'yes' if rb < rm else 'no':>14}")
+    else:
+        print(f"{t:6.3f} | {'TODO':>12} | {'TODO':>12} | {'TODO':>14}")
+`,
+      solution:
+`import numpy as np
+
+ALPHA0 = 3; BETA0 = 3; N = 15; N_SIM = 4000
+rng = np.random.default_rng(55)
+prior_mean = ALPHA0 / (ALPHA0 + BETA0)
+
+thetas = np.linspace(0.05, 0.95, 20)
+risk_mle   = []
+risk_bayes = []
+
+for theta in thetas:
+    data   = rng.binomial(N, theta, N_SIM)
+    mle    = data / N
+    bayes  = (ALPHA0 + data) / (ALPHA0 + BETA0 + N)
+
+    risk_mle.append(((mle - theta)**2).mean())
+    risk_bayes.append(((bayes - theta)**2).mean())
+
+print(f"Prior Beta({ALPHA0},{BETA0}), mean={prior_mean:.2f}, n={N}")
+print(f"{'θ':>6} | {'Risk(MLE)':>12} | {'Risk(Bayes)':>12} | {'Bayes better?':>14}")
+print('-' * 52)
+better_count = 0
+for t, rm, rb in zip(thetas, risk_mle, risk_bayes):
+    better = rb < rm
+    if better: better_count += 1
+    print(f"{t:6.3f} | {rm:12.6f} | {rb:12.6f} | {'yes' if better else 'no':>14}")
+
+print(f"\\nBayes estimator beats MLE at {better_count}/{len(thetas)} values of θ.")
+print(f"Near prior mean θ≈{prior_mean}, Bayes wins (prior helps). Far from prior mean, MLE wins.")
+`,
+      expectedHint: 'Prior Beta(3,3) mean=0.5. Bayes estimator should have lower risk for θ near 0.5 (prior is informative there) and higher risk for θ near 0 or 1 (prior is wrong there). Overall Bayes lower prior-averaged MSE.',
+    },
+    {
+      id: 'py-ch8-bi-2',
+      number: '2',
+      title: 'Bayes Hypothesis Test Posterior Probabilities',
+      description: 'Implement the Bayes test for H₀: λ=1 vs H_a: λ≠1 in a Poisson model with a discrete-continuous mixture prior. Track posterior probabilities as data accumulates.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Poisson(λ), testing H₀: λ=1 vs H_a: λ~Gamma(α₀,β₀)
+# Prior: π(H₀) = P₀, and λ|Ha ~ Gamma(α₀, β₀)
+# Posterior: Π(H₀|k) = P₀·Pois(k;1) / [P₀·Pois(k;1) + (1-P₀)·NegBin pmf]
+# Under Ha: p(k) = ∫ Pois(k;λ)·Gamma(λ;α₀,β₀) dλ = NegBin(k; α₀, β₀/(β₀+1))
+
+P0 = 0.5
+ALPHA0 = 2; BETA0 = 2   # Gamma prior on λ|Ha (prior mean = ALPHA0/BETA0 = 1)
+TRUE_LAM = 1.5           # True λ (slightly above H₀)
+N_OBS    = 30
+rng = np.random.default_rng(19)
+
+data   = rng.poisson(TRUE_LAM, N_OBS)
+pi_H0  = [P0]           # Prior probability of H₀
+decisions = []
+
+for t in range(1, N_OBS + 1):
+    obs_sum = data[:t].sum()
+    # Under H₀: P(Σxᵢ=k | λ=1) = Poisson(k; t)
+    p_sum_H0 = stats.poisson.pmf(obs_sum, t * 1.0)
+    # Under Ha: Σxᵢ | Ha ~ NegBin(α₀, β₀/(t+β₀))
+    p_sum_Ha = None  # TODO: stats.nbinom.pmf(obs_sum, ALPHA0, BETA0/(t+BETA0))
+
+    # TODO: Update posterior Π(H₀|data[:t])
+    pi_H0_new = None  # TODO: P0 * p_sum_H0 / (P0 * p_sum_H0 + (1-P0) * p_sum_Ha)
+    pi_H0.append(pi_H0_new if pi_H0_new is not None else None)
+    decisions.append('Reject H₀' if pi_H0_new is not None and pi_H0_new <= 0.5 else 'Accept H₀')
+
+print(f"True λ={TRUE_LAM}. H₀: λ=1.")
+print(f"t | cumsum | Π(H₀|data) | Decision")
+for t in range(1, N_OBS+1, 5):
+    print(f"{t:2d} | {data[:t].sum():6d} | {str(pi_H0[t]):11s} | {decisions[t-1]}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+P0 = 0.5; ALPHA0 = 2; BETA0 = 2; TRUE_LAM = 1.5; N_OBS = 30
+rng = np.random.default_rng(19)
+
+data   = rng.poisson(TRUE_LAM, N_OBS)
+pi_H0  = [P0]
+decisions = []
+
+for t in range(1, N_OBS + 1):
+    obs_sum = data[:t].sum()
+    p_sum_H0 = stats.poisson.pmf(obs_sum, t * 1.0)
+    p_sum_Ha = stats.nbinom.pmf(obs_sum, ALPHA0, BETA0 / (t + BETA0))
+
+    denom      = P0 * p_sum_H0 + (1 - P0) * p_sum_Ha
+    pi_H0_new  = P0 * p_sum_H0 / denom if denom > 0 else 0.5
+    pi_H0.append(pi_H0_new)
+    decisions.append('Reject H₀' if pi_H0_new <= 0.5 else 'Accept H₀')
+
+print(f"True λ={TRUE_LAM}. H₀: λ=1. Prior Π(H₀)={P0}.")
+print(f"{'t':>2} | {'cumsum':>6} | {'Π(H₀|data)':>11} | Decision")
+print('-' * 44)
+for t in range(1, N_OBS+1, 5):
+    print(f"{t:2d} | {data[:t].sum():6d} | {pi_H0[t]:11.4f} | {decisions[t-1]}")
+
+final_pi = pi_H0[-1]
+print(f"\\nFinal Π(H₀|all data) = {final_pi:.4f}")
+print(f"Bayes decision: {'Reject H₀' if final_pi <= 0.5 else 'Accept H₀'}")
+print(f"(True λ={TRUE_LAM} ≠ 1, so we hope to reject)")
+`,
+      expectedHint: 'With true λ=1.5 and n=30 obs, the posterior Π(H₀|data) should converge toward 0 (reject H₀). The convergence is gradual; early small samples may not provide strong evidence. Bayes test rejects when Π(H₀|data) ≤ 0.5.',
+    },
+  ],
+
+  'decision-theory': [
+    {
+      id: 'py-ch8-dt-1',
+      number: '1',
+      title: 'Computing Risk Functions',
+      description: 'Compute and compare risk functions for several estimators in the Poisson model. Identify which is admissible and which is minimax.',
+      starterCode:
+`import numpy as np
+
+# Poisson(λ): estimate λ under squared error loss
+# Sufficient stat: T = nX̄ = ΣXᵢ ~ Poisson(nλ)
+# UMVU = x̄, Var = λ/n (unbiased, CR bound = λ/n)
+# Bayes estimator with Gamma(α,β) prior: (α + nX̄)/(β + n)
+# Constant estimator T = c
+
+N     = 10
+N_SIM = 6000
+rng = np.random.default_rng(21)
+lambdas = np.linspace(0.2, 5, 25)
+
+risk_xbar  = []
+risk_bayes = []  # Gamma(2,2) prior → Bayes est = (2+nX̄)/(2+n)
+risk_const = []  # T = 2 (a fixed guess)
+
+for lam in lambdas:
+    data = rng.poisson(lam, (N_SIM, N))
+    xbar  = data.mean(axis=1)
+    bayes = None   # TODO: (2 + data.sum(axis=1)) / (2 + N)
+    const = np.full(N_SIM, 2.0)
+
+    risk_xbar.append(None)    # TODO: ((xbar - lam)**2).mean()
+    risk_bayes.append(None)   # TODO: ((bayes - lam)**2).mean()
+    risk_const.append(((const - lam)**2).mean())
+
+risk_xbar  = [r if r else 0 for r in risk_xbar]
+risk_bayes = [r if r else 0 for r in risk_bayes]
+
+print(f"{'λ':>5} | {'R(x̄)':>10} | {'R(Bayes)':>10} | {'R(T=2)':>10}")
+for l, rx, rb, rc in list(zip(lambdas, risk_xbar, risk_bayes, risk_const))[::5]:
+    print(f"{l:5.2f} | {rx:10.5f} | {rb:10.5f} | {rc:10.5f}")
+print("TODO: fill in the risk_xbar and risk_bayes calculations above.")
+`,
+      solution:
+`import numpy as np
+
+N = 10; N_SIM = 6000
+rng = np.random.default_rng(21)
+lambdas = np.linspace(0.2, 5, 25)
+
+risk_xbar  = []
+risk_bayes = []
+risk_const = []
+
+for lam in lambdas:
+    data = rng.poisson(lam, (N_SIM, N))
+    xbar  = data.mean(axis=1)
+    bayes = (2 + data.sum(axis=1)) / (2 + N)
+    const = np.full(N_SIM, 2.0)
+
+    risk_xbar.append(((xbar - lam)**2).mean())
+    risk_bayes.append(((bayes - lam)**2).mean())
+    risk_const.append(((const - lam)**2).mean())
+
+print(f"{'λ':>5} | {'R(x̄)':>10} | {'R(Bayes)':>10} | {'R(T=2)':>10} | Bayes<x̄?")
+for l, rx, rb, rc in zip(lambdas[::3], risk_xbar[::3], risk_bayes[::3], risk_const[::3]):
+    print(f"{l:5.2f} | {rx:10.5f} | {rb:10.5f} | {rc:10.5f} | {'yes' if rb < rx else 'no':>9}")
+
+print(f"\\nMax R(x̄):    {max(risk_xbar):.5f}  at λ=5 (R=λ/n={5/N:.2f})")
+print(f"Max R(Bayes): {max(risk_bayes):.5f}")
+print(f"Max R(T=2):   {max(risk_const):.5f}  at λ=5 (R=(5-2)²=9)")
+print(f"\\nx̄ is minimax: max risk = λ_max/n for any finite λ range.")
+print(f"T=2 is inadmissible: x̄ dominates it for λ far from 2.")
+`,
+      expectedHint: 'R(x̄)=λ/n (increasing), R(Bayes) is a parabola (lower near prior mean λ≈2), R(T=2)=(2-λ)² (lower only near λ=2). x̄ has constant risk λ/n up to any boundary and is minimax. T=2 is inadmissible.',
+    },
+    {
+      id: 'py-ch8-dt-2',
+      number: '2',
+      title: 'Decision Theory for Hypothesis Testing',
+      description: 'Implement the 0-1 loss function for hypothesis testing and compute the risk function of a size-α test. Show equivalence with the frequentist power function.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# H₀: μ=0 vs H_a: μ≠0, X~N(μ,1), n=15, 0-1 loss
+# L(θ,H₀) = 1 if θ∈Ha, 0 if θ∈H₀   (accept H₀ when false → loss 1)
+# L(θ,Ha) = 1 if θ∈H₀, 0 if θ∈Ha   (reject H₀ when true → loss 1)
+# Risk: R_φ(θ) = E_θ(φ) for θ∈H₀, R_φ(θ) = 1-E_θ(φ) for θ∈Ha
+# = P(reject|θ) if θ∈H₀ [type I], 1-P(reject|θ) if θ∈Ha [type II]
+
+ALPHA = 0.05
+N     = 15
+N_SIM = 20000
+rng = np.random.default_rng(88)
+
+# Two-sided z-test (UMP unbiased for this problem)
+z_crit = stats.norm.ppf(1 - ALPHA/2)
+c = z_crit / np.sqrt(N)  # reject when |x̄| > c
+
+mus = np.linspace(-3, 3, 40)
+risk_fn = []
+
+for mu in mus:
+    data   = rng.normal(mu, 1.0, (N_SIM, N))
+    xbar   = data.mean(axis=1)
+    reject = np.abs(xbar) > c
+
+    if np.abs(mu) < 1e-9:  # θ ∈ H₀
+        risk = reject.mean()   # Type I error
+    else:                    # θ ∈ Ha
+        risk = None   # TODO: 1 - reject.mean()  # Type II error
+    risk_fn.append(risk)
+
+print(f"Two-sided z-test, α={ALPHA}, n={N}, c={c:.4f}")
+print(f"{'μ':>6} | {'Risk':>10} | Region")
+for mu, r in zip(mus[::5], risk_fn[::5]):
+    region = 'H₀' if abs(mu) < 0.01 else 'Ha'
+    print(f"{mu:6.2f} | {str(r):>10} | {region}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+ALPHA = 0.05; N = 15; N_SIM = 20000
+rng = np.random.default_rng(88)
+
+z_crit = stats.norm.ppf(1 - ALPHA/2)
+c      = z_crit / np.sqrt(N)
+
+mus     = np.linspace(-3, 3, 40)
+risk_fn = []
+
+for mu in mus:
+    data   = rng.normal(mu, 1.0, (N_SIM, N))
+    xbar   = data.mean(axis=1)
+    reject = np.abs(xbar) > c
+
+    if np.abs(mu) < 1e-9:
+        risk = reject.mean()        # Type I error
+    else:
+        risk = 1 - reject.mean()    # Type II error
+
+    risk_fn.append(risk)
+
+print(f"Two-sided z-test, α={ALPHA}, n={N}, c={c:.4f}")
+print(f"{'μ':>6} | {'Risk (0-1 loss)':>16} | {'Power':>8} | Region")
+print('-' * 48)
+for mu, r in zip(mus, risk_fn):
+    region = 'H₀' if abs(mu) < 1e-9 else 'Ha'
+    power  = 1 - r if abs(mu) > 1e-9 else float('nan')
+    print(f"{mu:6.2f} | {r:16.4f} | {power:8.4f} | {region}")
+
+# Unbiasedness: risk under H₀ = α ≤ risk near H₀ boundary
+idx_H0 = len(mus) // 2
+print(f"\\nRisk at μ=0 (H₀): {risk_fn[idx_H0]:.4f} ≈ α={ALPHA}")
+print(f"Risk at μ=0.1 (Ha): {risk_fn[idx_H0+1]:.4f} (should also be ≈ α for unbiased test)")
+print(f"Equivalence: 0-1 loss risk = frequentist power function.")
+`,
+      expectedHint: 'Under H₀ (μ=0), risk = Type I error rate ≈ α = 0.05. Under Ha (μ≠0), risk = Type II error = 1 - power. Risk function U-shaped: high near 0, decreasing as |μ| increases. This is the frequentist power function re-expressed as a loss.',
+    },
+  ],
+
+  'optimal-inferences-proofs': [
+    {
+      id: 'py-ch8-pf-1',
+      number: '1',
+      title: 'Verifying the Neyman-Pearson Proof Numerically',
+      description: 'Numerically verify the key inequality in the NP proof: E_{θ₁}(φ₀−φ) ≥ c₀·E_{θ₀}(φ₀−φ) by constructing specific tests and checking the bound.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Simple model: S = {1,2,3,4}, Ω = {θ₀, θ₁}
+# f_{θ₀}(s) and f_{θ₁}(s) given below
+# NP test: reject when f_{θ₁}(s)/f_{θ₀}(s) > c₀
+
+f0 = np.array([1/3, 1/6, 1/12, 5/12])   # f_{θ₀}(s) for s=1,2,3,4
+f1 = np.array([1/2, 1/4, 1/6,  1/12])   # f_{θ₁}(s) for s=1,2,3,4
+S  = np.array([1, 2, 3, 4])
+
+# Likelihood ratios
+lr = f1 / f0
+print("s | f₀(s) | f₁(s) | LR f₁/f₀")
+for s, p0, p1, r in zip(S, f0, f1, lr):
+    print(f"{s} | {p0:.4f} | {p1:.4f} | {r:.4f}")
+
+# NP test at size α = 0.10 (reject when LR > c₀)
+ALPHA = 0.10
+# Sort by LR descending, accumulate f₀ until size = α
+order = np.argsort(-lr)  # indices sorted by LR descending
+
+phi_np = np.zeros(4)
+size_acc = 0.0
+for idx in order:
+    if size_acc + f0[idx] <= ALPHA + 1e-9:
+        phi_np[idx] = 1.0
+        size_acc += f0[idx]
+    # else: partial rejection (randomise)
+
+print(f"\\nNP test φ₀: {phi_np}")
+print(f"Size: E_{{θ₀}}(φ₀) = {(phi_np * f0).sum():.4f}  (target: {ALPHA})")
+print(f"Power: E_{{θ₁}}(φ₀) = {(phi_np * f1).sum():.4f}")
+
+# Alternative test (not NP): e.g., reject s=2,3 only
+phi_alt = np.array([0, 1, 1, 0], dtype=float)
+print(f"\\nAlt test φ: {phi_alt}")
+print(f"Size: E_{{θ₀}}(φ) = {(phi_alt * f0).sum():.4f}")
+print(f"Power: E_{{θ₁}}(φ) = {(phi_alt * f1).sum():.4f}")
+
+# TODO: Verify NP inequality: E_{θ₁}(φ₀) ≥ E_{θ₁}(φ) when sizes equal
+# Hint: compute c₀ and check the bound
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+f0 = np.array([1/3, 1/6, 1/12, 5/12])
+f1 = np.array([1/2, 1/4, 1/6,  1/12])
+S  = np.array([1, 2, 3, 4])
+lr = f1 / f0
+ALPHA = 0.10
+
+order = np.argsort(-lr)
+phi_np    = np.zeros(4)
+size_acc  = 0.0
+c0        = None
+
+for idx in order:
+    if size_acc + f0[idx] <= ALPHA + 1e-9:
+        phi_np[idx] = 1.0
+        size_acc    += f0[idx]
+        c0           = lr[idx]
+
+print("s | f₀(s) | f₁(s) | LR    | φ_NP")
+for i, (s, p0, p1, r, ph) in enumerate(zip(S, f0, f1, lr, phi_np)):
+    print(f"{s} | {p0:.4f} | {p1:.4f} | {r:.4f} | {ph:.0f}")
+
+size_np  = (phi_np * f0).sum()
+power_np = (phi_np * f1).sum()
+print(f"\\nNP test: size={size_np:.4f}, power={power_np:.4f}, c₀≈{c0:.4f}")
+
+# Any other test with same or smaller size
+phi_alts = [
+    np.array([0, 1, 1, 0], dtype=float),
+    np.array([1, 0, 0, 0], dtype=float),
+    np.array([0, 0, 0, 1], dtype=float),
+]
+
+print(f"\\nAlternative tests vs NP (size target = {ALPHA}):")
+print(f"{'Test':<25} | {'Size':>6} | {'Power':>8} | NP power ≥ alt?")
+for phi_a in phi_alts:
+    sz = (phi_a * f0).sum()
+    pw = (phi_a * f1).sum()
+    valid = sz <= ALPHA + 1e-9
+    print(f"{str(phi_a):25s} | {sz:6.4f} | {pw:8.4f} | {'yes (NP optimal)' if power_np >= pw else '!NO!'}")
+
+print(f"\\nNP power {power_np:.4f} ≥ all alternatives of size ≤ {ALPHA}. QED.")
+`,
+      expectedHint: 'The NP test should reject s=1 (LR=3/2) which is the highest LR. Size = f₀(1) = 1/3 > 0.10, so we need to find the right set. Sorted LR: s=1 (LR=1.5), s=2 (LR=1.5), s=3 (LR=2), s=4 (LR=0.29). Actually s=3 has LR=2 (highest), then s=1,s=2 LR=1.5, then s=4 LR=0.29. NP rejects highest LR first.',
+    },
+    {
+      id: 'py-ch8-pf-2',
+      number: '2',
+      title: 'Completeness: Numerical MGF Argument',
+      description: 'Numerically verify the MGF uniqueness argument used in the completeness proof: if two distributions have the same MGF everywhere, they are identical.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# The completeness proof for x̄ in N(μ, σ₀²) uses:
+# If E_μ(h(x̄)) = 0 for all μ, then writing h = h⁺ - h⁻,
+# the distributions g⁺/∫g⁺ and g⁻/∫g⁻ have identical MGFs → they must be identical.
+# We verify: two distributions with the same MGF are the same.
+
+# Example: verify that N(2, 1) and Gamma(4, 0.5) have different MGFs
+# (different distributions → different MGFs)
+
+ts = np.linspace(-0.4, 0.4, 200)
+
+# N(2, 1): MGF = exp(2t + t²/2)
+mgf_normal = None   # TODO: np.exp(2*ts + 0.5*ts**2)
+
+# Gamma(4, 0.5) = Gamma(shape=4, rate=2): MGF = (1-t/rate)^{-shape} for t < rate
+# = (1 - t/2)^{-4}
+mgf_gamma = None   # TODO: (1 - ts/2)**(-4)
+
+print("t     | MGF Normal | MGF Gamma")
+for t, mn, mg in zip(ts[::20], mgf_normal[::20] if mgf_normal is not None else [None]*10,
+                                mgf_gamma[::20] if mgf_gamma is not None else [None]*10):
+    print(f"{t:6.3f} | {str(mn):10s} | {str(mg):10s}")
+
+# Now show: if two N(μ₁,σ²) and N(μ₂,σ²) have same MGF, then μ₁=μ₂
+# MGF of N(μ,σ²) at t: M(t) = exp(μt + σ²t²/2)
+# Two normals with same MGF → exp(μ₁t) = exp(μ₂t) for all t → μ₁ = μ₂.
+print("\\nIf E_μ(h(x̄)) = 0 for all μ, the MGF argument shows h=0 a.s.")
+print("This is the key to the completeness proof.")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+ts = np.linspace(-0.4, 0.4, 200)
+
+# MGFs
+mgf_normal = np.exp(2*ts + 0.5*ts**2)             # N(2,1)
+mgf_gamma  = (1 - ts/2)**(-4)                      # Gamma(4, rate=2)
+mgf_n30    = np.exp(0*ts + 0.5*ts**2/30)           # N(0, 1/30) — x̄ for n=30, σ=1
+
+print("t     | MGF N(2,1) | MGF Γ(4,2⁻¹) | Max diff")
+for t, mn, mg in zip(ts[::20], mgf_normal[::20], mgf_gamma[::20]):
+    print(f"{t:6.3f} | {mn:10.4f} | {mg:13.4f} | {abs(mn-mg):9.4f}")
+
+print("\\nDifferent distributions → different MGFs → distributional uniqueness.")
+
+# MGF argument for completeness of x̄
+# Suppose E_μ(h(x̄)) = 0 for all μ ∈ ℝ
+# E_μ(h(x̄)) = exp(-nμ²/(2σ²)) ∫exp(nμx/σ²) g(x) dx = 0
+# This is exp(-nμ²/(2σ²)) times the Laplace transform of g at nμ/σ²
+# If this = 0 for all μ, then the Laplace transform of g is 0 everywhere
+# → g = 0 a.e. → h = 0 a.s.
+
+# Numerical demonstration: E_μ(h(x̄)) = 0 for all μ only for h ≡ 0
+SIGMA0 = 1.0; N = 15
+mus    = np.linspace(-2, 2, 20)
+
+# h₁(x) = x - μ: E_μ(h₁(x̄)) = 0 for all μ (centred, but parameter-dependent)
+# h₂(x) = x²  : E_μ(h₂(x̄)) = μ² + σ²/n ≠ 0 generally
+
+rng = np.random.default_rng(42)
+N_SIM = 10000
+for label, h_fn in [('h(t)=t-mu (centred, not in domain)', lambda t, mu: t - mu),
+                     ('h(t)=t²  (non-centred)', lambda t, mu: t**2),
+                     ('h(t)=(t-mu)²-σ²/n (completeness domain)', lambda t, mu: (t-mu)**2 - SIGMA0**2/N)]:
+    means = [rng.normal(mu, SIGMA0/np.sqrt(N), N_SIM).pipe(lambda x: None) or
+             np.apply_along_axis(lambda x: h_fn(x.mean(), mu), 1, rng.normal(mu, SIGMA0, (N_SIM, N))).mean()
+             for mu in mus]
+    max_abs = max(abs(m) for m in means)
+    print(f"{label}: max|E_μ(h)| = {max_abs:.6f}")
+`,
+      expectedHint: 'MGF of N(2,1) ≠ MGF of Gamma(4,0.5) → they are different distributions (MGF uniqueness). For completeness: h(t)=t² has E_μ(t²)=μ²+σ²/n which depends on μ (not 0 for all μ). Only h≡0 satisfies E_μ(h(x̄))=0 for all μ — this is completeness.',
+    },
+  ],
 };

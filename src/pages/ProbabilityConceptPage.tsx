@@ -111,6 +111,14 @@ import {
   VizBayesFactor,
   VizGibbsSampling,
 } from '../visualizations/VizBayesianInference';
+import {
+  VizRaoBlackwell,
+  VizCramerRao,
+  VizNeymanPearson,
+  VizPowerFunction,
+  VizBayesDecision,
+  VizRiskFunction,
+} from '../visualizations/VizOptimalInferences';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -224,6 +232,13 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch7-credible-interval':      VizCredibleInterval,
   'viz-ch7-bayes-factor':           VizBayesFactor,
   'viz-ch7-gibbs-sampling':         VizGibbsSampling,
+  // Chapter 8 — Optimal Inferences
+  'viz-ch8-rao-blackwell':          VizRaoBlackwell,
+  'viz-ch8-cramer-rao':             VizCramerRao,
+  'viz-ch8-neyman-pearson':         VizNeymanPearson,
+  'viz-ch8-power-function':         VizPowerFunction,
+  'viz-ch8-bayes-decision':         VizBayesDecision,
+  'viz-ch8-risk-function':          VizRiskFunction,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,

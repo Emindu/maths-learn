@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface HubCardProps {
@@ -70,6 +70,7 @@ export const Hub: React.FC = () => {
     { id: 'ch5concepts', label: 'Statistical Inference', icon: Search, count: 5 },
     { id: 'ch6concepts', label: 'Likelihood Inference', icon: TrendingUp, count: 5 },
     { id: 'ch7concepts', label: 'Bayesian Inference', icon: GitMerge, count: 5 },
+    { id: 'ch8concepts', label: 'Optimal Inferences', icon: Award, count: 5 },
     { id: 'distributions', label: 'Probability Distributions', icon: BarChart2, count: 14 },
     { id: 'properties', label: 'Distribution Properties', icon: Compass, count: 1 },
     { id: 'markov', label: 'Markov Chains', icon: Link2, count: 4 },
@@ -526,6 +527,46 @@ export const Hub: React.FC = () => {
                 title="Bayesian Asymptotics"
                 desc="Normal-Gamma conjugate update, the Bernstein–von Mises theorem (posterior ≈ N(θ̂, 1/nI(θ₀))), and asymptotic equivalence of Bayesian and frequentist inference."
                 to="/ch7/bayesian-asymptotics" isLocked={!isUnlocked('/ch7/bayesian-asymptotics')} isCompleted={isCompleted('/ch7/bayesian-asymptotics')}
+              />
+            </div>
+          </section>
+
+          <hr className="hub-divider" />
+
+          {/* Category: Optimal Inferences (Chapter 8) */}
+          <section id="ch8concepts" className="hub-section">
+            <div className="hub-section__header">
+              <div className="hub-section__title-group">
+                <div className="hub-section__icon"><Award size={20} /></div>
+                <h2 className="hub-section__title">Optimal Inferences</h2>
+              </div>
+              <span className="hub-section__badge">5 topics</span>
+            </div>
+            <div className="topic-grid">
+              <HubCard
+                title="Optimal Unbiased Estimation"
+                desc="MSE decomposition, Rao-Blackwell theorem (T_U = E[T|U(s)]), UMVU estimators, completeness, Lehmann-Scheffé theorem, and the Cramér-Rao lower bound Var(T) ≥ (ψ′(θ))²/I(θ)."
+                to="/ch8/optimal-unbiased-estimation" isLocked={!isUnlocked('/ch8/optimal-unbiased-estimation')} isCompleted={isCompleted('/ch8/optimal-unbiased-estimation')}
+              />
+              <HubCard
+                title="Optimal Hypothesis Testing"
+                desc="Power functions, Type I/II errors, UMP tests, the Neyman-Pearson theorem (likelihood ratio test), and one-sided vs two-sided UMP size-α tests."
+                to="/ch8/optimal-hypothesis-testing" isLocked={!isUnlocked('/ch8/optimal-hypothesis-testing')} isCompleted={isCompleted('/ch8/optimal-hypothesis-testing')}
+              />
+              <HubCard
+                title="Optimal Bayesian Inferences"
+                desc="Bayes rules minimise prior-averaged loss. Posterior mean is the Bayes estimator for squared error; posterior probability comparison is the Bayes test for 0-1 loss."
+                to="/ch8/optimal-bayesian-inferences" isLocked={!isUnlocked('/ch8/optimal-bayesian-inferences')} isCompleted={isCompleted('/ch8/optimal-bayesian-inferences')}
+              />
+              <HubCard
+                title="Decision Theory"
+                desc="Action space A, loss function L(θ,a), risk function R_δ(θ), admissibility, Bayes risk and Bayes rules, minimax decision functions."
+                to="/ch8/decision-theory" isLocked={!isUnlocked('/ch8/decision-theory')} isCompleted={isCompleted('/ch8/decision-theory')}
+              />
+              <HubCard
+                title="Further Proofs"
+                desc="Sufficiency via conditional independence (Theorem 8.1.2), completeness of x̄ via MGF argument, and the Neyman-Pearson theorem proof in the discrete case."
+                to="/ch8/optimal-inferences-proofs" isLocked={!isUnlocked('/ch8/optimal-inferences-proofs')} isCompleted={isCompleted('/ch8/optimal-inferences-proofs')}
               />
             </div>
           </section>

@@ -12,6 +12,7 @@ import { Ch4ConceptPage } from './pages/Ch4ConceptPage';
 import { Ch5ConceptPage } from './pages/Ch5ConceptPage';
 import { Ch6ConceptPage } from './pages/Ch6ConceptPage';
 import { Ch7ConceptPage } from './pages/Ch7ConceptPage';
+import { Ch8ConceptPage } from './pages/Ch8ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -53,6 +54,9 @@ export const App: React.FC = () => {
 
               {/* Bayesian Inference (Chapter 7) */}
               <Route path="/ch7/:id" element={<ProtectedRoute><Ch7ConceptPage /></ProtectedRoute>} />
+
+              {/* Optimal Inferences (Chapter 8) */}
+              <Route path="/ch8/:id" element={<ProtectedRoute><Ch8ConceptPage /></ProtectedRoute>} />
 
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />

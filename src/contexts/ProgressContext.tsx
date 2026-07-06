@@ -51,6 +51,12 @@ export const TOPIC_SEQUENCE = [
   '/ch7/choosing-priors',
   '/ch7/bayesian-asymptotics',
 
+  '/ch8/optimal-unbiased-estimation',
+  '/ch8/optimal-hypothesis-testing',
+  '/ch8/optimal-bayesian-inferences',
+  '/ch8/decision-theory',
+  '/ch8/optimal-inferences-proofs',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',
