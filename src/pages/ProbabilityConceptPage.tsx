@@ -103,6 +103,14 @@ import {
   VizPvalueTest,
   VizBootstrap,
 } from '../visualizations/VizLikelihoodInference';
+import {
+  VizPriorPosterior,
+  VizNormalNormalUpdate,
+  VizBayesianEstimation,
+  VizCredibleInterval,
+  VizBayesFactor,
+  VizGibbsSampling,
+} from '../visualizations/VizBayesianInference';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -209,6 +217,13 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch6-confidence-intervals':   VizConfidenceIntervals,
   'viz-ch6-pvalue-test':            VizPvalueTest,
   'viz-ch6-bootstrap':              VizBootstrap,
+  // Chapter 7 — Bayesian Inference
+  'viz-ch7-prior-posterior':        VizPriorPosterior,
+  'viz-ch7-normal-update':          VizNormalNormalUpdate,
+  'viz-ch7-bayes-estimation':       VizBayesianEstimation,
+  'viz-ch7-credible-interval':      VizCredibleInterval,
+  'viz-ch7-bayes-factor':           VizBayesFactor,
+  'viz-ch7-gibbs-sampling':         VizGibbsSampling,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface HubCardProps {
@@ -69,6 +69,7 @@ export const Hub: React.FC = () => {
     { id: 'ch4concepts', label: 'Sampling & Limits', icon: FlaskConical, count: 6 },
     { id: 'ch5concepts', label: 'Statistical Inference', icon: Search, count: 5 },
     { id: 'ch6concepts', label: 'Likelihood Inference', icon: TrendingUp, count: 5 },
+    { id: 'ch7concepts', label: 'Bayesian Inference', icon: GitMerge, count: 5 },
     { id: 'distributions', label: 'Probability Distributions', icon: BarChart2, count: 14 },
     { id: 'properties', label: 'Distribution Properties', icon: Compass, count: 1 },
     { id: 'markov', label: 'Markov Chains', icon: Link2, count: 4 },
@@ -485,6 +486,46 @@ export const Hub: React.FC = () => {
                 title="Asymptotics for the MLE"
                 desc="Fisher information, the Cramér–Rao lower bound, consistency, asymptotic normality of the MLE, and the delta method for derived parameters."
                 to="/ch6/mle-asymptotics" isLocked={!isUnlocked('/ch6/mle-asymptotics')} isCompleted={isCompleted('/ch6/mle-asymptotics')}
+              />
+            </div>
+          </section>
+
+          <hr className="hub-divider" />
+
+          {/* Category: Bayesian Inference (Chapter 7) */}
+          <section id="ch7concepts" className="hub-section">
+            <div className="hub-section__header">
+              <div className="hub-section__title-group">
+                <div className="hub-section__icon"><GitMerge size={20} /></div>
+                <h2 className="hub-section__title">Bayesian Inference</h2>
+              </div>
+              <span className="hub-section__badge">5 topics</span>
+            </div>
+            <div className="topic-grid">
+              <HubCard
+                title="Prior &amp; Posterior Distributions"
+                desc="Bayesian framework: π(θ) prior, π(θ|s) posterior via Bayes' theorem, conjugate families — Beta-Bernoulli, Normal-Normal, and Dirichlet-Multinomial."
+                to="/ch7/prior-posterior-distributions" isLocked={!isUnlocked('/ch7/prior-posterior-distributions')} isCompleted={isCompleted('/ch7/prior-posterior-distributions')}
+              />
+              <HubCard
+                title="Inferences Based on the Posterior"
+                desc="Posterior mode (MAP) and mean, HPD credible intervals, Bayes factors for hypothesis testing, and posterior predictive distributions."
+                to="/ch7/inferences-based-on-posterior" isLocked={!isUnlocked('/ch7/inferences-based-on-posterior')} isCompleted={isCompleted('/ch7/inferences-based-on-posterior')}
+              />
+              <HubCard
+                title="Bayesian Computations"
+                desc="Asymptotic normality of the posterior (Laplace approximation), Monte Carlo sampling, importance sampling, and Gibbs sampling for intractable posteriors."
+                to="/ch7/bayesian-computations" isLocked={!isUnlocked('/ch7/bayesian-computations')} isCompleted={isCompleted('/ch7/bayesian-computations')}
+              />
+              <HubCard
+                title="Choosing Priors"
+                desc="Prior elicitation, conjugate priors, empirical Bayes (maximise m_λ(s)), hierarchical Bayes, improper priors, and Jeffreys' invariant prior π_J(θ) ∝ I(θ)^(1/2)."
+                to="/ch7/choosing-priors" isLocked={!isUnlocked('/ch7/choosing-priors')} isCompleted={isCompleted('/ch7/choosing-priors')}
+              />
+              <HubCard
+                title="Bayesian Asymptotics"
+                desc="Normal-Gamma conjugate update, the Bernstein–von Mises theorem (posterior ≈ N(θ̂, 1/nI(θ₀))), and asymptotic equivalence of Bayesian and frequentist inference."
+                to="/ch7/bayesian-asymptotics" isLocked={!isUnlocked('/ch7/bayesian-asymptotics')} isCompleted={isCompleted('/ch7/bayesian-asymptotics')}
               />
             </div>
           </section>

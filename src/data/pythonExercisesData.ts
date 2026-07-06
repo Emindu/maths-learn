@@ -2816,4 +2816,663 @@ print(f"True psi={'inside' if ci_lo <= psi_true <= ci_hi else 'OUTSIDE'} CI")
       expectedHint: 'psi_true = log(0.4/0.6) ≈ −0.405. SE(ψ̂) ≈ 0.354. The CI should cover −0.405 approximately 95% of the time.',
     },
   ],
+
+  'prior-posterior-distributions': [
+    {
+      id: 'py-ch7-pp-1',
+      number: '1',
+      title: 'Beta–Bernoulli Posterior Update',
+      description: 'Given a Beta(alpha, beta) prior and Bernoulli data, compute and print the posterior Beta parameters, posterior mean, and posterior mode.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+ALPHA0, BETA0 = 3, 3   # prior hyperparameters
+n = 20
+t = 13                  # observed successes
+
+# TODO: compute posterior hyperparameters
+a_post = None  # TODO: ALPHA0 + t
+b_post = None  # TODO: BETA0 + (n - t)
+
+# TODO: posterior mean = a_post / (a_post + b_post)
+post_mean = None  # TODO
+
+# TODO: posterior mode = (a_post - 1) / (a_post + b_post - 2)  [valid when a_post, b_post > 1]
+post_mode = None  # TODO
+
+# TODO: MLE
+mle = None  # TODO: t / n
+
+print(f"Prior: Beta({ALPHA0},{BETA0})")
+print(f"Data: n={n}, t={t}")
+print(f"Posterior: Beta({a_post},{b_post})")
+print(f"Posterior mean: {post_mean:.4f}")
+print(f"Posterior mode: {post_mode:.4f}")
+print(f"MLE: {mle:.4f}")
+print(f"Prior mean: {ALPHA0/(ALPHA0+BETA0):.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+ALPHA0, BETA0 = 3, 3
+n = 20
+t = 13
+
+a_post    = ALPHA0 + t
+b_post    = BETA0 + (n - t)
+post_mean = a_post / (a_post + b_post)
+post_mode = (a_post - 1) / (a_post + b_post - 2)
+mle       = t / n
+
+print(f"Prior: Beta({ALPHA0},{BETA0}), mean={ALPHA0/(ALPHA0+BETA0):.4f}")
+print(f"Data: n={n}, t={t}, MLE={mle:.4f}")
+print(f"Posterior: Beta({a_post},{b_post})")
+print(f"Posterior mean={post_mean:.4f}  (between prior mean {ALPHA0/(ALPHA0+BETA0):.4f} and MLE {mle:.4f})")
+print(f"Posterior mode={post_mode:.4f}")
+`,
+      expectedHint: 'Posterior is Beta(16, 10). Posterior mean = 16/26 ≈ 0.615. Posterior mode = 15/24 = 0.625. MLE = 13/20 = 0.65.',
+    },
+    {
+      id: 'py-ch7-pp-2',
+      number: '2',
+      title: 'Normal–Normal Posterior Computation',
+      description: 'Implement the Normal-Normal conjugate update. Given prior N(mu0, tau0^2) and n iid N(mu, sigma^2) observations, compute the posterior parameters and compare to the MLE.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+MU0 = 1.0       # prior mean
+TAU0_SQ = 9.0   # prior variance
+SIGMA_SQ = 4.0  # known observation variance
+n = 12
+xbar = 3.5      # observed sample mean
+
+# TODO: posterior precision = 1/tau0^2 + n/sigma^2
+prec_post = None  # TODO
+
+# TODO: posterior variance tau1^2 = 1 / prec_post
+tau1_sq = None  # TODO
+
+# TODO: posterior mean mu1 = (mu0/tau0^2 + n*xbar/sigma^2) * tau1^2
+mu1 = None  # TODO
+
+# TODO: shrinkage weight towards prior (w0) and sample (w1)
+w0 = None  # TODO: (1/TAU0_SQ) / prec_post  — weight on prior
+w1 = None  # TODO: (n/SIGMA_SQ) / prec_post — weight on data
+
+print(f"Prior: N({MU0}, {TAU0_SQ})")
+print(f"Observation variance: sigma^2={SIGMA_SQ}, n={n}, x_bar={xbar}")
+print(f"Posterior variance tau1^2 = {tau1_sq:.4f}")
+print(f"Posterior mean mu1 = {mu1:.4f}")
+print(f"Weight on prior: {w0:.4f}, Weight on data: {w1:.4f}")
+print(f"Verify: w0*mu0 + w1*xbar = {w0*MU0 + w1*xbar:.4f} (should equal mu1)")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+MU0 = 1.0; TAU0_SQ = 9.0; SIGMA_SQ = 4.0; n = 12; xbar = 3.5
+
+prec_post = 1/TAU0_SQ + n/SIGMA_SQ
+tau1_sq   = 1 / prec_post
+mu1       = (MU0/TAU0_SQ + n*xbar/SIGMA_SQ) * tau1_sq
+w0        = (1/TAU0_SQ) / prec_post
+w1        = (n/SIGMA_SQ) / prec_post
+
+print(f"Prior precision: {1/TAU0_SQ:.4f}, Data precision: {n/SIGMA_SQ:.4f}")
+print(f"Posterior precision: {prec_post:.4f}, tau1^2 = {tau1_sq:.4f}")
+print(f"Posterior mean mu1 = {mu1:.4f}")
+print(f"Weight on prior w0 = {w0:.4f}, Weight on data w1 = {w1:.4f}")
+print(f"Check: w0*mu0 + w1*xbar = {w0*MU0 + w1*xbar:.4f}")
+print(f"As n grows, posterior mean -> x_bar = {xbar}")
+`,
+      expectedHint: 'prec_post = 1/9 + 12/4 = 3.111. tau1^2 ≈ 0.321. mu1 ≈ 3.286. w0 ≈ 0.036 (prior has small weight), w1 ≈ 0.964 (data dominate with n=12).',
+    },
+  ],
+
+  'inferences-based-on-posterior': [
+    {
+      id: 'py-ch7-inf-1',
+      number: '1',
+      title: 'HPD Credible Interval Computation',
+      description: 'Compute the 95% HPD (highest posterior density) credible interval for a Beta(alpha, beta) posterior using scipy and compare to the equal-tails interval.',
+      starterCode:
+`import numpy as np
+from scipy import stats, optimize
+
+ALPHA_POST = 7
+BETA_POST  = 4
+GAMMA = 0.95
+
+posterior = stats.beta(ALPHA_POST, BETA_POST)
+
+# Equal-tails interval
+et_lo = posterior.ppf((1 - GAMMA) / 2)
+et_hi = posterior.ppf(1 - (1 - GAMMA) / 2)
+
+# HPD interval: find shortest interval with gamma mass
+# HPD property: f(lo) = f(hi) for unimodal posteriors
+# Minimize width hi-lo subject to posterior.cdf(hi)-posterior.cdf(lo)=gamma
+
+def interval_width(lo):
+    # Find hi such that CDF(hi) - CDF(lo) = gamma
+    hi = posterior.ppf(posterior.cdf(lo) + GAMMA)
+    return hi - lo
+
+# TODO: search over valid lo values (0 to 1-gamma mass)
+lo_vals = np.linspace(0.001, posterior.ppf(1 - GAMMA) - 0.001, 500)
+# TODO: compute width for each lo
+widths = None  # TODO: [interval_width(lo) for lo in lo_vals]
+
+# TODO: find lo that minimises width
+best_lo = None  # TODO
+best_hi = None  # TODO
+
+print(f"Posterior: Beta({ALPHA_POST},{BETA_POST})")
+print(f"Equal-tails {GAMMA*100:.0f}% CI: [{et_lo:.4f}, {et_hi:.4f}]  width={et_hi-et_lo:.4f}")
+print(f"HPD {GAMMA*100:.0f}% CI:         [{best_lo:.4f}, {best_hi:.4f}]  width={best_hi-best_lo:.4f}")
+print(f"HPD is {'shorter' if best_hi-best_lo < et_hi-et_lo else 'longer'} than equal-tails")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+ALPHA_POST = 7
+BETA_POST  = 4
+GAMMA = 0.95
+
+posterior = stats.beta(ALPHA_POST, BETA_POST)
+
+et_lo = posterior.ppf((1 - GAMMA) / 2)
+et_hi = posterior.ppf(1 - (1 - GAMMA) / 2)
+
+def interval_width(lo):
+    cdf_lo = posterior.cdf(lo)
+    cdf_hi = cdf_lo + GAMMA
+    if cdf_hi > 1: return np.inf
+    hi = posterior.ppf(cdf_hi)
+    return hi - lo
+
+lo_vals = np.linspace(0.001, posterior.ppf(1 - GAMMA) - 0.001, 2000)
+widths  = [interval_width(lo) for lo in lo_vals]
+idx     = np.argmin(widths)
+best_lo = lo_vals[idx]
+best_hi = posterior.ppf(posterior.cdf(best_lo) + GAMMA)
+
+print(f"Posterior: Beta({ALPHA_POST},{BETA_POST}), mode={(ALPHA_POST-1)/(ALPHA_POST+BETA_POST-2):.4f}")
+print(f"Equal-tails {GAMMA*100:.0f}% CI: [{et_lo:.4f}, {et_hi:.4f}]  width={et_hi-et_lo:.4f}")
+print(f"HPD {GAMMA*100:.0f}% CI:         [{best_lo:.4f}, {best_hi:.4f}]  width={best_hi-best_lo:.4f}")
+print(f"HPD is {(et_hi-et_lo - (best_hi-best_lo))*100/(et_hi-et_lo):.1f}% shorter than equal-tails")
+`,
+      expectedHint: 'For Beta(7,4): mode=0.667, mean=0.636. Equal-tails 95% CI ≈ [0.359, 0.896]. HPD CI is slightly narrower because the posterior is right-skewed.',
+    },
+    {
+      id: 'py-ch7-inf-2',
+      number: '2',
+      title: 'Bayes Factor Computation',
+      description: 'Compute the Bayes factor BF(H0:H1) for testing H0: theta=0.5 vs H1: theta~Beta(1,1) in a Bernoulli model. Use log-scale to avoid numerical underflow.',
+      starterCode:
+`import numpy as np
+from scipy.special import gammaln
+
+def log_bf_h0_vs_h1(n, t):
+    """
+    log Bayes Factor: H0: theta=0.5 vs H1: theta~Uniform(0,1)
+    BF = P(T=t | H0) / m(T=t | H1)
+    P(T=t|H0) = C(n,t) * 0.5^n
+    m(T=t|H1) = 1/(n+1)   [Beta-Binomial with Beta(1,1) prior]
+    """
+    # TODO: log P(T=t | H0)
+    log_p_h0 = None  # TODO: gammaln(n+1) - gammaln(t+1) - gammaln(n-t+1) + n*np.log(0.5)
+
+    # TODO: log m(T=t | H1) = -log(n+1)
+    log_m_h1 = None  # TODO
+
+    return log_p_h0 - log_m_h1  # log BF
+
+# Test for n=10, various t
+n = 10
+for t in [2, 5, 8]:
+    log_bf = log_bf_h0_vs_h1(n, t)
+    bf     = np.exp(log_bf)
+    # TODO: if P(H0)=P(H1)=0.5, posterior P(H0|data) = BF/(1+BF)
+    p_h0_given_data = None  # TODO: bf / (1 + bf)
+    print(f"n={n}, t={t}: log BF={log_bf:.3f}, BF={bf:.3f}, P(H0|data)={p_h0_given_data:.3f}")
+`,
+      solution:
+`import numpy as np
+from scipy.special import gammaln
+
+def log_bf_h0_vs_h1(n, t):
+    log_p_h0 = gammaln(n+1) - gammaln(t+1) - gammaln(n-t+1) + n*np.log(0.5)
+    log_m_h1 = -np.log(n + 1)
+    return log_p_h0 - log_m_h1
+
+n = 10
+print(f"{'t':>4} {'log BF':>10} {'BF':>10} {'P(H0|data)':>12} {'Interpretation'}")
+print('-' * 55)
+for t in range(0, n+1):
+    log_bf = log_bf_h0_vs_h1(n, t)
+    bf     = np.exp(log_bf)
+    p_h0   = bf / (1 + bf)
+    interp = 'strong H0' if bf > 3 else ('strong H1' if bf < 1/3 else 'ambiguous')
+    print(f"{t:>4} {log_bf:>10.3f} {bf:>10.3f} {p_h0:>12.3f} {interp}")
+`,
+      expectedHint: 'At t=5 (most neutral), BF ≈ 2.7, favouring H0 moderately. At t=0 or t=10 (extreme), BF is very small, strongly favouring H1: theta is clearly not 0.5.',
+    },
+  ],
+
+  'bayesian-computations': [
+    {
+      id: 'py-ch7-comp-1',
+      number: '1',
+      title: 'Monte Carlo from the Beta Posterior',
+      description: 'Use Monte Carlo sampling from a Beta posterior to estimate posterior quantities: mean, variance, 95% credible interval, and P(theta > 0.5 | data).',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+ALPHA_POST = 8
+BETA_POST  = 5
+N_SAMPLES  = 10000
+rng = np.random.default_rng(77)
+
+# TODO: draw N_SAMPLES samples from Beta(ALPHA_POST, BETA_POST)
+samples = None  # TODO: rng.beta(ALPHA_POST, BETA_POST, N_SAMPLES)
+
+# TODO: Monte Carlo estimates
+mc_mean   = None  # TODO: samples.mean()
+mc_var    = None  # TODO: samples.var()
+mc_ci_lo  = None  # TODO: np.percentile(samples, 2.5)
+mc_ci_hi  = None  # TODO: np.percentile(samples, 97.5)
+mc_p_gt05 = None  # TODO: (samples > 0.5).mean()
+
+# Exact values
+exact_mean = ALPHA_POST / (ALPHA_POST + BETA_POST)
+exact_var  = (ALPHA_POST * BETA_POST) / ((ALPHA_POST + BETA_POST)**2 * (ALPHA_POST + BETA_POST + 1))
+exact_p_gt05 = 1 - stats.beta.cdf(0.5, ALPHA_POST, BETA_POST)
+
+print(f"Posterior: Beta({ALPHA_POST},{BETA_POST})")
+print(f"MC mean={mc_mean:.4f}  (exact={exact_mean:.4f})")
+print(f"MC var ={mc_var:.6f}  (exact={exact_var:.6f})")
+print(f"MC 95% CI: [{mc_ci_lo:.4f}, {mc_ci_hi:.4f}]")
+print(f"MC P(theta>0.5|data)={mc_p_gt05:.4f}  (exact={exact_p_gt05:.4f})")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+ALPHA_POST = 8; BETA_POST = 5; N_SAMPLES = 10000
+rng = np.random.default_rng(77)
+
+samples   = rng.beta(ALPHA_POST, BETA_POST, N_SAMPLES)
+mc_mean   = samples.mean()
+mc_var    = samples.var()
+mc_ci_lo  = np.percentile(samples, 2.5)
+mc_ci_hi  = np.percentile(samples, 97.5)
+mc_p_gt05 = (samples > 0.5).mean()
+
+exact_mean   = ALPHA_POST / (ALPHA_POST + BETA_POST)
+exact_var    = (ALPHA_POST * BETA_POST) / ((ALPHA_POST + BETA_POST)**2 * (ALPHA_POST + BETA_POST + 1))
+exact_p_gt05 = 1 - stats.beta.cdf(0.5, ALPHA_POST, BETA_POST)
+
+print(f"Posterior: Beta({ALPHA_POST},{BETA_POST})")
+print(f"MC mean={mc_mean:.4f}  (exact={exact_mean:.4f}),  error={abs(mc_mean-exact_mean):.4f}")
+print(f"MC var ={mc_var:.6f}  (exact={exact_var:.6f})")
+print(f"MC 95% equal-tails CI: [{mc_ci_lo:.4f}, {mc_ci_hi:.4f}]")
+print(f"MC P(theta>0.5|data)={mc_p_gt05:.4f}  (exact={exact_p_gt05:.4f})")
+`,
+      expectedHint: 'Beta(8,5): exact mean=8/13≈0.615, var≈0.0175. P(theta>0.5)≈0.84. With N=10000 the MC estimates should be within 0.005 of exact values.',
+    },
+    {
+      id: 'py-ch7-comp-2',
+      number: '2',
+      title: 'Gibbs Sampler Implementation',
+      description: 'Implement a Gibbs sampler for the bivariate Normal with correlation rho. Report the empirical mean, variance, and lag-1 autocorrelation of the chain.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+RHO = 0.7    # correlation
+N_STEPS = 3000
+BURN_IN  = 200
+rng = np.random.default_rng(42)
+
+# Full conditionals for bivariate N(0,0; 1,1; rho):
+# X | Y=y ~ N(rho*y, 1-rho^2)
+# Y | X=x ~ N(rho*x, 1-rho^2)
+
+sd = np.sqrt(1 - RHO**2)
+
+# TODO: initialise and run Gibbs chain
+x, y = 0.0, 0.0
+xs, ys = [], []
+
+for _ in range(N_STEPS):
+    # TODO: sample y | x
+    y = None  # TODO: RHO * x + sd * rng.standard_normal()
+    # TODO: sample x | y
+    x = None  # TODO: RHO * y + sd * rng.standard_normal()
+    xs.append(x)
+    ys.append(y)
+
+xs = np.array(xs[BURN_IN:])
+ys = np.array(ys[BURN_IN:])
+
+# TODO: report diagnostics
+emp_mean_x = None  # TODO: xs.mean()
+emp_var_x  = None  # TODO: xs.var()
+lag1_acf_x = None  # TODO: np.corrcoef(xs[:-1], xs[1:])[0,1]
+
+print(f"rho={RHO}, {N_STEPS} steps, burn-in={BURN_IN}")
+print(f"E[X] (true=0): {emp_mean_x:.4f}")
+print(f"Var[X] (true=1): {emp_var_x:.4f}")
+print(f"Lag-1 autocorr of X: {lag1_acf_x:.4f}  (higher for larger |rho|)")
+print(f"E[Y] (true=0): {ys.mean():.4f},  Corr(X,Y) (true={RHO}): {np.corrcoef(xs,ys)[0,1]:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+RHO = 0.7; N_STEPS = 3000; BURN_IN = 200
+rng = np.random.default_rng(42)
+sd = np.sqrt(1 - RHO**2)
+
+x, y = 0.0, 0.0
+xs, ys = [], []
+for _ in range(N_STEPS):
+    y = RHO * x + sd * rng.standard_normal()
+    x = RHO * y + sd * rng.standard_normal()
+    xs.append(x); ys.append(y)
+
+xs = np.array(xs[BURN_IN:]); ys = np.array(ys[BURN_IN:])
+emp_mean_x = xs.mean()
+emp_var_x  = xs.var()
+lag1_acf_x = np.corrcoef(xs[:-1], xs[1:])[0, 1]
+
+print(f"rho={RHO}, chain length={len(xs)}")
+print(f"E[X]  (true=0):  {emp_mean_x:.4f}")
+print(f"Var[X](true=1):  {emp_var_x:.4f}")
+print(f"Lag-1 ACF of X:  {lag1_acf_x:.4f}  (theory: rho^2={RHO**2:.4f})")
+print(f"E[Y]  (true=0):  {ys.mean():.4f}")
+print(f"Corr(X,Y)(true={RHO}): {np.corrcoef(xs,ys)[0,1]:.4f}")
+`,
+      expectedHint: 'With rho=0.7, the lag-1 autocorrelation of the Gibbs chain is approximately rho^2=0.49, meaning the chain mixes slowly. The empirical mean should be near 0 and variance near 1.',
+    },
+  ],
+
+  'choosing-priors': [
+    {
+      id: 'py-ch7-prior-1',
+      number: '1',
+      title: 'Jeffreys\' Prior for Bernoulli',
+      description: 'Verify that Jeffreys\' prior for Bernoulli(theta) is Beta(0.5, 0.5), and compare posteriors under Jeffreys\' vs flat priors for small samples.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Jeffreys' prior for Bernoulli: pi_J(theta) = theta^(-0.5)*(1-theta)^(-0.5) = Beta(0.5, 0.5)
+# Verify: I(theta) = 1/(theta*(1-theta)), pi_J ∝ I(theta)^(1/2)
+
+theta_grid = np.linspace(0.01, 0.99, 300)
+
+# TODO: compute I(theta)^(1/2) — should match Beta(0.5,0.5) density (up to constant)
+I_sqrt = None  # TODO: 1 / np.sqrt(theta_grid * (1 - theta_grid))
+
+# TODO: compute Beta(0.5, 0.5) PDF
+jeffreys_pdf = None  # TODO: stats.beta.pdf(theta_grid, 0.5, 0.5)
+
+# Verify they are proportional: I_sqrt / jeffreys_pdf should be constant
+ratio = I_sqrt / jeffreys_pdf if jeffreys_pdf is not None and I_sqrt is not None else None
+print(f"I(theta)^(1/2) / Beta(0.5,0.5) PDF — should be constant:")
+if ratio is not None:
+    print(f"  min ratio={ratio.min():.6f}, max ratio={ratio.max():.6f}  (constant? {np.allclose(ratio, ratio[0], rtol=1e-4)})")
+
+# Compare posteriors for n=5, t=2 under Jeffreys' vs flat prior
+n, t = 5, 2
+jeffreys_post = stats.beta(0.5 + t, 0.5 + (n - t))
+flat_post     = stats.beta(1   + t, 1   + (n - t))
+
+print(f"\\nn={n}, t={t}:")
+print(f"Jeffreys posterior Beta({0.5+t},{0.5+(n-t)}): mean={jeffreys_post.mean():.4f}, 95% CI={jeffreys_post.ppf(0.025):.3f},{jeffreys_post.ppf(0.975):.3f}")
+print(f"Flat posterior    Beta({1+t},{1+(n-t)}): mean={flat_post.mean():.4f}, 95% CI={flat_post.ppf(0.025):.3f},{flat_post.ppf(0.975):.3f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+theta_grid = np.linspace(0.01, 0.99, 300)
+I_sqrt       = 1 / np.sqrt(theta_grid * (1 - theta_grid))
+jeffreys_pdf = stats.beta.pdf(theta_grid, 0.5, 0.5)
+ratio = I_sqrt / jeffreys_pdf
+print(f"I(theta)^(1/2) / Beta(0.5,0.5) PDF:")
+print(f"  min={ratio.min():.6f}, max={ratio.max():.6f}, constant: {np.allclose(ratio, ratio[0], rtol=1e-3)}")
+
+for n, t in [(5, 2), (10, 4), (50, 20)]:
+    jpost = stats.beta(0.5 + t, 0.5 + (n - t))
+    fpost = stats.beta(1   + t, 1   + (n - t))
+    print(f"n={n}, t={t}: Jeffreys mean={jpost.mean():.4f}, Flat mean={fpost.mean():.4f}, MLE={t/n:.4f}")
+`,
+      expectedHint: 'I_sqrt and Beta(0.5,0.5) pdf are proportional (constant ratio ≈ pi). Jeffreys posterior mean and flat posterior mean are both close to MLE=t/n but slightly differ for small n.',
+    },
+    {
+      id: 'py-ch7-prior-2',
+      number: '2',
+      title: 'Prior Predictive and Empirical Bayes',
+      description: 'Compute the Beta-Binomial prior predictive m(t) = integral of Binomial(n,theta)*Beta(alpha,beta) dtheta. Use it to implement simple empirical Bayes.',
+      starterCode:
+`import numpy as np
+from scipy.special import betaln, gammaln
+
+def log_beta_binomial_pmf(t, n, alpha, beta):
+    """
+    log P(T=t) under Beta-Binomial(n, alpha, beta) model:
+    P(T=t) = C(n,t) * B(t+alpha, n-t+beta) / B(alpha, beta)
+    """
+    # TODO: implement using gammaln and betaln
+    log_binom_coef = None  # TODO: gammaln(n+1) - gammaln(t+1) - gammaln(n-t+1)
+    log_beta_ratio = None  # TODO: betaln(t + alpha, n - t + beta) - betaln(alpha, beta)
+    return log_binom_coef + log_beta_ratio if (log_binom_coef is not None and log_beta_ratio is not None) else None
+
+# Observed data: group counts from multiple groups
+n = 10
+ts_observed = np.array([3, 5, 7, 4, 6, 8, 2, 5, 6, 4])
+
+# TODO: for each (alpha, beta) candidate, compute total log prior predictive
+alpha_candidates = [0.5, 1, 2, 5, 10]
+beta_candidates  = [0.5, 1, 2, 5, 10]
+
+best_logm, best_alpha, best_beta = -np.inf, None, None
+for alpha in alpha_candidates:
+    for beta in beta_candidates:
+        log_pmfs = [log_beta_binomial_pmf(t, n, alpha, beta) for t in ts_observed]
+        if any(v is None for v in log_pmfs): continue
+        total_logm = sum(log_pmfs)
+        if total_logm > best_logm:
+            best_logm, best_alpha, best_beta = total_logm, alpha, beta
+
+print(f"Empirical Bayes best prior: Beta({best_alpha},{best_beta}), total log m(s)={best_logm:.3f}")
+`,
+      solution:
+`import numpy as np
+from scipy.special import betaln, gammaln
+
+def log_beta_binomial_pmf(t, n, alpha, beta):
+    log_binom_coef = gammaln(n+1) - gammaln(t+1) - gammaln(n-t+1)
+    log_beta_ratio = betaln(t + alpha, n - t + beta) - betaln(alpha, beta)
+    return log_binom_coef + log_beta_ratio
+
+n = 10
+ts_observed = np.array([3, 5, 7, 4, 6, 8, 2, 5, 6, 4])
+print(f"Data: {ts_observed}, MLE of theta: {ts_observed.mean()/n:.3f}")
+
+# Grid search over alpha, beta
+alphas = np.array([0.5, 1, 2, 5, 10])
+betas  = np.array([0.5, 1, 2, 5, 10])
+
+results = []
+for alpha in alphas:
+    for beta in betas:
+        log_pmfs = [log_beta_binomial_pmf(t, n, alpha, beta) for t in ts_observed]
+        total = sum(log_pmfs)
+        results.append((total, alpha, beta))
+
+results.sort(reverse=True)
+print("\\nTop 5 empirical Bayes hyperparameter candidates:")
+for logm, alpha, beta in results[:5]:
+    print(f"  Beta({alpha},{beta}): total log m(s)={logm:.3f}")
+
+best_logm, best_alpha, best_beta = results[0]
+print(f"\\nBest: Beta({best_alpha},{best_beta}), prior mean={best_alpha/(best_alpha+best_beta):.3f}")
+`,
+      expectedHint: 'The observed t values range 2-8 out of 10, with mean≈5, so MLE of theta≈0.5. Empirical Bayes should prefer a prior centred near 0.5 with moderate concentration.',
+    },
+  ],
+
+  'bayesian-asymptotics': [
+    {
+      id: 'py-ch7-asy-1',
+      number: '1',
+      title: 'Verifying the Bernstein–von Mises Theorem',
+      description: 'Verify numerically that the posterior Beta(alpha+t, beta+n-t) converges to N(MLE, 1/(n*I(MLE))) as n grows, regardless of the prior.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.35
+rng = np.random.default_rng(42)
+
+# Three priors: (alpha0, beta0)
+priors = [(1, 1), (8, 2), (0.5, 0.5)]
+ns = [10, 50, 200, 1000]
+
+for alpha0, beta0 in priors:
+    print(f"\\nPrior: Beta({alpha0},{beta0}), mean={alpha0/(alpha0+beta0):.3f}")
+    for n in ns:
+        t = rng.binomial(n, TRUE_THETA)
+        a_post, b_post = alpha0 + t, beta0 + (n - t)
+
+        # Exact posterior moments
+        exact_mean = a_post / (a_post + b_post)
+        exact_std  = np.sqrt(a_post * b_post / ((a_post + b_post)**2 * (a_post + b_post + 1)))
+
+        # Laplace approximation
+        theta_hat = t / n
+        # TODO: Fisher info I(theta_hat) = 1/(theta_hat*(1-theta_hat))
+        I_hat = None  # TODO
+        # TODO: Laplace std = 1/sqrt(n * I_hat)
+        laplace_std = None  # TODO
+
+        # TODO: TV distance proxy (difference in means and stds)
+        mean_diff = None  # TODO: abs(exact_mean - theta_hat)
+        std_diff  = None  # TODO: abs(exact_std - laplace_std)
+
+        print(f"  n={n:5d}: t={t:4d}, exact mean={exact_mean:.4f}, Laplace={theta_hat:.4f}, "
+              f"|diff|={mean_diff:.4f}  std_exact={exact_std:.4f}, Laplace={laplace_std:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.35
+rng = np.random.default_rng(42)
+
+priors = [(1, 1), (8, 2), (0.5, 0.5)]
+ns = [10, 50, 200, 1000]
+
+for alpha0, beta0 in priors:
+    print(f"\\nPrior: Beta({alpha0},{beta0}), mean={alpha0/(alpha0+beta0):.3f}")
+    for n in ns:
+        t = rng.binomial(n, TRUE_THETA)
+        a_post, b_post = alpha0 + t, beta0 + (n - t)
+        exact_mean = a_post / (a_post + b_post)
+        exact_std  = np.sqrt(a_post * b_post / ((a_post+b_post)**2 * (a_post+b_post+1)))
+
+        theta_hat   = t / n
+        I_hat       = 1 / (theta_hat * (1 - theta_hat))
+        laplace_std = 1 / np.sqrt(n * I_hat)
+        mean_diff   = abs(exact_mean - theta_hat)
+        std_diff    = abs(exact_std - laplace_std)
+
+        print(f"  n={n:5d}: exact_mean={exact_mean:.4f} vs MLE={theta_hat:.4f}  |diff|={mean_diff:.5f} | "
+              f"std_exact={exact_std:.5f} vs Laplace={laplace_std:.5f}  |diff|={std_diff:.5f}")
+`,
+      expectedHint: 'As n grows, |exact_mean - MLE| and |exact_std - Laplace_std| both shrink towards 0, confirming BvM. The convergence is faster for the uniform prior than for the strongly informative Beta(8,2).',
+    },
+    {
+      id: 'py-ch7-asy-2',
+      number: '2',
+      title: 'Normal-Gamma Conjugate Update',
+      description: 'Implement the Normal-Gamma conjugate posterior update for unknown mean and precision of a Normal model. Compute the posterior marginal for mu.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Normal-Gamma prior: mu | lambda ~ N(mu0, 1/(kappa0*lambda)), lambda ~ Gamma(alpha0, beta0)
+# After n iid N(mu, 1/lambda) observations:
+# Posterior: mu | lambda, s ~ N(mu_n, 1/(kappa_n*lambda)), lambda | s ~ Gamma(alpha_n, beta_n)
+
+MU0     = 0.0
+KAPPA0  = 1.0
+ALPHA0  = 2.0
+BETA0   = 1.0
+
+TRUE_MU  = 2.0
+TRUE_VAR = 1.5
+rng = np.random.default_rng(99)
+n = 20
+data = rng.normal(TRUE_MU, np.sqrt(TRUE_VAR), n)
+xbar = data.mean()
+s2   = data.var()
+
+# TODO: compute posterior hyperparameters
+kappa_n = None  # TODO: KAPPA0 + n
+mu_n    = None  # TODO: (KAPPA0 * MU0 + n * xbar) / kappa_n
+alpha_n = None  # TODO: ALPHA0 + n / 2
+beta_n  = None  # TODO: BETA0 + 0.5 * n * s2 + KAPPA0*n*(xbar-MU0)**2 / (2*kappa_n)
+
+# Marginal posterior of mu: t-distribution with 2*alpha_n dof
+# mu | s ~ t(2*alpha_n) scaled/shifted
+dof      = None  # TODO: 2 * alpha_n
+scale_mu = None  # TODO: np.sqrt(beta_n / (alpha_n * kappa_n))
+
+print(f"Data: n={n}, x_bar={xbar:.4f}, s^2={s2:.4f}")
+print(f"Posterior hyperparameters:")
+print(f"  kappa_n={kappa_n}, mu_n={mu_n:.4f}, alpha_n={alpha_n}, beta_n={beta_n:.4f}")
+print(f"Marginal posterior for mu: t({dof}) scaled by {scale_mu:.4f}, centred at {mu_n:.4f}")
+print(f"95% CI for mu: [{mu_n + stats.t.ppf(0.025, dof)*scale_mu:.4f}, {mu_n + stats.t.ppf(0.975, dof)*scale_mu:.4f}]")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+MU0 = 0.0; KAPPA0 = 1.0; ALPHA0 = 2.0; BETA0 = 1.0
+TRUE_MU = 2.0; TRUE_VAR = 1.5
+rng = np.random.default_rng(99)
+n = 20
+data = rng.normal(TRUE_MU, np.sqrt(TRUE_VAR), n)
+xbar = data.mean(); s2 = data.var()
+
+kappa_n = KAPPA0 + n
+mu_n    = (KAPPA0 * MU0 + n * xbar) / kappa_n
+alpha_n = ALPHA0 + n / 2
+beta_n  = BETA0 + 0.5 * n * s2 + KAPPA0*n*(xbar-MU0)**2 / (2*kappa_n)
+
+dof      = 2 * alpha_n
+scale_mu = np.sqrt(beta_n / (alpha_n * kappa_n))
+
+ci_lo = mu_n + stats.t.ppf(0.025, dof) * scale_mu
+ci_hi = mu_n + stats.t.ppf(0.975, dof) * scale_mu
+
+print(f"Data: n={n}, x_bar={xbar:.4f}, s^2={s2:.4f}, true mu={TRUE_MU}")
+print(f"kappa_n={kappa_n}, mu_n={mu_n:.4f}, alpha_n={alpha_n}, beta_n={beta_n:.4f}")
+print(f"Marginal posterior for mu: t(dof={dof:.0f}) * {scale_mu:.4f} + {mu_n:.4f}")
+print(f"95% CI for mu: [{ci_lo:.4f}, {ci_hi:.4f}]  (true mu={TRUE_MU})")
+print(f"Posterior mean of lambda (precision): alpha_n/beta_n = {alpha_n/beta_n:.4f}  (true 1/sigma^2={1/TRUE_VAR:.4f})")
+`,
+      expectedHint: 'kappa_n=21, mu_n should be close to xbar≈2.0 (n=20 dominates small kappa0=1). alpha_n=12, beta_n≈16. The 95% CI for mu should contain 2.0.',
+    },
+  ],
 };

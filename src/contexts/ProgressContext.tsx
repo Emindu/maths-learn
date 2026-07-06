@@ -45,6 +45,12 @@ export const TOPIC_SEQUENCE = [
   '/ch6/distribution-free-methods',
   '/ch6/mle-asymptotics',
 
+  '/ch7/prior-posterior-distributions',
+  '/ch7/inferences-based-on-posterior',
+  '/ch7/bayesian-computations',
+  '/ch7/choosing-priors',
+  '/ch7/bayesian-asymptotics',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',

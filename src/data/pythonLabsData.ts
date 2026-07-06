@@ -3298,4 +3298,546 @@ plt.tight_layout()
 plt.show()`,
     },
   ],
+
+  'prior-posterior-distributions': [
+    {
+      id: 'ch7-pp-lab-1',
+      title: 'Beta–Bernoulli Conjugate Update',
+      description: 'Visualise how a Beta prior updates to a Beta posterior as Bernoulli data accumulate. See how the posterior contracts around the true θ as n grows.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.6
+ALPHA0, BETA0 = 2, 2
+rng = np.random.default_rng(7)
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+theta_grid = np.linspace(0.001, 0.999, 400)
+
+for ax, n in zip(axes, [5, 20, 100]):
+    data = rng.binomial(1, TRUE_THETA, n)
+    t = data.sum()
+    a_post = ALPHA0 + t
+    b_post = BETA0 + (n - t)
+
+    prior_pdf = stats.beta.pdf(theta_grid, ALPHA0, BETA0)
+    post_pdf  = stats.beta.pdf(theta_grid, a_post, b_post)
+
+    ax.plot(theta_grid, prior_pdf, color='#818cf8', lw=2, linestyle='--', label=f'Prior Beta({ALPHA0},{BETA0})')
+    ax.plot(theta_grid, post_pdf,  color='#34d399', lw=2, label=f'Posterior Beta({a_post},{b_post})')
+    ax.axvline(TRUE_THETA, color='#fb923c', lw=1.5, linestyle=':', label=f'True theta={TRUE_THETA}')
+    ax.axvline(t/n,        color='#38bdf8', lw=1,   linestyle=':', label=f'MLE={t/n:.2f}')
+    ax.set_xlabel('theta', color='#94a3b8')
+    ax.set_ylabel('Density', color='#94a3b8')
+    ax.set_title(f'n={n}, t={t}', color='white')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Beta-Bernoulli Conjugate Update', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch7-pp-lab-2',
+      title: 'Normal–Normal Conjugate: Shrinkage',
+      description: 'Demonstrate how the Normal-Normal posterior mean shrinks between the prior mean and the sample mean, with the shrinkage controlled by the relative precisions.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+MU0 = 0.0
+TAU0_SQ = 4.0
+SIGMA_SQ = 1.0
+TRUE_MU = 2.5
+rng = np.random.default_rng(42)
+
+ns = [1, 5, 10, 30, 100]
+mu_posts, tau1_sqs, xbars = [], [], []
+
+for n in ns:
+    data = rng.normal(TRUE_MU, np.sqrt(SIGMA_SQ), n)
+    xbar = data.mean()
+    prec_post = 1/TAU0_SQ + n/SIGMA_SQ
+    tau1_sq   = 1 / prec_post
+    mu1       = (MU0/TAU0_SQ + n*xbar/SIGMA_SQ) * tau1_sq
+    mu_posts.append(mu1)
+    tau1_sqs.append(tau1_sq)
+    xbars.append(xbar)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+axes[0].plot(ns, mu_posts, 'o-', color='#34d399', lw=2, label='Posterior mean')
+axes[0].plot(ns, xbars,   's--', color='#38bdf8', lw=1.5, label='Sample mean', alpha=0.7)
+axes[0].axhline(TRUE_MU, color='#fb923c', lw=1.5, linestyle=':', label=f'True mu={TRUE_MU}')
+axes[0].axhline(MU0,     color='#818cf8', lw=1,   linestyle=':', label=f'Prior mean={MU0}')
+axes[0].set_xlabel('n', color='#94a3b8')
+axes[0].set_ylabel('mu', color='#94a3b8')
+axes[0].set_title('Posterior Mean vs Sample Size', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+
+mu_grid = np.linspace(-3, 6, 400)
+colors_list = ['#818cf8', '#38bdf8', '#34d399', '#fb923c']
+for i, (n, mu1, tau1sq) in enumerate(zip(ns[:4], mu_posts[:4], tau1_sqs[:4])):
+    pdf = stats.norm.pdf(mu_grid, mu1, np.sqrt(tau1sq))
+    axes[1].plot(mu_grid, pdf, color=colors_list[i], lw=2, label=f'n={n}')
+axes[1].axvline(TRUE_MU, color='#fb923c', lw=1.5, linestyle=':', label=f'True mu={TRUE_MU}')
+axes[1].set_xlabel('mu', color='#94a3b8')
+axes[1].set_ylabel('Density', color='#94a3b8')
+axes[1].set_title('Posterior Densities', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle(f'Normal-Normal Conjugate (Prior N({MU0},{TAU0_SQ}), sigma^2={SIGMA_SQ})', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'inferences-based-on-posterior': [
+    {
+      id: 'ch7-inf-lab-1',
+      title: 'Credible Intervals vs Confidence Intervals',
+      description: 'Compare 95% Bayesian credible intervals with 95% frequentist confidence intervals across repeated simulations.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.4
+ALPHA0, BETA0 = 2, 2
+n = 15
+N_SIMS = 30
+rng = np.random.default_rng(17)
+
+cred_lo, cred_hi, freq_lo, freq_hi, ts = [], [], [], [], []
+
+for _ in range(N_SIMS):
+    t = rng.binomial(n, TRUE_THETA)
+    ts.append(t)
+    a, b = ALPHA0 + t, BETA0 + (n - t)
+    cred_lo.append(stats.beta.ppf(0.025, a, b))
+    cred_hi.append(stats.beta.ppf(0.975, a, b))
+    theta_hat = t / n
+    z = 1.96
+    centre = (theta_hat + z**2/(2*n)) / (1 + z**2/n)
+    half   = z * np.sqrt(theta_hat*(1-theta_hat)/n + z**2/(4*n**2)) / (1 + z**2/n)
+    freq_lo.append(centre - half)
+    freq_hi.append(centre + half)
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 5), facecolor='#0f172a', sharey=True)
+for ax in axes: ax.set_facecolor('#1e293b')
+
+for i in range(N_SIMS):
+    col_c = '#34d399' if cred_lo[i] <= TRUE_THETA <= cred_hi[i] else '#fb923c'
+    col_f = '#38bdf8' if freq_lo[i] <= TRUE_THETA <= freq_hi[i] else '#fb923c'
+    axes[0].plot([cred_lo[i], cred_hi[i]], [i, i], color=col_c, lw=2)
+    axes[1].plot([freq_lo[i], freq_hi[i]], [i, i], color=col_f, lw=2)
+
+for ax, title in zip(axes, ['95% Credible Intervals', '95% Confidence Intervals']):
+    ax.axvline(TRUE_THETA, color='#f1f5f9', lw=1.5, linestyle=':')
+    ax.set_xlabel('theta', color='#94a3b8')
+    ax.set_title(title, color='white')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+axes[0].set_ylabel('Simulation', color='#94a3b8')
+
+n_cred = sum(1 for lo, hi in zip(cred_lo, cred_hi) if lo <= TRUE_THETA <= hi)
+n_freq = sum(1 for lo, hi in zip(freq_lo, freq_hi) if lo <= TRUE_THETA <= hi)
+print(f"Credible intervals covering true theta: {n_cred}/{N_SIMS}")
+print(f"Confidence intervals covering true theta: {n_freq}/{N_SIMS}")
+
+plt.suptitle(f'n={n}, true theta={TRUE_THETA}, {N_SIMS} simulations', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch7-inf-lab-2',
+      title: 'Bayes Factors: Evidence Scale',
+      description: 'Compute Bayes factors for H₀: θ=0.5 vs H₁: θ~Uniform(0,1) across different n and t values.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.special import gammaln
+
+def log_bf(n, t):
+    log_p_h0 = gammaln(n+1) - gammaln(t+1) - gammaln(n-t+1) + n*np.log(0.5)
+    log_m_h1 = -np.log(n + 1)
+    return log_p_h0 - log_m_h1
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+n = 20
+t_vals = np.arange(0, n+1)
+bfs = [np.exp(log_bf(n, t)) for t in t_vals]
+colors = ['#34d399' if bf > 1 else '#fb923c' for bf in bfs]
+axes[0].bar(t_vals, bfs, color=colors, alpha=0.8, edgecolor='#334155')
+axes[0].axhline(1,  color='#f1f5f9', lw=1, linestyle='--')
+axes[0].axhline(3,  color='#818cf8', lw=1, linestyle=':', label='BF=3')
+axes[0].axhline(10, color='#818cf8', lw=1, linestyle='-.', label='BF=10')
+axes[0].set_xlabel('Successes t', color='#94a3b8')
+axes[0].set_ylabel('Bayes Factor BF(H0:H1)', color='#94a3b8')
+axes[0].set_title(f'BF vs t  (n={n})', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+
+ns = np.arange(2, 60)
+bfs_mid = [np.exp(log_bf(n, n//2)) for n in ns]
+axes[1].plot(ns, bfs_mid, '-', color='#38bdf8', lw=2)
+axes[1].axhline(1, color='#f1f5f9', lw=1, linestyle='--')
+axes[1].set_xlabel('n', color='#94a3b8')
+axes[1].set_ylabel('BF at t=n/2', color='#94a3b8')
+axes[1].set_title('BF at most neutral outcome vs n', color='white')
+axes[1].tick_params(colors='#94a3b8')
+
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Bayes Factor: H0: theta=0.5 vs H1: theta~Uniform', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'bayesian-computations': [
+    {
+      id: 'ch7-comp-lab-1',
+      title: 'Gibbs Sampler for Bivariate Normal',
+      description: 'Implement a Gibbs sampler for the bivariate Normal distribution with correlation rho. Study how correlation affects mixing.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+def gibbs_bivariate_normal(rho, n_steps=2000, seed=42):
+    rng = np.random.default_rng(seed)
+    sd = np.sqrt(max(1 - rho**2, 1e-6))
+    xs, ys = [0.0], [0.0]
+    for _ in range(n_steps):
+        y_new = rho * xs[-1] + sd * rng.standard_normal()
+        x_new = rho * y_new  + sd * rng.standard_normal()
+        xs.append(x_new)
+        ys.append(y_new)
+    return np.array(xs[200:]), np.array(ys[200:])
+
+fig, axes = plt.subplots(2, 3, figsize=(14, 7), facecolor='#0f172a')
+for ax in axes.flatten(): ax.set_facecolor('#1e293b')
+
+rhos = [-0.8, 0.0, 0.9]
+colors_list = ['#38bdf8', '#34d399', '#fb923c']
+
+for col, (rho, col_c) in enumerate(zip(rhos, colors_list)):
+    xs, ys = gibbs_bivariate_normal(rho)
+    axes[0, col].plot(xs[:300], color=col_c, lw=0.7, alpha=0.8)
+    axes[0, col].set_title(f'rho={rho} - X trace', color='white')
+    axes[0, col].set_xlabel('Iteration', color='#94a3b8')
+    axes[0, col].tick_params(colors='#94a3b8')
+
+    x_grid = np.linspace(-4, 4, 200)
+    axes[1, col].hist(xs, bins=50, density=True, color='#818cf8', alpha=0.7, edgecolor='#334155')
+    axes[1, col].plot(x_grid, stats.norm.pdf(x_grid), color='#34d399', lw=2, label='N(0,1)')
+    axes[1, col].set_title(f'rho={rho} - X histogram', color='white')
+    axes[1, col].set_xlabel('X', color='#94a3b8')
+    axes[1, col].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    axes[1, col].tick_params(colors='#94a3b8')
+
+    lag1 = np.corrcoef(xs[:-1], xs[1:])[0, 1]
+    print(f"rho={rho}: lag-1 autocorr of X = {lag1:.3f}")
+
+    for ax in [axes[0, col], axes[1, col]]:
+        for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Gibbs Sampler - Bivariate Normal - Effect of Correlation', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch7-comp-lab-2',
+      title: 'Laplace Approximation to the Posterior',
+      description: 'Verify asymptotic normality of the posterior for a Beta-Bernoulli model. Compare exact Beta posterior with the Laplace normal approximation.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.35
+ALPHA0, BETA0 = 1, 1
+rng = np.random.default_rng(99)
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 8), facecolor='#0f172a')
+axes_flat = axes.flatten()
+for ax in axes_flat: ax.set_facecolor('#1e293b')
+
+for ax, n in zip(axes_flat, [5, 20, 50, 200]):
+    t = rng.binomial(n, TRUE_THETA)
+    a_post, b_post = ALPHA0 + t, BETA0 + (n - t)
+
+    theta_grid = np.linspace(0.001, 0.999, 500)
+    exact = stats.beta.pdf(theta_grid, a_post, b_post)
+
+    theta_hat = t / n if 0 < t < n else 0.5
+    I_hat = 1 / (theta_hat * (1 - theta_hat))
+    laplace = stats.norm.pdf(theta_grid, theta_hat, 1/np.sqrt(n * I_hat))
+
+    ax.plot(theta_grid, exact,   color='#34d399', lw=2.5, label=f'Exact Beta({a_post},{b_post})')
+    ax.plot(theta_grid, laplace, color='#fb923c', lw=2, linestyle='--', label='Laplace N(theta_hat, 1/(nI))')
+    ax.axvline(TRUE_THETA, color='#818cf8', lw=1.5, linestyle=':', label=f'True theta={TRUE_THETA}')
+    ax.set_title(f'n={n}, t={t}', color='white')
+    ax.set_xlabel('theta', color='#94a3b8')
+    ax.set_ylabel('Density', color='#94a3b8')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+    ax.tick_params(colors='#94a3b8')
+
+    exact_norm = exact / exact.sum()
+    lapl_norm  = laplace / laplace.sum()
+    kl = np.sum(exact_norm * np.log((exact_norm + 1e-10) / (lapl_norm + 1e-10)))
+    print(f"n={n}: KL(exact||Laplace) = {kl:.4f}")
+
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle(f'Laplace Approximation to Posterior (true theta={TRUE_THETA})', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'choosing-priors': [
+    {
+      id: 'ch7-prior-lab-1',
+      title: 'Prior Sensitivity Analysis',
+      description: 'Explore how different prior choices affect the posterior in a Beta-Bernoulli model. Compare informative, weakly informative, and Jeffreys priors.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.3
+n = 15
+rng = np.random.default_rng(7)
+t = rng.binomial(n, TRUE_THETA)
+print(f"Data: n={n}, t={t} successes, MLE={t/n:.3f}, true theta={TRUE_THETA}")
+
+priors = [
+    ('Uniform Beta(1,1)',        1,   1),
+    ("Jeffreys Beta(0.5,0.5)",   0.5, 0.5),
+    ('Informative Beta(5,12)',   5,   12),
+    ('Informative Beta(10,2)',   10,  2),
+]
+
+theta_grid = np.linspace(0.001, 0.999, 500)
+fig, axes = plt.subplots(1, 2, figsize=(13, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+colors = ['#38bdf8', '#34d399', '#fb923c', '#818cf8']
+
+for (label, a0, b0), col in zip(priors, colors):
+    prior_pdf = stats.beta.pdf(theta_grid, a0, b0)
+    post_pdf  = stats.beta.pdf(theta_grid, a0 + t, b0 + (n - t))
+    a_post, b_post = a0 + t, b0 + (n - t)
+    post_mean = a_post / (a_post + b_post)
+    axes[0].plot(theta_grid, prior_pdf, color=col, lw=2, alpha=0.7, linestyle='--')
+    axes[1].plot(theta_grid, post_pdf,  color=col, lw=2, label=f'{label} mean={post_mean:.3f}')
+    print(f"{label}: posterior Beta({a_post:.1f},{b_post:.1f}), mean={post_mean:.3f}")
+
+for ax, title in zip(axes, ['Priors', 'Posteriors']):
+    ax.axvline(TRUE_THETA, color='#f1f5f9', lw=1.5, linestyle=':', label=f'True theta={TRUE_THETA}')
+    ax.axvline(t/n,        color='#f1f5f9', lw=1,   linestyle='--', alpha=0.5)
+    ax.set_xlabel('theta', color='#94a3b8')
+    ax.set_ylabel('Density', color='#94a3b8')
+    ax.set_title(title, color='white')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+
+plt.suptitle(f'Prior Sensitivity: n={n}, t={t}', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch7-prior-lab-2',
+      title: 'Empirical Bayes: Hyperparameter Estimation',
+      description: 'Implement empirical Bayes for the Beta-Binomial model. Find Beta(alpha,beta) hyperparameters that maximise the prior predictive m(s).',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats, optimize, special
+
+A_TRUE, B_TRUE = 3, 7
+n_groups = 20
+n_per_group = 10
+rng = np.random.default_rng(55)
+
+true_thetas = rng.beta(A_TRUE, B_TRUE, n_groups)
+ts = rng.binomial(n_per_group, true_thetas)
+print(f"Observed counts t: {ts}")
+print(f"True hyperparams: alpha={A_TRUE}, beta={B_TRUE}")
+
+def neg_log_marginal(log_ab, ts, n):
+    a, b = np.exp(log_ab)
+    log_pmf = (special.gammaln(n+1) - special.gammaln(ts+1) - special.gammaln(n-ts+1)
+               + special.betaln(ts+a, n-ts+b) - special.betaln(a, b))
+    return -log_pmf.sum()
+
+result = optimize.minimize(neg_log_marginal, x0=[0, 0], args=(ts, n_per_group), method='Nelder-Mead')
+a_eb, b_eb = np.exp(result.x)
+print(f"Empirical Bayes: alpha_hat={a_eb:.2f}, beta_hat={b_eb:.2f}  (true: {A_TRUE},{B_TRUE})")
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+post_means_eb   = (ts + a_eb) / (ts + a_eb + n_per_group - ts + b_eb)
+post_means_flat = (ts + 1) / (ts + 1 + n_per_group - ts + 1)
+
+axes[0].scatter(true_thetas, post_means_eb,   color='#34d399', alpha=0.8, label='EB posterior mean')
+axes[0].scatter(true_thetas, post_means_flat,  color='#818cf8', alpha=0.5, label='Flat prior mean')
+axes[0].scatter(true_thetas, ts/n_per_group,   color='#fb923c', alpha=0.5, marker='x', label='MLE')
+axes[0].plot([0,1],[0,1], 'w--', lw=1, alpha=0.5)
+axes[0].set_xlabel('True theta', color='#94a3b8')
+axes[0].set_ylabel('Posterior mean', color='#94a3b8')
+axes[0].set_title('EB vs Flat Prior Posterior Means', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+axes[0].tick_params(colors='#94a3b8')
+
+theta_grid = np.linspace(0, 1, 300)
+axes[1].plot(theta_grid, stats.beta.pdf(theta_grid, a_eb, b_eb),
+             color='#34d399', lw=2, label=f'EB Beta({a_eb:.1f},{b_eb:.1f})')
+axes[1].plot(theta_grid, stats.beta.pdf(theta_grid, A_TRUE, B_TRUE),
+             color='#fb923c', lw=2, linestyle='--', label=f'True Beta({A_TRUE},{B_TRUE})')
+axes[1].set_xlabel('theta', color='#94a3b8')
+axes[1].set_ylabel('Density', color='#94a3b8')
+axes[1].set_title('Estimated vs True Prior', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+
+for ax in axes:
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Empirical Bayes: Beta-Binomial Hyperparameter Estimation', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'bayesian-asymptotics': [
+    {
+      id: 'ch7-asy-lab-1',
+      title: 'Bernstein-von Mises Theorem',
+      description: 'Verify the BvM theorem: show that the posterior converges to N(MLE, 1/(nI)) regardless of the prior as n increases.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.4
+rng = np.random.default_rng(42)
+
+priors = [
+    ('Uniform Beta(1,1)',     1,   1),
+    ('Informative Beta(8,2)', 8,   2),
+    ("Jeffreys Beta(.5,.5)",  0.5, 0.5),
+]
+
+fig, axes = plt.subplots(len(priors), 4, figsize=(16, 9), facecolor='#0f172a')
+for ax in axes.flatten(): ax.set_facecolor('#1e293b')
+
+row_colors = ['#38bdf8', '#34d399', '#fb923c']
+
+for row, (label, a0, b0) in enumerate(priors):
+    for col, n in enumerate([5, 20, 100, 500]):
+        t = rng.binomial(n, TRUE_THETA)
+        a_post, b_post = a0 + t, b0 + (n - t)
+        theta_hat = t / n if 0 < t < n else 0.5
+        I_hat = 1 / (theta_hat * (1 - theta_hat))
+
+        theta_grid = np.linspace(0.001, 0.999, 500)
+        exact = stats.beta.pdf(theta_grid, a_post, b_post)
+        lapl  = stats.norm.pdf(theta_grid, theta_hat, 1/np.sqrt(n * I_hat))
+
+        axes[row, col].plot(theta_grid, exact, color=row_colors[row], lw=2.5)
+        axes[row, col].plot(theta_grid, lapl,  color='white', lw=1.5, linestyle='--', alpha=0.7)
+        axes[row, col].axvline(TRUE_THETA, color='#818cf8', lw=1, linestyle=':')
+        if row == 0:
+            axes[row, col].set_title(f'n={n}', color='white')
+        if col == 0:
+            axes[row, col].set_ylabel(label[:14], color=row_colors[row], fontsize=8)
+        axes[row, col].tick_params(colors='#94a3b8', labelsize=7)
+        for sp in axes[row, col].spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('BvM: Posterior (solid) vs Laplace N(theta_hat, 1/(nI)) (dashed)',
+             color='white', fontsize=10)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch7-asy-lab-2',
+      title: 'Posterior Predictive Distribution',
+      description: 'Compute the posterior predictive distribution for a future Bernoulli observation. Compare with plug-in (MLE-based) predictive.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+TRUE_THETA = 0.45
+ALPHA0, BETA0 = 2, 2
+rng = np.random.default_rng(31)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4), facecolor='#0f172a')
+for ax in axes: ax.set_facecolor('#1e293b')
+
+for ax, n in zip(axes, [3, 15, 80]):
+    t = rng.binomial(n, TRUE_THETA)
+    a_post = ALPHA0 + t
+    b_post = BETA0 + (n - t)
+
+    # Posterior predictive P(X_new=1|s) = E[theta|s]
+    p_pred    = a_post / (a_post + b_post)
+    theta_hat = t / n if n > 0 else 0.5
+
+    x = np.arange(2)
+    w = 0.25
+    ax.bar(x - w, [1-p_pred,    p_pred],    width=w, color='#34d399', alpha=0.85, label='Posterior pred.')
+    ax.bar(x,     [1-theta_hat, theta_hat],  width=w, color='#38bdf8', alpha=0.85, label='Plug-in MLE')
+    ax.bar(x + w, [1-TRUE_THETA, TRUE_THETA], width=w, color='#fb923c', alpha=0.85, label='True')
+    ax.set_xticks([0, 1]); ax.set_xticklabels(['X=0', 'X=1'])
+    ax.set_ylabel('Probability', color='#94a3b8')
+    ax.set_title(f'n={n}, t={t}\\nPred P(1)={p_pred:.3f}, MLE={theta_hat:.3f}', color='white')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+plt.suptitle(f'Posterior Predictive vs Plug-in (true theta={TRUE_THETA})', color='white', fontsize=11)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
 };
