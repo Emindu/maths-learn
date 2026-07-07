@@ -1382,3 +1382,34 @@ input[type="range"]:focus-visible {
   border-radius: var(--radius-base);
   border-left: 3px solid var(--color-primary);
 }
+/* ── Mobile Enhancements ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: var(--space-4);
+  }
+  .nav-tabs .tab-btn { flex-shrink: 0; min-height: 44px; }
+  .content-grid,
+  .theory-concepts,
+  .proposal-types,
+  .setup-grid,
+  .results-grid,
+  .mcmc-stats,
+  .likelihood-calc,
+  .posterior-calc,
+  .transition-calc { grid-template-columns: 1fr !important; }
+  .simulation-controls,
+  .tuning-controls,
+  .chain-stats,
+  .viz-info { flex-direction: column; gap: var(--space-8); }
+  canvas { max-width: 100%; }
+  .container { padding-left: var(--space-12); padding-right: var(--space-12); }
+}
+
+@media (max-width: 480px) {
+  .header h1, .page-title { font-size: var(--font-size-xl); }
+  .chart-container { min-height: 220px; }
+  .tab-btn { padding: var(--space-8) var(--space-10); font-size: var(--font-size-sm); }
+}

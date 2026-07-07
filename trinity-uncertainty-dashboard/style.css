@@ -1482,3 +1482,30 @@ select.form-control {
     justify-content: flex-start;
   }
 }
+/* ── Mobile Enhancements ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav__tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: var(--space-4);
+    gap: 0;
+  }
+  .nav__tabs .tab-btn { flex-shrink: 0; min-height: 44px; }
+  .uncertainty-grid,
+  .demo-grid,
+  .monty-hall-game { grid-template-columns: 1fr !important; }
+  .doors { gap: var(--space-8); }
+  .door { width: 90px; height: 120px; }
+  .door-content { font-size: var(--font-size-2xl); }
+  .results-summary { flex-direction: column; gap: var(--space-12); }
+  .container { padding-left: var(--space-12); padding-right: var(--space-12); }
+}
+
+@media (max-width: 480px) {
+  .doors { flex-direction: row; flex-wrap: nowrap; justify-content: center; }
+  .door { width: 70px; height: 100px; }
+  .game-status { font-size: var(--font-size-base); }
+  .tab-btn { padding: var(--space-8) var(--space-10); font-size: var(--font-size-sm); }
+}
