@@ -1263,3 +1263,33 @@ html {
     opacity: 1;
   }
 }
+/* ── Mobile Enhancements ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .header__content { flex-direction: column; align-items: flex-start; gap: var(--space-12); }
+  .header__title { font-size: var(--font-size-2xl); }
+  .nav-tabs, .tab-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: var(--space-4);
+    gap: 0;
+  }
+  .nav-tabs .tab-btn,
+  .tab-nav .tab-btn { flex-shrink: 0; }
+  .demo__content,
+  .content-grid,
+  .demo-grid,
+  .intro__grid,
+  .calc-inputs { grid-template-columns: 1fr !important; }
+  .demo__controls { position: static; }
+  .simulation-controls,
+  .tuning-controls { flex-direction: column; align-items: stretch; }
+  canvas { max-width: 100%; }
+  .container { padding-left: var(--space-12); padding-right: var(--space-12); }
+}
+
+@media (max-width: 480px) {
+  .header__title { font-size: var(--font-size-xl); }
+  .tab-btn { padding: var(--space-8) var(--space-10); font-size: var(--font-size-sm); }
+  .chart-container { height: 220px !important; }
+}
