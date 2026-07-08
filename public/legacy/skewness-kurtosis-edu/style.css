@@ -1257,3 +1257,28 @@ input[type="range"]::-moz-range-thumb {
   border: 2px solid var(--color-surface);
   box-shadow: var(--shadow-sm);
 }
+/* ── Mobile Enhancements ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .navbar .container { flex-wrap: wrap; gap: var(--space-8); }
+  .navbar__nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    width: 100%;
+    padding-bottom: var(--space-4);
+  }
+  .navbar__nav a { flex-shrink: 0; white-space: nowrap; min-height: 44px; }
+  .comparison-grid,
+  .concept-grid,
+  .skewness-types,
+  .kurtosis-types { grid-template-columns: 1fr !important; }
+  .control-group { flex-direction: column; align-items: stretch; gap: var(--space-8); }
+  .stats-display { flex-direction: column; gap: var(--space-8); }
+  canvas { width: 100% !important; height: auto; }
+}
+
+@media (max-width: 480px) {
+  .navbar__brand { font-size: var(--font-size-base); }
+  .page-header h1 { font-size: var(--font-size-2xl); }
+  input[type="range"] { min-height: 44px; }
+}

@@ -885,3 +885,84 @@ input[type="range"]::-moz-range-thumb {
   .site-header__site-name { font-size: var(--font-size-base); }
   .card__body { padding: var(--space-16); }
 }
+
+/* ============================================================
+   Mobile-First Responsive Enhancements
+   ============================================================ */
+
+/* ── Touch targets ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .btn,
+  .theme-toggle,
+  .site-header__back,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .btn--sm {
+    min-height: 36px;
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .form-control,
+  select.form-control,
+  textarea.form-control {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS auto-zoom */
+  }
+
+  /* Taller range slider thumb */
+  input[type="range"] { height: 8px; }
+  input[type="range"]::-webkit-slider-thumb { width: 26px; height: 26px; }
+  input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; }
+
+  /* Overflow safety for wide content */
+  pre, table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  img, canvas, svg, iframe { max-width: 100%; height: auto; }
+
+  /* Header smaller on mobile */
+  .site-header { --header-height: 52px; }
+
+  /* Hero adjustments */
+  .page-hero { padding: var(--space-32) var(--space-16); }
+  .page-hero__title { font-size: var(--font-size-3xl); }
+  .page-hero__subtitle { font-size: var(--font-size-base); }
+
+  /* Stat / controls */
+  .stat-box { padding: var(--space-12); }
+  .controls-panel { padding: var(--space-16); }
+  .controls-panel__title { font-size: var(--font-size-base); }
+
+  /* Chart containers — prevent fixed heights from clipping */
+  .chart-container { min-height: 260px; }
+
+  /* Card spacing */
+  .card__body { padding: var(--space-16); }
+  .card__header,
+  .card__footer { padding: var(--space-12) var(--space-16); }
+
+  /* Page content */
+  .page-content { padding: var(--space-20) var(--space-16); }
+  .section { padding: var(--space-20) 0; }
+  .grid--2, .grid--3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 13px; }
+
+  .site-header__site-name { display: none; }
+  .site-header__logo { border-radius: var(--radius-base); }
+
+  .page-hero__title  { font-size: var(--font-size-2xl); }
+  .page-hero__subtitle { font-size: var(--font-size-sm); }
+
+  .btn--lg {
+    padding: var(--space-10) var(--space-16);
+    font-size: var(--font-size-base);
+  }
+
+  /* Math blocks scroll horizontally */
+  .math-block { overflow-x: auto; font-size: var(--font-size-sm); }
+}
