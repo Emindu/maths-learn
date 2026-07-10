@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { BlockMath } from 'react-katex';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Lightbulb, HelpCircle } from 'lucide-react';
 import { getConceptById, ContentBlock, ProbabilityConcept } from '../data/probabilityConceptsData';
 import { exercisesByConceptId } from '../data/exercisesData';
 import { pythonExercisesByConceptId } from '../data/pythonExercisesData';
@@ -373,6 +373,119 @@ const FormulaBlock: React.FC<{ block: ContentBlock }> = ({ block }) => (
   </div>
 );
 
+const HookBox: React.FC<{ text: string }> = ({ text }) => (
+  <div style={{
+    display: 'flex',
+    gap: 'var(--space-12)',
+    alignItems: 'flex-start',
+    background: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderLeft: '4px solid #f59e0b',
+    borderRadius: '0 10px 10px 0',
+    padding: 'var(--space-16) var(--space-20)',
+    marginBottom: 'var(--space-32)',
+  }}>
+    <div style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}>
+      <Lightbulb size={18} />
+    </div>
+    <div>
+      <div style={{
+        fontSize: '0.7rem',
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: 'var(--color-text-secondary)',
+        marginBottom: '4px',
+      }}>
+        Why this matters
+      </div>
+      <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.65, fontSize: '0.98rem' }}>
+        {text}
+      </p>
+    </div>
+  </div>
+);
+
+const PredictBox: React.FC<{ block: ContentBlock }> = ({ block }) => {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <div style={{
+      background: 'var(--color-surface)',
+      border: '1px solid var(--color-border)',
+      borderLeft: '4px solid #10b981',
+      borderRadius: '0 8px 8px 0',
+      padding: 'var(--space-16)',
+      margin: 'var(--space-20) 0',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontSize: '0.72rem',
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: '#10b981',
+        marginBottom: 'var(--space-8)',
+      }}>
+        <HelpCircle size={13} />
+        Predict first{block.title ? ` — ${block.title}` : ''}
+      </div>
+      {block.question && (
+        <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7, fontWeight: 500 }}>
+          {block.question}
+        </p>
+      )}
+      {revealed && block.reveal ? (
+        <div style={{
+          marginTop: 'var(--space-12)',
+          padding: 'var(--space-12) var(--space-14)',
+          background: 'var(--color-background)',
+          borderRadius: '6px',
+          border: '1px solid var(--color-border)',
+        }}>
+          <div style={{
+            fontSize: '0.68rem',
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--color-primary)',
+            marginBottom: '6px',
+          }}>
+            Answer
+          </div>
+          <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }}>{block.reveal}</p>
+        </div>
+      ) : (
+        <button
+          onClick={() => setRevealed(true)}
+          style={{
+            marginTop: 'var(--space-12)',
+            padding: '6px 14px',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            fontSize: '0.85rem',
+            color: 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            transition: 'color 0.15s, border-color 0.15s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = 'var(--color-text)';
+            e.currentTarget.style.borderColor = 'var(--color-primary)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = 'var(--color-text-secondary)';
+            e.currentTarget.style.borderColor = 'var(--color-border)';
+          }}
+        >
+          Reveal answer →
+        </button>
+      )}
+    </div>
+  );
+};
+
 // ── Block dispatcher ──────────────────────────────────────────────────────────
 
 const renderBlock = (block: ContentBlock, index: number) => {
@@ -398,6 +511,8 @@ const renderBlock = (block: ContentBlock, index: number) => {
       return <TheoremBox key={index} block={block} variant="corollary" />;
     case 'example':
       return <ExampleBox key={index} block={block} />;
+    case 'predict':
+      return <PredictBox key={index} block={block} />;
     case 'viz': {
       const VizComp = block.vizId ? VIZ_REGISTRY[block.vizId] : null;
       return VizComp ? <VizComp key={index} /> : null;
@@ -507,6 +622,7 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
 
         {/* Main content */}
         <main>
+          {concept.hook && <HookBox text={concept.hook} />}
           {concept.sections.map((section, sIdx) => (
             <div key={sIdx} id={`section-${sIdx}`} style={{ marginBottom: 'var(--space-48)' }}>
               {section.heading && (

@@ -12,6 +12,7 @@ export const ch6Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 6 · Section 6.1',
     description:
       'The likelihood function encodes all the information in observed data about the unknown parameter θ. We explore how to construct it, what makes a statistic sufficient, and how the factorization theorem characterises sufficiency.',
+    hook: 'The likelihood is the same joint density you already know — just re-read as a function of θ instead of the data. That flip is the entire foundation of frequentist and Bayesian inference: whichever camp you\'re in, the likelihood is what the data actually tell you about the parameter.',
     sections: [
       {
         heading: 'Likelihood and the Statistical Problem',
@@ -119,10 +120,17 @@ export const ch6Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 6 · Section 6.2',
     description:
       'The maximum likelihood estimate (MLE) is the value of θ that makes the observed data most probable. We derive MLEs using the log-likelihood and score equation, and examine the equivariance property of MLEs under reparametrisation.',
+    hook: 'Maximum likelihood is the workhorse principle behind logistic regression, GLMs, and — via cross-entropy — most modern neural network training. Once you understand what "maximum likelihood" is really doing, most of ML stops feeling like a bag of tricks.',
     sections: [
       {
         heading: 'Definition and Motivation',
         blocks: [
+          {
+            type: 'predict',
+            title: 'What\'s the MLE of θ?',
+            question: 'You flip a coin 10 times and observe 7 heads. Under a Bernoulli(θ) model, what value of θ makes this data most probable — i.e., what\'s the MLE?',
+            reveal: '0.7 — exactly the sample proportion. The likelihood is L(θ) = θ⁷(1−θ)³. Taking log and differentiating: 7/θ = 3/(1−θ), giving θ̂ = 7/10. This is the general lesson: for many natural models, the MLE turns out to be the "obvious" sample statistic. Where MLE really earns its keep is when the sample statistic isn\'t obvious — e.g., variance-with-known-mean, mixture components, censored data.',
+          },
           {
             type: 'definition',
             number: '6.2.1',
@@ -205,10 +213,17 @@ export const ch6Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 6 · Section 6.3',
     description:
       'Using the MLE as a pivot, we derive confidence intervals, conduct hypothesis tests, and compute the power of tests. We also address the choice of sample size for a desired margin of error.',
+    hook: 'A point estimate on its own tells you almost nothing — is it 5 ± 0.1 or 5 ± 500? Confidence intervals and hypothesis tests are what turn a bare number into an actionable statement. This section is also where the most-abused sentence in all of statistics gets defined: what a 95% CI actually means.',
     sections: [
       {
         heading: 'Bias, MSE, and Comparing Estimators',
         blocks: [
+          {
+            type: 'predict',
+            title: 'What does "95% confidence" actually mean?',
+            question: 'A researcher reports a 95% confidence interval of [4.2, 5.8] for the true mean μ. Which of these is a correct interpretation? (a) There\'s a 95% probability μ is between 4.2 and 5.8. (b) If we repeated this whole experiment many times, about 95% of the resulting intervals would contain the true μ. (c) 95% of the data lie between 4.2 and 5.8.',
+            reveal: 'Only (b) is right. Once you have data, the interval [4.2, 5.8] is fixed and μ is fixed — there\'s nothing random left, so no "probability" statement about μ makes sense in the frequentist framework. The 95% refers to the *procedure*: over many repetitions, the interval-making rule captures μ 95% of the time. (a) sounds intuitive and is actually the Bayesian "credible interval" statement — see Chapter 7 for the framework where (a) is legal.',
+          },
           {
             type: 'definition',
             number: '6.3.1',
@@ -325,6 +340,7 @@ export const ch6Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 6 · Section 6.4',
     description:
       'When the form of the underlying distribution is unknown, we can still make inferences using distribution-free (nonparametric) methods: the method of moments, bootstrapping, and the sign test.',
+    hook: 'When you can\'t or won\'t assume a distributional family, nonparametric methods still let you infer, estimate, and test. Bootstrapping in particular is the closest thing to a universal statistical solvent — resample your data and let the computer approximate any sampling distribution you need.',
     sections: [
       {
         heading: 'Method of Moments',
@@ -410,6 +426,7 @@ export const ch6Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 6 · Section 6.5',
     description:
       'For large samples, the MLE has two remarkable properties: it is consistent (converges to the true θ) and asymptotically normal. The Fisher information quantifies the curvature of the log-likelihood and determines the limiting variance of the MLE.',
+    hook: 'The large-sample MLE story is astonishingly clean: consistent, asymptotically normal, and variance equal to the inverse Fisher information — the tightest possible. This is why standard errors in nearly every scientific paper are computed as if the estimator were Gaussian: because for MLEs, at large n, it very nearly is.',
     sections: [
       {
         heading: 'Fisher Information',

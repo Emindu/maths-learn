@@ -12,6 +12,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.1',
     description:
       'A random variable is a function that maps each outcome of an experiment to a real number, enabling numerical calculation with probabilities.',
+    hook: 'A random variable is the bridge between events (words like "rain" or "heads") and numbers you can add, average, and differentiate. Without this bridge there is no "expectation," no variance, no loss function — every quantitative claim about uncertainty ultimately routes through a random variable.',
     sections: [
       {
         heading: 'What Is a Random Variable?',
@@ -89,6 +90,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.2',
     description:
       'The distribution of a random variable encodes all probabilities P(X ∈ B) for every subset B of the real line.',
+    hook: 'The distribution of X is everything you can ever know about it: means, quantiles, tail probabilities, prediction intervals. Once you have the distribution, the underlying sample space fades into the background — you rarely need it again.',
     sections: [
       {
         heading: 'What Is a Distribution?',
@@ -152,6 +154,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.3',
     description:
       'Named discrete distributions — Bernoulli, Binomial, Geometric, Poisson, and Hypergeometric — each arising from a natural counting or waiting-time experiment.',
+    hook: 'Five distributions cover most counting problems you\'ll ever meet: one trial (Bernoulli), a fixed number of trials (Binomial), how long until success (Geometric), rare events over time (Poisson), sampling without replacement (Hypergeometric). Recognising which one fits a real problem is worth more than memorising any single formula.',
     sections: [
       {
         heading: 'Bernoulli Distribution',
@@ -236,6 +239,12 @@ export const ch2Concepts: ProbabilityConcept[] = [
         heading: 'Poisson Distribution',
         blocks: [
           {
+            type: 'predict',
+            title: 'Rare-event intuition',
+            question: 'A call centre averages 4 calls per minute, roughly Poisson-distributed. What\'s the chance of exactly zero calls in a given minute?',
+            reveal: 'About 1.8%. The Poisson PMF at k = 0 is simply e^{-λ}, so with λ = 4 that\'s e^{-4} ≈ 0.0183. Across a full 8-hour shift you\'d expect about 480 zero-call minutes × 0.0183 ≈ 9 completely silent minutes. That "gut sense" that busy periods should never really pause is wrong — silence bunches up more than intuition suggests.',
+          },
+          {
             type: 'text',
             content:
               'The Poisson distribution arises as the limit of Binomial(n, θ) as n → ∞ and θ → 0 with nθ → λ. It models the number of rare events in a large number of trials, such as arrivals in a time window.',
@@ -292,6 +301,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.4',
     description:
       'Continuous distributions assign zero probability to any single point; probabilities are computed by integrating a probability density function over an interval.',
+    hook: 'The catch: single points have probability zero, but probability is not zero — weight lives in intervals, described by a density. Once you accept "P(X = x) = 0 does not mean impossible," the rest of continuous probability opens up.',
     sections: [
       {
         heading: 'What Makes a Distribution Continuous?',
@@ -416,6 +426,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.5',
     description:
       'The CDF F_X(x) = P(X ≤ x) provides a unified description of any distribution, discrete or continuous, through five fundamental properties.',
+    hook: 'The CDF is the universal language of distributions — one function that handles discrete, continuous, and mixed cases equally. Its derivative gives the density; its inverse gives quantiles and powers every random sampler you\'ll ever write.',
     sections: [
       {
         heading: 'Definition of the CDF',
@@ -513,6 +524,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.6',
     description:
       'When Y = h(X) for a monotone differentiable function h, the density of Y can be expressed directly in terms of the density of X and the derivative of h.',
+    hook: 'Every time you take a log-return, standardise a feature, or push data through a sigmoid, you are transforming a random variable — and the density changes in a very specific way. Miss the derivative correction and every downstream inference is quietly wrong.',
     sections: [
       {
         heading: 'The Change of Variable Problem',
@@ -587,6 +599,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.7',
     description:
       'Joint distributions describe the simultaneous probabilistic behaviour of two or more random variables via joint PMFs, joint densities, and marginal distributions.',
+    hook: 'In the real world two variables are almost never independent — height and weight, ad-spend and revenue, temperature and demand. The joint distribution captures how they move together; each marginal is just the shadow the joint casts onto one axis.',
     sections: [
       {
         heading: 'Joint PMFs',
@@ -689,6 +702,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.8',
     description:
       'Conditional distributions describe how one random variable behaves given the value of another; independence means that conditioning has no effect.',
+    hook: 'Conditioning updates beliefs the moment new information arrives — this is how Kalman filters, recommender systems, and Bayesian networks actually work. Independence, when it holds, is the license to multiply — the single most-used shortcut in all of probability.',
     sections: [
       {
         heading: 'Conditional Distributions (Discrete)',
@@ -793,6 +807,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.9',
     description:
       'The Jacobian determinant extends the one-dimensional change-of-variable formula to transformations of random vectors, and yields the convolution formula for sums.',
+    hook: 'The Jacobian is the chain rule\'s multi-dimensional cousin — the exact machinery that lets normalising flows in ML deform simple Gaussians into complex targets while still tracking exact log-probabilities. Convolution, its most famous consequence, tells you the distribution of a sum.',
     sections: [
       {
         heading: 'The Setup',
@@ -874,6 +889,7 @@ export const ch2Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 2 · Section 2.10',
     description:
       'Any distribution can be simulated using Uniform[0,1] pseudo-random numbers via the inverse CDF method; special algorithms like Box-Muller handle the Normal.',
+    hook: 'If you can sample from Uniform[0, 1] — and every language\'s standard library gives you that for free — you can sample from any distribution whose CDF you can invert. That single fact underlies Monte Carlo pricing, bootstrap estimators, dropout, and every stochastic optimiser in modern ML.',
     sections: [
       {
         heading: 'Why Simulate?',

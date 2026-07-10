@@ -13,6 +13,7 @@ export const ch8Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 8 · Section 8.1',
     description:
       'Among all unbiased estimators of ψ(θ), which has the smallest variance? The Rao-Blackwell theorem reduces variance by conditioning on a sufficient statistic; the Lehmann-Scheffé theorem identifies the unique UMVU via completeness; and the Cramér-Rao inequality provides a fundamental lower bound on variance.',
+    hook: 'The Cramér–Rao inequality is one of the most powerful results in statistics: no unbiased estimator can have variance below 1/Fisher information — regardless of how clever. It sets a hard floor on how much information the data physically contain, and every estimator you build gets measured against it.',
     sections: [
       {
         heading: 'Mean Squared Error Decomposition',
@@ -119,10 +120,17 @@ export const ch8Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 8 · Section 8.2',
     description:
       'The Neyman-Pearson framework seeks the most powerful test at a given size α. For simple vs simple hypotheses, the Neyman-Pearson theorem prescribes an optimal test based on the likelihood ratio. UMP tests extend this to composite hypotheses when the likelihood ratio is monotone.',
+    hook: 'Every hypothesis test trades off two errors: rejecting a true null (Type I) and failing to reject a false one (Type II). Neyman–Pearson says once you fix the Type I rate, there\'s a uniquely optimal way to minimise Type II — the likelihood-ratio test. Every classical test you know (t-test, z-test, chi-squared) is a special case.',
     sections: [
       {
         heading: 'Power Functions and Test Size',
         blocks: [
+          {
+            type: 'predict',
+            title: 'Which error can you not shrink for free?',
+            question: 'You run a hypothesis test at significance level α = 0.05. Your Type I error rate is thus 5%. To reduce your Type II error rate (false negatives) — i.e., increase power — while keeping α fixed at 0.05, which of these actually works? (a) Use a more sensitive test statistic. (b) Collect more data. (c) Lower α further to 0.01. (d) Reduce the effect size you\'re trying to detect.',
+            reveal: '(a) and (b). Power depends on sample size, effect size, and how well the test statistic exploits the alternative. (c) is a trap — lowering α raises the rejection bar and hurts power. (d) is backwards — smaller effects are harder, not easier, to detect. There\'s a fundamental tradeoff between Type I and Type II, and the only way to reduce both simultaneously is to add data or pick a smarter statistic. This is the whole point of Neyman–Pearson: at fixed α and n, the likelihood-ratio test extracts the maximum possible power.',
+          },
           {
             type: 'definition',
             number: '8.2.1',
@@ -198,6 +206,7 @@ export const ch8Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 8 · Section 8.3',
     description:
       'Adding a prior distribution Π completes the Bayesian optimization problem: Bayes rules minimize the prior-averaged performance. For estimation with squared error loss, the Bayes rule is the posterior mean. For hypothesis testing with 0-1 loss, the Bayes rule compares posterior probabilities.',
+    hook: 'Once you commit to a loss function, the Bayesian answer is fully determined: the optimal decision is whatever minimises expected loss under the posterior. Squared-error loss gives the posterior mean; absolute-error gives the median; 0-1 loss gives the mode. Every "Bayes optimal classifier" you\'ll ever meet is a shadow of this idea.',
     sections: [
       {
         heading: 'Bayes Rules for Estimation',
@@ -269,6 +278,7 @@ export const ch8Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 8 · Section 8.4',
     description:
       'Decision theory provides a general framework for statistical inference: an action space A, a loss function L(θ, a), a decision function δ, and a risk function R_δ(θ). Admissibility, Bayes risk, and minimax risk are the key optimality criteria.',
+    hook: 'Decision theory is the umbrella that finally puts Bayesian, minimax, and frequentist approaches side by side: pick a loss, pick a criterion for aggregating risk across θ, and you\'ve pinned down a specific inference philosophy. It is also the mathematical spine of reinforcement learning and control theory.',
     sections: [
       {
         heading: 'Decision Theory Framework',
@@ -338,6 +348,7 @@ export const ch8Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 8 · Section 8.5',
     description:
       'Rigorous proofs of the foundational theorems: sufficiency characterisation via conditional independence (Theorem 8.1.2), completeness of x̄ in the Normal model using moment-generating functions, and the Neyman-Pearson theorem (Theorem 8.2.1) in the discrete case.',
+    hook: 'These proofs pay off the intuition built earlier in the chapter. Skim this if you\'re building tools; work through it line by line if you want to know exactly which assumptions your favourite optimality result really depends on.',
     sections: [
       {
         heading: 'Proof of Sufficiency Characterisation',

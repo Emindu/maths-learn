@@ -12,6 +12,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 3 · Section 3.1',
     description:
       'The expected value of a discrete random variable is its probability-weighted average — the long-run mean you observe in repeated experiments.',
+    hook: 'Expectation is what turns a distribution into a single number you can plan around — the average outcome of a repeated bet, the mean loss of a strategy, the fair price of a lottery ticket. Almost every "should I do it?" decision under uncertainty ends up comparing two expected values.',
     sections: [
       {
         heading: 'Defining Expected Value',
@@ -151,6 +152,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 3 · Section 3.2',
     description:
       'For absolutely continuous random variables, expectation replaces the weighted sum with a weighted integral — the density plays the role of the PMF.',
+    hook: 'The continuous case looks intimidating (there is an integral), but conceptually nothing changes — you\'re still averaging outcomes weighted by how likely they are. Sum becomes integral; PMF becomes density; the intuition is untouched.',
     sections: [
       {
         heading: 'The Continuous Expectation Formula',
@@ -242,10 +244,17 @@ export const ch3Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 3 · Section 3.3',
     description:
       'Variance measures how spread out a distribution is; covariance and correlation measure the linear relationship between two random variables.',
+    hook: 'The mean tells you where a distribution sits; variance tells you how much it moves. Covariance and correlation extend that to pairs — and are the single mathematical reason diversification works. Get these three concepts right and portfolio theory, regression, and PCA all follow.',
     sections: [
       {
         heading: 'Variance: Measuring Spread',
         blocks: [
+          {
+            type: 'predict',
+            title: 'Why diversification works',
+            question: 'Two stocks A and B each have annual variance 400 (so SD = 20%). Their correlation is 0.5. What\'s the variance of an equally-weighted portfolio (50% A, 50% B)?',
+            reveal: '300 — so the portfolio SD drops to √300 ≈ 17.3%, below either stock\'s 20%. Var(0.5A + 0.5B) = 0.25·400 + 0.25·400 + 2·(0.5)(0.5)·Cov(A, B) = 100 + 100 + 100 = 300. That mixing term is negative-ish (below the individual variances) whenever correlation is under 1 — the entire mathematical basis of diversification.',
+          },
           {
             type: 'text',
             content:
@@ -369,6 +378,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 3 · Section 3.4',
     description:
       'Probability generating functions and moment generating functions encode an entire distribution in a single function, and their derivatives yield moments directly.',
+    hook: 'Generating functions are a magic trick: they compress an entire distribution into a single object whose derivatives spit out moments, and whose products give distributions of sums. Whenever a hard problem about "the sum of independent X\'s" comes up, MGFs turn it into ordinary algebra.',
     sections: [
       {
         heading: 'Probability Generating Functions',
@@ -494,6 +504,7 @@ export const ch3Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 3 · Section 3.5',
     description:
       'Conditioning on an event or on another random variable updates our expected value, just as conditioning updates probability. The law of total expectation and variance decomposition follow.',
+    hook: 'Conditional expectation is what "best prediction" actually means — the function of the observed data that minimises squared error. Linear regression, Kalman filters, and every trained neural network are all (approximate) conditional expectations in disguise.',
     sections: [
       {
         heading: 'Conditional Expectation Given an Event',
@@ -599,10 +610,17 @@ export const ch3Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 3 · Section 3.6',
     description:
       'Markov, Chebyshev, Cauchy–Schwarz, and Jensen\'s inequalities bound tail probabilities and establish fundamental limits using only moments.',
+    hook: 'These inequalities trade tightness for universality — they give guarantees that hold even when you know almost nothing about the distribution, only its mean or variance. They\'re the mathematical guardrails behind the law of large numbers, concentration bounds, and generalisation theory in ML.',
     sections: [
       {
         heading: "Markov's Inequality",
         blocks: [
+          {
+            type: 'predict',
+            title: 'Bounds with almost no information',
+            question: 'A random variable X has mean 100 and standard deviation 10. Its shape is unknown — could be anything. Without more information, what\'s the largest possible probability that X falls more than 30 away from its mean?',
+            reveal: 'At most 1/9 ≈ 11.1%. Chebyshev\'s inequality says P(|X − μ| ≥ kσ) ≤ 1/k². Here k = 30/10 = 3, so the bound is 1/3² = 1/9. This holds regardless of shape — normal, uniform, mixture, anything. The bound trades tightness for universality: for a Normal the true tail probability is about 0.003, but the guarantee 1/9 covers even the worst-case adversarial distribution.',
+          },
           {
             type: 'text',
             content:

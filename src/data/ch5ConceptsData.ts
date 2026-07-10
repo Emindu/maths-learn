@@ -12,6 +12,7 @@ export const ch5Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 5 · Section 5.1',
     description:
       'Statistics is applied when we face uncertainty about the true probability model. We observe data from an unknown distribution and make inferences about it — bridging pure probability theory with real-world questions.',
+    hook: 'Probability starts from a known model and asks about data; statistics starts from data and asks about the model. That inversion is where every real-world question lives — how good is this drug, does this feature move revenue, is this signal noise. Everything from here on is about running that arrow in reverse.',
     sections: [
       {
         heading: 'Statistics vs Probability',
@@ -83,6 +84,7 @@ export const ch5Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 5 · Section 5.2',
     description:
       'When the probability model P is known but the response s is not, we can make three types of inference: predict an unknown value, construct a credible interval, or assess the plausibility of a specific value. The principle of conditional probability governs updating inferences with partial information.',
+    hook: 'Even when the model is fully known, we still have to decide *what to say* about the unobserved outcome: a single best guess, a range, or a yes/no verdict. These three inference tasks — prediction, interval estimation, and hypothesis assessment — recur through every remaining chapter under different names.',
     sections: [
       {
         heading: 'Known Model, Unknown Response',
@@ -153,6 +155,7 @@ export const ch5Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 5 · Section 5.3',
     description:
       'In a statistical context, we observe the data s but are uncertain about P. The statistical model {P_θ : θ ∈ Ω} is a family of probability measures parameterised by θ in parameter space Ω. The goal is to infer the true parameter value from the data.',
+    hook: 'A statistical model is the box of candidate worlds you\'re willing to consider — Normal(μ, σ²) with unknown mean and variance, or a linear regression with unknown slopes. Every inference below is really a claim about which world in that box the data most likely came from.',
     sections: [
       {
         heading: 'The Statistical Model',
@@ -227,6 +230,7 @@ export const ch5Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 5 · Section 5.4',
     description:
       'Data are modelled as realizations from a probability distribution. In finite populations, this distribution is the population distribution F_X. Simple random sampling guarantees the sample represents the population. As n → ∞, the empirical CDF F̂_X converges to the true F_X.',
+    hook: 'Bad data collection breaks every technique that follows, no matter how sophisticated the model. Random sampling is the invisible foundation that makes "the sample looks like the population" a mathematical guarantee rather than a hope.',
     sections: [
       {
         heading: 'Finite Populations and Population Distributions',
@@ -304,6 +308,7 @@ export const ch5Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 5 · Section 5.5',
     description:
       'Descriptive statistics — sample mean, median, quantiles, IQR — summarise the observed sample and estimate the corresponding population quantities. The three formal types of inference are estimation, credible/confidence regions, and hypothesis assessment.',
+    hook: 'Before any fancy method, get the sample summary right — mean, median, quartiles, spread. These simple statistics are also estimators, with their own sampling distributions, and are the workhorses behind nearly every real data report.',
     sections: [
       {
         heading: 'Descriptive Statistics',

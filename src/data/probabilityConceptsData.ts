@@ -1,4 +1,4 @@
-export type BlockType = 'text' | 'definition' | 'theorem' | 'corollary' | 'example' | 'formula' | 'viz';
+export type BlockType = 'text' | 'definition' | 'theorem' | 'corollary' | 'example' | 'formula' | 'viz' | 'predict';
 
 export interface ContentBlock {
   type: BlockType;
@@ -11,6 +11,8 @@ export interface ContentBlock {
   formula?: string;   // optional formula inside a box
   body?: string;      // example body text
   vizId?: string;     // 'viz' blocks — key into VIZ_REGISTRY
+  question?: string;  // 'predict' blocks — prompt shown before reveal
+  reveal?: string;    // 'predict' blocks — answer shown after clicking reveal
 }
 
 export interface ConceptSection {
@@ -23,6 +25,7 @@ export interface ProbabilityConcept {
   title: string;
   chapterRef: string;
   description: string;
+  hook?: string;      // optional "why this matters" callout shown above sections
   sections: ConceptSection[];
 }
 
@@ -32,6 +35,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
     title: 'Probability: A Measure of Uncertainty',
     chapterRef: 'Chapter 1 · Section 1.1',
     description: 'Probability as the science of uncertainty — why we need it, how it developed, and its real-world applications.',
+    hook: 'Most bad bets and bad decisions come from mis-estimating uncertainty. By the end of this page you\'ll spot three everyday traps — a lottery, a card bet, and a coin-flip wager — where intuition disagrees with the maths, and you\'ll know which one to trust.',
     sections: [
       {
         heading: 'What Is Probability?',
@@ -67,6 +71,12 @@ export const probabilityConcepts: ProbabilityConcept[] = [
               'A good understanding of probability allows you to correctly assess probabilities in everyday situations, leading to wiser decisions. Consider three illustrative examples:',
           },
           {
+            type: 'predict',
+            title: 'Lottery odds',
+            question: 'You buy one Lotto 6/49 ticket (pick 6 numbers from 1–49; 6 are drawn at random). Roughly how many tickets would you need to buy to have a 50% chance of winning the jackpot?',
+            reveal: 'About 9.7 million tickets. A single ticket has a 1-in-13,983,816 chance — at $2 per ticket that\'s ~$19M spent for a coin-flip shot at the jackpot. And once the pot passes ~$14M extra buyers pile in, so you\'d likely have to split it.',
+          },
+          {
             type: 'example',
             number: '1',
             title: 'Lottery Odds',
@@ -74,12 +84,24 @@ export const probabilityConcepts: ProbabilityConcept[] = [
           },
           { type: 'viz', vizId: 'viz-lottery' },
           {
+            type: 'predict',
+            title: 'The red card bet',
+            question: 'A friend has three cards: one red on both sides, one black on both sides, one red on one side and black on the other. They shuffle, pick one, show you a red side, and bet $4 against your $3 that the other side is also red. Is it a fair bet? What\'s your probability the other side is red?',
+            reveal: '2/3, not 1/2 — so refuse the bet. Of the three red faces you could be looking at, two belong to the red-red card and only one to the mixed card. Given you see red, you\'re twice as likely to be holding the red-red card. The expected value of taking the bet is negative.',
+          },
+          {
             type: 'example',
             number: '2',
             title: 'The Red Card Bet',
             body: 'A "friend" shows you one side of a card that is red and bets $4 against your $3 that the other side is also red. At first glance, the probability seems 50%. However, conditional probability (Section 1.5) reveals the conditional probability of the other side being red is 2/3, not 1/2 — so you should refuse the bet.',
           },
           { type: 'viz', vizId: 'viz-red-card' },
+          {
+            type: 'predict',
+            title: '600 heads out of 1000',
+            question: 'Flip a fair coin 1000 times. A friend bets $100 (against your $1) that you\'ll see at least 600 heads. Sound like a reasonable gamble? Roughly what\'s the probability of 600+ heads?',
+            reveal: 'Less than 1 in 10 billion. The standard deviation for the number of heads is only √250 ≈ 15.8, so 600 is more than 6 standard deviations above the mean of 500. The law of large numbers pins the fraction of heads tight around 0.5 — decline the bet.',
+          },
           {
             type: 'example',
             number: '3',
@@ -126,6 +148,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
     title: 'Probability Models',
     chapterRef: 'Chapter 1 · Section 1.2',
     description: 'Formal definition of a probability model: sample spaces, collections of events, and the probability measure P with its four axioms.',
+    hook: 'Before any calculation can be trusted, someone has to write down what "an outcome" and "an event" actually mean. The four axioms on this page are the entire foundation the rest of probability rests on — every theorem in this book (and every ML training loop) implicitly assumes them.',
     sections: [
       {
         heading: 'Sample Spaces',
@@ -255,6 +278,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
     title: 'Properties of Probability Models',
     chapterRef: 'Chapter 1 · Section 1.3',
     description: 'Core mathematical properties derived from the axioms: complement rule, law of total probability, monotonicity, inclusion-exclusion, and subadditivity.',
+    hook: 'These rules are what let you turn a hard probability question into an easy one — "what\'s the chance of at least one X?" almost always yields to the complement rule; overlapping events almost always yield to inclusion-exclusion. Master these five moves and half of probability becomes bookkeeping.',
     sections: [
       {
         heading: 'The Complement Rule',
@@ -381,10 +405,17 @@ export const probabilityConcepts: ProbabilityConcept[] = [
     title: 'Uniform Probability on Finite Spaces',
     chapterRef: 'Chapter 1 · Section 1.4',
     description: 'When all outcomes are equally likely, P(A) = |A|/|S|. Counting techniques: multiplication principle, permutations, combinations, and binomial coefficients.',
+    hook: 'When every outcome is equally likely, probability collapses into a counting problem — and counting problems are almost never as small as they look. The birthday paradox, poker hands, and password strength all live here.',
     sections: [
       {
         heading: 'Uniform Probability',
         blocks: [
+          {
+            type: 'predict',
+            title: 'The birthday paradox',
+            question: 'You\'re in a room of 23 people picked at random. Ignore leap years. Roughly what\'s the probability that at least two of them share a birthday?',
+            reveal: 'About 50.7% — better than a coin flip. The trap is thinking "23 out of 365" ≈ 6%. But you\'re not matching one person against 364 others — you\'re checking all C(23,2) = 253 possible pairs. Each pair has ~1/365 chance of colliding, so the *complement* (all birthdays distinct) drops fast: 365/365 × 364/365 × … × 343/365 ≈ 0.493. Just 57 people push the collision probability above 99%.',
+          },
           {
             type: 'text',
             content:
@@ -529,10 +560,17 @@ export const probabilityConcepts: ProbabilityConcept[] = [
     title: 'Conditional Probability and Independence',
     chapterRef: 'Chapter 1 · Section 1.5',
     description: 'How new information updates probabilities. Definition of P(A|B), the multiplication formula, Bayes\' theorem, and when events are independent.',
+    hook: 'This is the section that produces the most famously wrong intuition in all of probability — Monty Hall, medical false positives, and the prosecutor\'s fallacy all live here. The single trick to master: P(A given B) is almost never equal to P(B given A).',
     sections: [
       {
         heading: 'Conditional Probability',
         blocks: [
+          {
+            type: 'predict',
+            title: 'Medical test intuition',
+            question: 'A disease affects 1 in 1,000 people. A test correctly flags 99% of true cases and gives a false positive only 1% of the time on healthy people. You test positive. What\'s the probability you actually have the disease?',
+            reveal: 'About 9%, not 99%. Out of 100,000 people, ~100 are sick (99 flagged) and ~99,900 are healthy (~999 false positives). Given a positive test, you\'re one of 99 + 999 = 1,098 flagged, and only 99 of those are actually sick → 99/1,098 ≈ 9%. The base rate dominates — this is Bayes\' theorem in action, and it\'s exactly why screening rare conditions requires confirmatory testing.',
+          },
           {
             type: 'text',
             content:
@@ -658,6 +696,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
     title: 'Continuity of Probability',
     chapterRef: 'Chapter 1 · Section 1.6',
     description: 'How probability measures behave as sequences of events grow or shrink toward a limit event. The fundamental continuity theorem for probability.',
+    hook: 'Continuity is the quiet technical result that lets us talk about "eventually," "almost surely," and infinite unions without breaking the axioms. It\'s what makes the Law of Large Numbers and every convergence theorem later in the book legal.',
     sections: [
       {
         heading: 'Sequences of Events',

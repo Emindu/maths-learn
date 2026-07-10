@@ -12,6 +12,7 @@ export const ch4Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 4 · Section 4.1',
     description:
       'When X₁, X₂, …, Xₙ are i.i.d., the distribution of any function Y = h(X₁, …, Xₙ) is called a sampling distribution. Computing it exactly is often hard — approximation and simulation come to the rescue.',
+    hook: 'Every estimator you\'ll build — sample mean, sample variance, regression coefficient — is a random variable with its own distribution. Understanding *how the estimator behaves*, not just what value it takes on your data, is what separates data reporting from statistical inference.',
     sections: [
       {
         heading: 'What Is a Sampling Distribution?',
@@ -91,6 +92,7 @@ export const ch4Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 4 · Section 4.2',
     description:
       'A sequence of random variables {Xₙ} converges in probability to Y if the probability that Xₙ and Y differ by more than ε tends to zero for every ε > 0. This underpins the Weak Law of Large Numbers.',
+    hook: 'The Weak Law of Large Numbers is the promise every casino, insurer, and A/B-test rests on: with enough independent trials, sample averages get arbitrarily close to the true mean. Convergence in probability is the precise language for "arbitrarily close, almost always."',
     sections: [
       {
         heading: 'Definition and First Examples',
@@ -177,6 +179,7 @@ export const ch4Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 4 · Section 4.3',
     description:
       'Almost sure (a.s.) convergence is a stronger notion: every realisation of the sequence (except a set of probability zero) eventually converges. The Strong Law of Large Numbers guarantees a.s. convergence of sample means.',
+    hook: 'Almost sure convergence is the "for every simulation you\'ll ever actually run" version of the law of large numbers. It\'s the reason a single long Monte Carlo run — not just an average over many runs — is guaranteed to converge to the true value.',
     sections: [
       {
         heading: 'Almost Sure Convergence',
@@ -249,10 +252,17 @@ export const ch4Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 4 · Section 4.4',
     description:
       'Convergence in distribution (weak convergence) requires only that CDFs converge at continuity points. The Central Limit Theorem is the crowning result: standardised sample means always approach N(0,1), regardless of the underlying distribution.',
+    hook: 'The Central Limit Theorem is the single most consequential result in probability: the average of many independent things looks Gaussian, no matter what those things are. It\'s why bell curves show up everywhere — from measurement error to opinion polls to particle physics.',
     sections: [
       {
         heading: 'Convergence in Distribution',
         blocks: [
+          {
+            type: 'predict',
+            title: 'A CLT preview',
+            question: 'You roll a fair six-sided die 100 times and compute the average. Roughly what\'s the probability the average falls outside 3.5 ± 0.2?',
+            reveal: 'About 24%. One die has mean 3.5 and variance 35/12 ≈ 2.917, so the sample mean of 100 rolls has SD √(2.917/100) ≈ 0.171. The CLT says X̄ ≈ Normal(3.5, 0.171²), so P(|X̄ − 3.5| > 0.2) ≈ P(|Z| > 1.17) ≈ 0.24. A discrete uniform die becomes indistinguishable from a normal after just 100 rolls — that\'s the CLT in one line.',
+          },
           {
             type: 'definition',
             number: '4.4.1',
@@ -330,6 +340,7 @@ export const ch4Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 4 · Section 4.5',
     description:
       'When analytic results are intractable, Monte Carlo simulation estimates probabilities and expectations by averaging over many simulated samples. The Law of Large Numbers guarantees convergence; the CLT quantifies the error.',
+    hook: 'When an integral is too messy to compute or a distribution too tangled to work with analytically, Monte Carlo turns the problem into "just sample from it and average." It is how modern finance prices exotic options, how RL agents estimate returns, and how physicists compute path integrals.',
     sections: [
       {
         heading: 'The Monte Carlo Principle',
@@ -408,6 +419,7 @@ export const ch4Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 4 · Section 4.6',
     description:
       'When data are normal, exact sampling distributions are available. Linear combinations of normals are normal; squares of standard normals yield chi-squared distributions; ratios produce t and F distributions.',
+    hook: 'Under normal data, everything closes: sums, differences, ratios and quadratic forms all land in named distributions with known tables. This tidy algebra is why t-tests, ANOVA, and linear regression have exact — not just asymptotic — inference.',
     sections: [
       {
         heading: 'Linear Combinations of Normal Variables',

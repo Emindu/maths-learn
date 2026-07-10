@@ -13,10 +13,17 @@ export const ch7Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 7 · Section 7.1',
     description:
       'Bayesian inference treats the unknown parameter θ as a random variable. A prior distribution π(θ) encodes beliefs before observing data; after observing s the prior is updated to the posterior π(θ|s) via Bayes\' theorem. Conjugate families make this update analytically tractable.',
+    hook: 'Bayesian inference is what "learning" looks like as an equation: start with a prior, see some data, arrive at a posterior. The same update rule powers spam filters, radar tracking, A/B testing, and every large language model\'s "context matters" behaviour.',
     sections: [
       {
         heading: 'Bayesian Framework',
         blocks: [
+          {
+            type: 'predict',
+            title: 'One flip updates the prior',
+            question: 'A coin has an unknown bias θ, and your prior belief about θ is Uniform on [0, 1] — you think every bias is equally plausible. You flip the coin once and see heads. What\'s the posterior mean of θ?',
+            reveal: '2/3. With a Beta(1, 1) prior (which is Uniform[0, 1]) and one head, the posterior is Beta(2, 1), whose mean is 2/(2+1) = 2/3. Two things worth noticing: one observation moved the estimate from 0.5 to 0.667 — evidence updates beliefs proportionally to how surprising it is, and a flat prior doesn\'t mean "no belief," it means Beta(1,1). The MLE after 1 flip is 1.0 (100% heads); the Bayesian estimate is more conservative because the prior pulls it toward 0.5.',
+          },
           {
             type: 'text',
             content:
@@ -93,6 +100,7 @@ export const ch7Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 7 · Section 7.2',
     description:
       'All Bayesian inferences flow from the posterior distribution: point estimates (mode, mean), credible intervals (HPD regions), hypothesis testing via posterior probabilities and Bayes factors, and prediction via the posterior predictive distribution.',
+    hook: 'Once you have the posterior, every downstream question — best guess, uncertainty range, is-hypothesis-A-true, what will the next observation look like — is just a summary of that one distribution. There\'s no separate machinery for each task, only different queries against the same object.',
     sections: [
       {
         heading: 'Point Estimation from the Posterior',
@@ -191,6 +199,7 @@ export const ch7Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 7 · Section 7.3',
     description:
       'When the posterior has no closed form, we rely on asymptotic approximations (the posterior is approximately normal for large n) and Monte Carlo methods including importance sampling and Gibbs sampling to compute posterior summaries.',
+    hook: 'Real Bayesian models almost never have closed-form posteriors — the integrals are hopeless. MCMC and its cousins (Gibbs, HMC, variational inference) are how modern Bayesian analysis actually happens, from Stan and PyMC to Bayesian deep learning.',
     sections: [
       {
         heading: 'Asymptotic Normality of the Posterior',
@@ -264,6 +273,7 @@ export const ch7Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 7 · Section 7.4',
     description:
       'The choice of prior is the most subjective element of Bayesian inference. We survey strategies: elicited priors from expert knowledge, conjugate priors for tractability, empirical Bayes, hierarchical Bayes, improper priors, and Jeffreys\' invariant prior.',
+    hook: 'The prior is the single most common criticism of Bayesian methods — and also, in practice, the most interesting design choice. A well-chosen prior encodes real knowledge, stabilises small-sample estimates, and shrinks noisy groups toward sensible defaults (the entire logic behind ridge regression, LASSO, and hierarchical models).',
     sections: [
       {
         heading: 'Elicitation and Conjugate Priors',
@@ -352,6 +362,7 @@ export const ch7Concepts: ProbabilityConcept[] = [
     chapterRef: 'Chapter 7 · Section 7.5',
     description:
       'The location-scale Normal conjugate derivation, asymptotic consistency of the posterior (Bernstein–von Mises theorem), and connections between Bayesian and frequentist procedures for large samples.',
+    hook: 'At large sample sizes Bayesian and frequentist answers converge — the Bernstein–von Mises theorem says the posterior looks Gaussian around the MLE with variance equal to the inverse Fisher information. Which is why, with enough data, credible intervals and confidence intervals become numerically indistinguishable.',
     sections: [
       {
         heading: 'Location-Scale Normal Conjugate',
