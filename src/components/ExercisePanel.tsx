@@ -243,10 +243,6 @@ const ExerciseCard: React.FC<{
       {/* Expanded body */}
       {state.expanded && (
         <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border-color)' }}>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.7, margin: '12px 0 0' }}>
-            {exercise.question}
-          </p>
-
           {/* Parts or single */}
           {exercise.parts ? (
             exercise.parts.map(part => (
