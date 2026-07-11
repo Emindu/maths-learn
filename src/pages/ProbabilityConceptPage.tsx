@@ -667,7 +667,7 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
       {/* Two-column layout: ToC sidebar + content */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1fr) 200px',
+        gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) 200px',
         gap: isMobile ? 0 : 'var(--space-48)',
         alignItems: 'start',
       }}>
