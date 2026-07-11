@@ -365,7 +365,7 @@ export const DistributionVisualizer: React.FC = () => {
         </span>
         <div className="term-divider__line" style={{ flex: 1, height: '1px', background: 'var(--color-border)' }}></div>
       </div>
-      <table className="term-props" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+      <table className="term-props" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)', overflowX: 'auto', display: 'block' }}>
         <tbody>
           {config.properties.map((prop, idx) => (
             <tr key={idx}>
@@ -381,7 +381,7 @@ export const DistributionVisualizer: React.FC = () => {
       </table>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '15px', marginTop: 'var(--space-48)', marginBottom: 'var(--space-32)' }}>
+      <div style={{ display: 'flex', gap: '15px', marginTop: 'var(--space-48)', marginBottom: 'var(--space-32)', flexWrap: 'wrap' }}>
         <button
           onClick={() => setActiveTab('visualizer')}
           style={{
@@ -525,7 +525,7 @@ export const DistributionVisualizer: React.FC = () => {
         </span>
         <div className="term-divider__line" style={{ flex: 1, height: '1px', background: 'var(--color-border)' }}></div>
       </div>
-      <div className="term-output" style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '5px 0', padding: '4px 0' }}>
+      <div className="term-output" style={{ display: 'grid', gridTemplateColumns: windowWidth <= 480 ? '1fr' : '140px 1fr', gap: windowWidth <= 480 ? '2px 0' : '5px 0', padding: '4px 0' }}>
         {Object.entries(stats).map(([k, v]) => (
           <React.Fragment key={k}>
             <span className="term-output__key" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center' }}>{k}</span>

@@ -515,7 +515,11 @@ const renderBlock = (block: ContentBlock, index: number) => {
       return <PredictBox key={index} block={block} />;
     case 'viz': {
       const VizComp = block.vizId ? VIZ_REGISTRY[block.vizId] : null;
-      return VizComp ? <VizComp key={index} /> : null;
+      return VizComp ? (
+        <div key={index} style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
+          <VizComp />
+        </div>
+      ) : null;
     }
     default:
       return null;
