@@ -974,13 +974,20 @@ input[type="range"]::-moz-range-thumb {
   .site-header__page-title { display: none; }
   .page-hero { padding: var(--space-32) var(--space-16); }
   .page-hero__title { font-size: var(--font-size-3xl); }
-  .page-content { padding: var(--space-24) var(--space-16); }
+  .page-content { padding: var(--space-24) var(--space-16) !important; }
   .grid--2,
   .grid--3 { grid-template-columns: 1fr; }
+  /* Back link: show arrow only on small screens */
+  .site-header__back { padding: var(--space-6) var(--space-8); font-size: 0; }
+  .site-header__back::before { content: '←'; font-size: var(--font-size-base); }
+  /* Shrink progress badge on mobile */
+  .site-header__actions { gap: var(--space-6); }
 }
 
 @media (max-width: 480px) {
   .page-hero__title { font-size: var(--font-size-2xl); }
   .site-header__site-name { font-size: var(--font-size-base); }
   .card__body { padding: var(--space-16); }
+  /* On very small screens hide the progress badge text, keep bar only */
+  .site-header__actions > div > span:last-child { display: none; }
 }
