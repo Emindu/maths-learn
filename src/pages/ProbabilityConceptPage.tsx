@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { BlockMath } from 'react-katex';
 import { ArrowLeft, BookOpen, Lightbulb, HelpCircle } from 'lucide-react';
@@ -551,10 +551,18 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
   const navigate = useNavigate();
   const currentPath = location.pathname;
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   const headings = concept.sections.filter(s => s.heading).map(s => s.heading!);
 
   return (
-    <div style={{ maxWidth: 'var(--container-2xl)', margin: '0 auto', padding: '0 var(--space-24)' }}>
+    <div style={{ maxWidth: 'var(--container-2xl)', margin: '0 auto', padding: isMobile ? '0 var(--space-16)' : '0 var(--space-24)' }}>
 
       {/* Back link */}
       <div style={{ paddingTop: 'var(--space-24)', marginBottom: 'var(--space-16)' }}>
@@ -612,11 +620,51 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
         </p>
       </div>
 
+      {/* Mobile ToC strip (shown only on small screens, above main content) */}
+      {isMobile && headings.length > 0 && (
+        <div style={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
+          padding: 'var(--space-12) var(--space-16)',
+          marginBottom: 'var(--space-24)',
+        }}>
+          <div style={{
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-secondary)',
+            marginBottom: 'var(--space-8)',
+          }}>
+            Contents
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-8)' }}>
+            {headings.map((h, i) => (
+              <a
+                key={i}
+                href={`#section-${i}`}
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--color-primary)',
+                  textDecoration: 'none',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  background: 'var(--color-surface-raised)',
+                }}
+              >
+                {h}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Two-column layout: ToC sidebar + content */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0,1fr) 200px',
-        gap: 'var(--space-48)',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1fr) 200px',
+        gap: isMobile ? 0 : 'var(--space-48)',
         alignItems: 'start',
       }}>
 
@@ -642,27 +690,29 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
           ))}
         </main>
 
-        {/* Table of Contents sidebar */}
-        <aside style={{
-          position: 'sticky',
-          top: '80px',
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '10px',
-          padding: 'var(--space-16)',
-        }}>
-          <div style={{
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--color-text-secondary)',
-            marginBottom: 'var(--space-10)',
+        {/* Table of Contents sidebar (desktop only) */}
+        {!isMobile && (
+          <aside style={{
+            position: 'sticky',
+            top: '80px',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '10px',
+            padding: 'var(--space-16)',
           }}>
-            Contents
-          </div>
-          {headings.map((h, i) => <SectionNavItem key={i} heading={h} index={i} />)}
-        </aside>
+            <div style={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--color-text-secondary)',
+              marginBottom: 'var(--space-10)',
+            }}>
+              Contents
+            </div>
+            {headings.map((h, i) => <SectionNavItem key={i} heading={h} index={i} />)}
+          </aside>
+        )}
       </div>
 
       {/* Python Lab — pre-coded demos with matplotlib */}
