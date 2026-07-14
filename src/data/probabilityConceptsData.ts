@@ -93,7 +93,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
             type: 'example',
             number: '2',
             title: 'The Red Card Bet',
-            body: 'A "friend" shows you one side of a card that is red and bets $4 against your $3 that the other side is also red. At first glance, the probability seems 50%. However, conditional probability (Section 1.5) reveals the conditional probability of the other side being red is 2/3, not 1/2 — so you should refuse the bet.',
+            body: 'A "friend" shows you one side of a card that is red and bets $4 against your $3 that the other side is also red. At first glance, the probability seems 50%. However, [[conditional-probability|conditional probability]] (Section 1.5) reveals the conditional probability of the other side being red is 2/3, not 1/2 — so you should refuse the bet.',
           },
           { type: 'viz', vizId: 'viz-red-card' },
           {
@@ -586,7 +586,7 @@ export const probabilityConcepts: ProbabilityConcept[] = [
           {
             type: 'text',
             content:
-              'The ratio P(A ∩ B) / P(B) gives the proportion of times A occurs among the times B occurs. Conditioning on B can either increase or decrease the probability of A.',
+              'The ratio P(A ∩ B) / P(B) gives the proportion of times A occurs among the times B occurs. Conditioning on B can either increase or decrease the probability of A. This is the same red-card puzzle from the [[probability-intro|introduction]] — once you condition on the visible side being red, the answer is 2/3 rather than 1/2. It also relies on the basic rules in [[probability-properties]].',
           },
           { type: 'viz', vizId: 'viz-conditional' },
         ],

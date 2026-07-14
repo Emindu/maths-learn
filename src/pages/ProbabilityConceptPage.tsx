@@ -9,6 +9,8 @@ import { pythonLabsByConceptId } from '../data/pythonLabsData';
 import { ExercisePanel } from '../components/ExercisePanel';
 import { PythonLabPanel } from '../components/PythonLabPanel';
 import { PythonExercisePanel } from '../components/PythonExercisePanel';
+import { Wikitext } from '../components/Wikitext';
+import { RelatedConcepts } from '../components/RelatedConcepts';
 import { useProgress } from '../contexts/ProgressContext';
 import { VizCoinFlip }           from '../visualizations/VizCoinFlip';
 import { VizVennDiagram }        from '../visualizations/VizVennDiagram';
@@ -287,7 +289,9 @@ const DefinitionBox: React.FC<{ block: ContentBlock }> = ({ block }) => (
     }}>
       Definition {block.number}{block.title ? ` — ${block.title}` : ''}
     </div>
-    {block.text && <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }}>{block.text}</p>}
+    {block.text && (
+      <Wikitext as="p" text={block.text} style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }} />
+    )}
     {block.formula && (
       <div style={{ marginTop: 'var(--space-10)', overflowX: 'auto' }}>
         <BlockMath math={block.formula} />
@@ -318,7 +322,9 @@ const TheoremBox: React.FC<{ block: ContentBlock; variant: 'theorem' | 'corollar
       }}>
         {label} {block.number}{block.title ? ` — ${block.title}` : ''}
       </div>
-      {block.text && <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }}>{block.text}</p>}
+      {block.text && (
+        <Wikitext as="p" text={block.text} style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }} />
+      )}
       {block.formula && (
         <div style={{ marginTop: 'var(--space-10)', overflowX: 'auto' }}>
           <BlockMath math={block.formula} />
@@ -347,7 +353,7 @@ const ExampleBox: React.FC<{ block: ContentBlock }> = ({ block }) => (
       {block.number ? `Example ${block.number}` : 'Example'}{block.title ? ` — ${block.title}` : ''}
     </div>
     {block.body && (
-      <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }}>{block.body}</p>
+      <Wikitext as="p" text={block.body} style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }} />
     )}
     {block.formula && (
       <div style={{ marginTop: 'var(--space-10)', overflowX: 'auto' }}>
@@ -399,9 +405,11 @@ const HookBox: React.FC<{ text: string }> = ({ text }) => (
       }}>
         Why this matters
       </div>
-      <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.65, fontSize: '0.98rem' }}>
-        {text}
-      </p>
+      <Wikitext
+        as="p"
+        text={text}
+        style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.65, fontSize: '0.98rem' }}
+      />
     </div>
   </div>
 );
@@ -432,9 +440,11 @@ const PredictBox: React.FC<{ block: ContentBlock }> = ({ block }) => {
         Predict first{block.title ? ` — ${block.title}` : ''}
       </div>
       {block.question && (
-        <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7, fontWeight: 500 }}>
-          {block.question}
-        </p>
+        <Wikitext
+          as="p"
+          text={block.question}
+          style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7, fontWeight: 500 }}
+        />
       )}
       {revealed && block.reveal ? (
         <div style={{
@@ -454,7 +464,7 @@ const PredictBox: React.FC<{ block: ContentBlock }> = ({ block }) => {
           }}>
             Answer
           </div>
-          <p style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }}>{block.reveal}</p>
+          <Wikitext as="p" text={block.reveal} style={{ margin: 0, color: 'var(--color-text)', lineHeight: 1.7 }} />
         </div>
       ) : (
         <button
@@ -492,14 +502,17 @@ const renderBlock = (block: ContentBlock, index: number) => {
   switch (block.type) {
     case 'text':
       return (
-        <p key={index} style={{
-          color: 'var(--color-text)',
-          lineHeight: 1.8,
-          margin: 'var(--space-12) 0',
-          whiteSpace: 'pre-line',
-        }}>
-          {block.content}
-        </p>
+        <Wikitext
+          key={index}
+          as="p"
+          text={block.content}
+          style={{
+            color: 'var(--color-text)',
+            lineHeight: 1.8,
+            margin: 'var(--space-12) 0',
+            whiteSpace: 'pre-line',
+          }}
+        />
       );
     case 'formula':
       return <FormulaBlock key={index} block={block} />;
@@ -718,6 +731,9 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
           </aside>
         )}
       </div>
+
+      {/* Auto-computed related concepts (outgoing wikilinks + backlinks) */}
+      <RelatedConcepts concept={concept} />
 
       {/* Python Lab — pre-coded demos with matplotlib */}
       <PythonLabPanel demos={pythonLabsByConceptId[concept.id] ?? []} />
