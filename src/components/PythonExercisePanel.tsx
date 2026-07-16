@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Play, BookOpen, RotateCcw, Loader } from 'lucide-react';
 import Editor, { OnMount } from '@monaco-editor/react';
-import { PythonExercise } from '../data/pythonExercisesData';
+import { PythonExercise } from '../data/exercises';
 import { usePyodide } from '../hooks/usePyodide';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
