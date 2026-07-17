@@ -3,3 +3,6 @@ dist/
 sources/
 *.local
 .DS_Store
+
+# Generated static API (built by scripts/export-exercises.mjs)
+public/api/
