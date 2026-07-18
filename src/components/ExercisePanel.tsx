@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronDown, ChevronRight, CheckCircle, XCircle, Lightbulb, BookOpen } from 'lucide-react';
-import { Exercise, ExercisePart } from '../data/exercisesData';
+import { Exercise, ExercisePart } from '../data/exercises';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

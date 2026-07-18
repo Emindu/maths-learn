@@ -30,6 +30,7 @@ This is a React 18 + TypeScript SPA (Vite) for interactive statistics and mathem
 
 - `src/data/distributionsData.ts` — Config objects for 14+ probability distributions. Each config includes parameter sliders, PDF/PMF/CDF functions, LaTeX formula strings, `getStats()`, and optional Python templates.
 - `src/data/mathHelpers.ts` — Pure math utilities (erf, gamma, linspace, etc.) used by distribution configs.
+- `src/data/exercises/` — All per-concept practice material, keyed by concept id: `mathExercises.ts` (browser-checked maths exercises), `pythonExercises.ts` (Pyodide coding exercises), `pythonLabs.ts` (pre-coded matplotlib demos). Import via the directory's `index.ts` (`getConceptResources(conceptId)` returns all three), not the individual files.
 - `src/components/Layout.tsx` — Shell with header, theme toggle, and `ThemeProvider` context that persists light/dark mode to localStorage via `data-color-scheme` on `<html>`.
 - `src/hooks/usePyodide.ts` — Singleton Pyodide instance manager; loads packages from imports, renders matplotlib output as base64 images.
 - `public/legacy/` — Static legacy HTML modules served as-is. `LegacyModuleLoader.tsx` embeds them in iframes.

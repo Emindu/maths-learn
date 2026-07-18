@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Play, RotateCcw, Loader, FlaskConical } from 'lucide-react';
 import Editor, { OnMount } from '@monaco-editor/react';
-import { PythonLabDemo } from '../data/pythonLabsData';
+import { PythonLabDemo } from '../data/exercises';
 import { usePyodide } from '../hooks/usePyodide';
 
 interface LabState {

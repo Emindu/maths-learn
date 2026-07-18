@@ -3,9 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { BlockMath } from 'react-katex';
 import { ArrowLeft, BookOpen, Lightbulb, HelpCircle } from 'lucide-react';
 import { getConceptById, ContentBlock, ProbabilityConcept } from '../data/probabilityConceptsData';
-import { exercisesByConceptId } from '../data/exercisesData';
-import { pythonExercisesByConceptId } from '../data/pythonExercisesData';
-import { pythonLabsByConceptId } from '../data/pythonLabsData';
+import { getConceptResources } from '../data/exercises';
 import { ExercisePanel } from '../components/ExercisePanel';
 import { PythonLabPanel } from '../components/PythonLabPanel';
 import { PythonExercisePanel } from '../components/PythonExercisePanel';
@@ -577,6 +575,7 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
   }, []);
 
   const headings = concept.sections.filter(s => s.heading).map(s => s.heading!);
+  const resources = getConceptResources(concept.id);
 
   return (
     <div style={{ maxWidth: 'var(--container-2xl)', margin: '0 auto', padding: isMobile ? '0 var(--space-16)' : '0 var(--space-24)' }}>
@@ -736,13 +735,13 @@ export const ConceptContent: React.FC<{ concept: ProbabilityConcept; backHref: s
       <RelatedConcepts concept={concept} />
 
       {/* Python Lab — pre-coded demos with matplotlib */}
-      <PythonLabPanel demos={pythonLabsByConceptId[concept.id] ?? []} />
+      <PythonLabPanel demos={resources.pythonLabs} />
 
       {/* Maths exercises */}
-      <ExercisePanel exercises={exercisesByConceptId[concept.id] ?? []} />
+      <ExercisePanel exercises={resources.mathExercises} />
 
       {/* Python exercises */}
-      <PythonExercisePanel exercises={pythonExercisesByConceptId[concept.id] ?? []} />
+      <PythonExercisePanel exercises={resources.pythonExercises} />
 
       {/* Bottom nav to other concepts */}
       <div style={{
