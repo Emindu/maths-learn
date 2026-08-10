@@ -447,12 +447,14 @@ export const DistributionVisualizer: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
             {config.parameters.map(p => {
               const val = params[p.name] !== undefined ? params[p.name] : p.defaultValue;
+              const sliderId = `param-slider-${config.id}-${p.name}`;
               return (
                 <div key={p.name} className="term-param" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '6px 0' }}>
-                  <span className="term-param__prompt" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', minWidth: '44px', flexShrink: 0 }}>
+                  <label htmlFor={sliderId} className="term-param__prompt" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', minWidth: '44px', flexShrink: 0 }}>
                     &gt; {p.name}
-                  </span>
+                  </label>
                   <input
+                    id={sliderId}
                     className="term-param__slider"
                     type="range"
                     min={p.min}
@@ -460,6 +462,8 @@ export const DistributionVisualizer: React.FC = () => {
                     step={p.step}
                     value={val}
                     onChange={(e) => handleSliderChange(p.name, parseFloat(e.target.value))}
+                    aria-label={p.label}
+                    aria-valuetext={val.toFixed(2)}
                     style={{
                       flex: 1,
                       WebkitAppearance: 'none',
@@ -471,9 +475,31 @@ export const DistributionVisualizer: React.FC = () => {
                       background: getSliderBackground(p, val)
                     }}
                   />
-                  <span className="term-param__value" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', minWidth: '56px', textAlign: 'right' }}>
-                    {val.toFixed(2)}
-                  </span>
+                  <input
+                    type="number"
+                    className="term-param__value"
+                    min={p.min}
+                    max={p.max}
+                    step={p.step}
+                    value={val}
+                    aria-label={`${p.label} (exact value)`}
+                    onChange={(e) => {
+                      const next = parseFloat(e.target.value);
+                      if (!Number.isNaN(next)) handleSliderChange(p.name, Math.min(p.max, Math.max(p.min, next)));
+                    }}
+                    style={{
+                      fontFamily: 'inherit',
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--color-primary)',
+                      background: 'transparent',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-sm, 4px)',
+                      minWidth: '56px',
+                      width: '64px',
+                      textAlign: 'right',
+                      padding: '2px 6px'
+                    }}
+                  />
                 </div>
               );
             })}
