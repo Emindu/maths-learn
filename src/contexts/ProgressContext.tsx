@@ -57,6 +57,8 @@ export const TOPIC_SEQUENCE = [
   '/ch8/decision-theory',
   '/ch8/optimal-inferences-proofs',
 
+  '/ch9/checking-sampling-model',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',
