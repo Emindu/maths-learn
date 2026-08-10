@@ -13,6 +13,7 @@ import { Ch5ConceptPage } from './pages/Ch5ConceptPage';
 import { Ch6ConceptPage } from './pages/Ch6ConceptPage';
 import { Ch7ConceptPage } from './pages/Ch7ConceptPage';
 import { Ch8ConceptPage } from './pages/Ch8ConceptPage';
+import { Ch9ConceptPage } from './pages/Ch9ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -57,6 +58,9 @@ export const App: React.FC = () => {
 
               {/* Optimal Inferences (Chapter 8) */}
               <Route path="/ch8/:id" element={<ProtectedRoute><Ch8ConceptPage /></ProtectedRoute>} />
+
+              {/* Model Checking (Chapter 9) */}
+              <Route path="/ch9/:id" element={<ProtectedRoute><Ch9ConceptPage /></ProtectedRoute>} />
 
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />

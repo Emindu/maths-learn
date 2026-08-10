@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface Topic {
@@ -161,6 +161,14 @@ const CATEGORIES: Category[] = [
       { title: 'Optimal Bayesian Inferences', desc: 'Bayes rules minimise prior-averaged loss. Posterior mean is the Bayes estimator for squared error; posterior probability comparison is the Bayes test for 0-1 loss.', to: '/ch8/optimal-bayesian-inferences' },
       { title: 'Decision Theory', desc: 'Action space A, loss function L(θ,a), risk function R_δ(θ), admissibility, Bayes risk and Bayes rules, minimax decision functions.', to: '/ch8/decision-theory' },
       { title: 'Further Proofs', desc: 'Sufficiency via conditional independence (Theorem 8.1.2), completeness of x̄ via MGF argument, and the Neyman-Pearson theorem proof in the discrete case.', to: '/ch8/optimal-inferences-proofs' },
+    ],
+  },
+  {
+    id: 'ch9concepts', label: 'Model Checking', icon: ClipboardCheck,
+    topics: [
+      { title: 'Checking the Sampling Model', desc: 'Discrepancy statistics, ancillary statistics, P-values, and the chi-squared goodness of fit test for assessing whether data plausibly came from the assumed model — plus residual and normal probability plots.', to: '/ch9/checking-sampling-model' },
+      { title: 'Checking for Prior–Data Conflict', desc: 'A correct sampling model is not enough — the prior can still conflict with the data. Prior predictive checks based on a minimal sufficient statistic detect this second failure mode.', to: '/ch9/checking-prior-data-conflict' },
+      { title: 'The Problem with Multiple Checks', desc: 'Running too many model-checking procedures makes it near-certain you will "find" something wrong, even in a correct model — the multiple comparisons problem applied to model checking.', to: '/ch9/multiple-checks' },
     ],
   },
   {
