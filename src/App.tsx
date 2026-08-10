@@ -14,6 +14,7 @@ import { Ch6ConceptPage } from './pages/Ch6ConceptPage';
 import { Ch7ConceptPage } from './pages/Ch7ConceptPage';
 import { Ch8ConceptPage } from './pages/Ch8ConceptPage';
 import { Ch9ConceptPage } from './pages/Ch9ConceptPage';
+import { Ch10ConceptPage } from './pages/Ch10ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -61,6 +62,9 @@ export const App: React.FC = () => {
 
               {/* Model Checking (Chapter 9) */}
               <Route path="/ch9/:id" element={<ProtectedRoute><Ch9ConceptPage /></ProtectedRoute>} />
+
+              {/* Relationships Among Variables (Chapter 10) */}
+              <Route path="/ch10/:id" element={<ProtectedRoute><Ch10ConceptPage /></ProtectedRoute>} />
 
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />

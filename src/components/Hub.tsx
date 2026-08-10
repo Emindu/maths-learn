@@ -172,6 +172,16 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    id: 'ch10concepts', label: 'Relationships Among Variables', icon: GitMerge,
+    topics: [
+      { title: 'Related Variables', desc: 'What it means for two variables to be related: response vs predictor, the regression function E(Y|X=x), and why correlation is not causation.', to: '/ch10/related-variables' },
+      { title: 'Categorical Response and Predictors', desc: "Contingency tables, independence of categorical variables, and the chi-squared test of independence — Fisher's exact test generalised to r×c tables.", to: '/ch10/categorical-relationships' },
+      { title: 'Simple Linear Regression', desc: 'Fitting Y = β₀+β₁X+ε by least squares, the sampling distribution of the slope, R², and residual diagnostics for the fitted line.', to: '/ch10/simple-linear-regression' },
+      { title: 'Correlation and Multiple Regression', desc: 'The sample correlation coefficient r, its link to R² and the slope test, and extending least squares to several predictors at once.', to: '/ch10/correlation-multiple-regression' },
+      { title: 'Analysis of Variance & Multiple Comparisons', desc: 'Testing equality of several group means with the ANOVA F-test, then controlling the false-positive rate across all pairwise comparisons.', to: '/ch10/anova' },
+    ],
+  },
+  {
     id: 'distributions', label: 'Probability Distributions', icon: BarChart2,
     topics: [
       { title: 'Bernoulli Distribution', desc: 'Single-trial binary outcomes with interactive probability slider.', to: '/distribution/bernoulli' },

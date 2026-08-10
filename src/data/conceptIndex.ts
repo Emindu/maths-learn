@@ -8,6 +8,7 @@ import { ch6Concepts } from './ch6ConceptsData';
 import { ch7Concepts } from './ch7ConceptsData';
 import { ch8Concepts } from './ch8ConceptsData';
 import { ch9Concepts } from './ch9ConceptsData';
+import { ch10Concepts } from './ch10ConceptsData';
 
 export interface ConceptIndexEntry {
   id: string;
@@ -26,6 +27,7 @@ const CHAPTER_GROUPS: Array<{ concepts: ProbabilityConcept[]; routeBase: string 
   { concepts: ch7Concepts,         routeBase: '/ch7' },
   { concepts: ch8Concepts,         routeBase: '/ch8' },
   { concepts: ch9Concepts,         routeBase: '/ch9' },
+  { concepts: ch10Concepts,        routeBase: '/ch10' },
 ];
 
 const buildIndex = (): Map<string, ConceptIndexEntry> => {
