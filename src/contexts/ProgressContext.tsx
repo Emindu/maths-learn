@@ -58,6 +58,8 @@ export const TOPIC_SEQUENCE = [
   '/ch8/optimal-inferences-proofs',
 
   '/ch9/checking-sampling-model',
+  '/ch9/checking-prior-data-conflict',
+  '/ch9/multiple-checks',
 
   '/distribution/bernoulli',
   '/distribution/beta',

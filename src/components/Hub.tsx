@@ -166,7 +166,9 @@ const CATEGORIES: Category[] = [
   {
     id: 'ch9concepts', label: 'Model Checking', icon: ClipboardCheck,
     topics: [
-      { title: 'Checking the Sampling Model', desc: 'Discrepancy statistics, ancillary statistics, and P-values for assessing whether data plausibly came from the assumed model — plus residual and normal probability plots.', to: '/ch9/checking-sampling-model' },
+      { title: 'Checking the Sampling Model', desc: 'Discrepancy statistics, ancillary statistics, P-values, and the chi-squared goodness of fit test for assessing whether data plausibly came from the assumed model — plus residual and normal probability plots.', to: '/ch9/checking-sampling-model' },
+      { title: 'Checking for Prior–Data Conflict', desc: 'A correct sampling model is not enough — the prior can still conflict with the data. Prior predictive checks based on a minimal sufficient statistic detect this second failure mode.', to: '/ch9/checking-prior-data-conflict' },
+      { title: 'The Problem with Multiple Checks', desc: 'Running too many model-checking procedures makes it near-certain you will "find" something wrong, even in a correct model — the multiple comparisons problem applied to model checking.', to: '/ch9/multiple-checks' },
     ],
   },
   {
