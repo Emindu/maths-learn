@@ -4256,4 +4256,374 @@ for label, h_fn in [('h(t)=t-mu (centred, not in domain)', lambda t, mu: t - mu)
       expectedHint: 'MGF of N(2,1) ≠ MGF of Gamma(4,0.5) → they are different distributions (MGF uniqueness). For completeness: h(t)=t² has E_μ(t²)=μ²+σ²/n which depends on μ (not 0 for all μ). Only h≡0 satisfies E_μ(h(x̄))=0 for all μ — this is completeness.',
     },
   ],
+
+  'checking-sampling-model': [
+    {
+      id: 'py-ch9-csm-1',
+      number: '1',
+      title: 'Simulating a Discrepancy Statistic P-value (Example 9.1.2)',
+      description: 'Reproduce the location-scale discrepancy statistic D(r) = -(1/n)Σln(rᵢ²/(n-1)) for a sample, then estimate its P-value by simulating under N(0,1), following the recipe of Example 9.1.2.',
+      starterCode:
+`import numpy as np
+
+# Observed sample (Example 9.1.2)
+x = np.array([-2.08, -0.28, 2.01, -1.37, 40.08])
+n = len(x)
+
+def discrepancy(sample):
+    xbar = sample.mean()
+    s = sample.std(ddof=1)
+    r = (sample - xbar) / s
+    return -np.mean(np.log(r**2 / (n - 1)))
+
+D_obs = discrepancy(x)
+print(f"D(r) observed = {D_obs:.4f}")
+
+# TODO: simulate N_SIM samples of size n from N(0,1) and compute D for each
+N_SIM = 10000
+rng = np.random.default_rng(0)
+D_sim = None   # TODO: np.array([discrepancy(rng.normal(0, 1, n)) for _ in range(N_SIM)])
+
+# TODO: compute the P-value P(D >= D_obs)
+p_value = None   # TODO: np.mean(D_sim >= D_obs)
+
+print(f"Simulated P-value = {p_value:.4f}" if p_value is not None else "P-value: TODO")
+print("Evidence against normality" if (p_value is not None and p_value < 0.05) else "Inconclusive")
+`,
+      solution:
+`import numpy as np
+
+x = np.array([-2.08, -0.28, 2.01, -1.37, 40.08])
+n = len(x)
+
+def discrepancy(sample):
+    xbar = sample.mean()
+    s = sample.std(ddof=1)
+    r = (sample - xbar) / s
+    return -np.mean(np.log(r**2 / (n - 1)))
+
+D_obs = discrepancy(x)
+print(f"D(r) observed = {D_obs:.4f}")
+
+N_SIM = 10000
+rng = np.random.default_rng(0)
+D_sim = np.array([discrepancy(rng.normal(0, 1, n)) for _ in range(N_SIM)])
+
+p_value = np.mean(D_sim >= D_obs)
+
+print(f"Simulated P-value = {p_value:.4f}")
+print("Evidence against normality" if p_value < 0.05 else "Inconclusive")
+print("The huge value 40.08 dominates D(r) — this single outlier is what drives the result.")
+`,
+      expectedHint: 'Because the distribution of D(R) does not depend on (μ,σ²), you can simulate directly from N(0,1) regardless of the true location/scale. The extreme value 40.08 relative to the rest of the sample pushes D(r) toward the right tail of its simulated null distribution.',
+    },
+    {
+      id: 'py-ch9-csm-2',
+      number: '2',
+      title: 'Chi-Squared Goodness of Fit: Testing a Random Number Generator (Example 9.1.7)',
+      description: 'Recreate the book\'s test of a Uniform[0,1] generator: bucket 10⁴ draws into 10 equal categories, compute standardized residuals and the chi-squared statistic X², and get a P-value from Theorem 9.1.1.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(1)
+N = 10000
+U = rng.uniform(0, 1, N)
+x = np.ceil(10 * U).astype(int)   # categories 1..10
+
+# TODO: compute observed counts for categories 1..10
+counts = None   # TODO: np.array([np.sum(x == i) for i in range(1, 11)])
+
+expected = N / 10
+# TODO: standardized residuals r_i = (counts - expected) / sqrt(expected * (1 - 0.1))  -- formula (9.1.6)
+resid = None   # TODO
+
+# TODO: chi-squared statistic X^2 = sum((1 - 0.1) * resid**2)  -- Theorem 9.1.1
+X2 = None   # TODO
+
+# TODO: P-value using chi2 with df = k - 1 = 9
+p_value = None   # TODO: 1 - stats.chi2.cdf(X2, df=9)
+
+print("Counts:", counts)
+print(f"X^2 = {X2:.4f}" if X2 is not None else "X^2: TODO")
+print(f"P-value = {p_value:.4f}" if p_value is not None else "P-value: TODO")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(1)
+N = 10000
+U = rng.uniform(0, 1, N)
+x = np.ceil(10 * U).astype(int)
+
+counts = np.array([np.sum(x == i) for i in range(1, 11)])
+
+expected = N / 10
+resid = (counts - expected) / np.sqrt(expected * (1 - 0.1))
+
+X2 = np.sum((1 - 0.1) * resid**2)
+
+p_value = 1 - stats.chi2.cdf(X2, df=9)
+
+print("Counts:", counts)
+print("Standardized residuals:", np.round(resid, 3))
+print(f"X^2 = {X2:.4f}")
+print(f"P-value = {p_value:.4f}")
+print("No evidence the generator is defective." if p_value > 0.05 else "Evidence against the generator.")
+`,
+      expectedHint: 'Counts should be roughly 1000 each with residuals plausibly N(0,1). X² should land comfortably below the χ²(9) 95th percentile (≈16.9), giving a large P-value — no evidence of a bad generator.',
+    },
+    {
+      id: 'py-ch9-csm-3',
+      number: '3',
+      title: 'Standardized Residual Signatures Across Distributions',
+      description: 'Compute standardized residuals for samples from N(0,1), a scaled t(3), and Exponential(1), and count how many fall outside (-3,3) for each — illustrating the qualitative patterns described in Section 9.1.1.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(0)
+n = 150
+
+def standardized_residuals(sample):
+    return (sample - sample.mean()) / sample.std(ddof=1)
+
+x_normal = rng.normal(0, 1, n)
+x_t3     = rng.standard_t(3, n) / np.sqrt(3)     # variance 1
+x_exp    = rng.exponential(1, n) - 1              # mean 0
+
+# TODO: compute standardized residuals for each sample
+r_normal = None   # TODO: standardized_residuals(x_normal)
+r_t3     = None   # TODO: standardized_residuals(x_t3)
+r_exp    = None   # TODO: standardized_residuals(x_exp)
+
+def count_outside(r):
+    return int(np.sum(np.abs(r) > 3))
+
+print("Points outside (-3,3):")
+print("  Normal(0,1):      ", count_outside(r_normal) if r_normal is not None else "TODO")
+print("  3^-1/2 t(3):       ", count_outside(r_t3) if r_t3 is not None else "TODO")
+print("  Exponential(1)-1:  ", count_outside(r_exp) if r_exp is not None else "TODO")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(0)
+n = 150
+
+def standardized_residuals(sample):
+    return (sample - sample.mean()) / sample.std(ddof=1)
+
+x_normal = rng.normal(0, 1, n)
+x_t3     = rng.standard_t(3, n) / np.sqrt(3)
+x_exp    = rng.exponential(1, n) - 1
+
+r_normal = standardized_residuals(x_normal)
+r_t3     = standardized_residuals(x_t3)
+r_exp    = standardized_residuals(x_exp)
+
+def count_outside(r):
+    return int(np.sum(np.abs(r) > 3))
+
+print("Points outside (-3,3):")
+print("  Normal(0,1):      ", count_outside(r_normal))
+print("  3^-1/2 t(3):       ", count_outside(r_t3))
+print("  Exponential(1)-1:  ", count_outside(r_exp))
+print("t(3) and Exponential(1) both tend to push more points past +-3 than a genuine Normal sample does.")
+`,
+      expectedHint: 'The Normal sample should have the fewest (often zero) points outside (-3,3). The t(3) sample gets occasional extreme values from its heavy tails; the Exponential sample gets occasional large positive residuals from its right skew.',
+    },
+  ],
+
+  'checking-prior-data-conflict': [
+    {
+      id: 'py-ch9-pdc-1',
+      number: '1',
+      title: 'Prior Predictive Check for a Beta-Binomial Model (Example 9.2.2)',
+      description: 'Compute the Beta-Binomial prior predictive m(y) and a two-sided prior-predictive P-value for an observed count, following the n=50, Beta(2,4) case in Example 9.2.2.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+n, alpha, beta = 50, 2, 4
+y_obs = 35
+
+y_vals = np.arange(n + 1)
+# TODO: compute the prior predictive (Beta-Binomial) pmf over all y
+m = None   # TODO: stats.betabinom.pmf(y_vals, n, alpha, beta)
+
+# TODO: prior predictive P-value = sum of m(y') for all y' at least as surprising as y_obs
+m_obs = None     # TODO: m[y_obs]
+p_value = None   # TODO: np.sum(m[m <= m_obs])
+
+print(f"m({y_obs}) = {m_obs:.6f}" if m_obs is not None else "m(y_obs): TODO")
+print(f"Prior predictive P-value = {p_value:.6f}" if p_value is not None else "P-value: TODO")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+n, alpha, beta = 50, 2, 4
+y_obs = 35
+
+y_vals = np.arange(n + 1)
+m = stats.betabinom.pmf(y_vals, n, alpha, beta)
+
+m_obs = m[y_obs]
+p_value = np.sum(m[m <= m_obs])
+
+print(f"m({y_obs}) = {m_obs:.6f}")
+print(f"Prior predictive P-value = {p_value:.6f}")
+print("Borderline / no strong evidence of prior-data conflict at the 5% level." if p_value >= 0.05 else "Evidence of prior-data conflict.")
+`,
+      expectedHint: 'This should land close to the book\'s reported value of about 0.05 for this example — right at the boundary of the 5% level, so y=35 is only marginally surprising under the Beta(2,4) prior.',
+    },
+    {
+      id: 'py-ch9-pdc-2',
+      number: '2',
+      title: 'Checking a Normal Prior for Prior-Data Conflict (Example 9.2.3)',
+      description: 'Implement formula (9.2.1) for detecting prior-data conflict in a location Normal model with a Normal prior, and compare two candidate observed values of x̄.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+def prior_data_conflict_pvalue(xbar, mu0, tau0_sq, sigma0_sq, n):
+    # TODO: implement formula (9.2.1)
+    se = None       # TODO: np.sqrt(tau0_sq + sigma0_sq / n)
+    return None     # TODO: 2 * (1 - stats.norm.cdf(np.abs(xbar - mu0) / se))
+
+# sigma0^2=4 known, prior N(mu0=10, tau0^2=1), n=16
+p_conflict = prior_data_conflict_pvalue(xbar=13, mu0=10, tau0_sq=1, sigma0_sq=4, n=16)
+p_ok       = prior_data_conflict_pvalue(xbar=10.5, mu0=10, tau0_sq=1, sigma0_sq=4, n=16)
+
+print(f"x̄=13:   P-value = {p_conflict}" if p_conflict is not None else "x̄=13: TODO")
+print(f"x̄=10.5: P-value = {p_ok}" if p_ok is not None else "x̄=10.5: TODO")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+def prior_data_conflict_pvalue(xbar, mu0, tau0_sq, sigma0_sq, n):
+    se = np.sqrt(tau0_sq + sigma0_sq / n)
+    return 2 * (1 - stats.norm.cdf(np.abs(xbar - mu0) / se))
+
+p_conflict = prior_data_conflict_pvalue(xbar=13, mu0=10, tau0_sq=1, sigma0_sq=4, n=16)
+p_ok       = prior_data_conflict_pvalue(xbar=10.5, mu0=10, tau0_sq=1, sigma0_sq=4, n=16)
+
+print(f"x̄=13:   P-value = {p_conflict:.5f}  -> {'conflict' if p_conflict < 0.05 else 'no conflict'}")
+print(f"x̄=10.5: P-value = {p_ok:.5f}  -> {'conflict' if p_ok < 0.05 else 'no conflict'}")
+`,
+      expectedHint: 'x̄=13 is about 2.68 prior-predictive standard errors from μ₀=10, giving a small P-value (~0.007) — a conflict. x̄=10.5 is well within one standard error, giving a large P-value (~0.65) — no conflict.',
+    },
+  ],
+
+  'multiple-checks': [
+    {
+      id: 'py-ch9-mc-1',
+      number: '1',
+      title: 'Simulating the Multiple-Checks Trap (Example 9.3.1)',
+      description: 'Simulate many samples from a genuinely correct N(0,1) model, run n independent per-coordinate checks on each, and estimate how often at least one check falsely rejects — then compare to the formula 1-(0.95)ⁿ.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(0)
+n = 10
+N_SIM = 20000
+
+data = rng.normal(0, 1, (N_SIM, n))
+# TODO: per-coordinate two-sided P-value P_i = P(|Z| >= |x_i|) = 2*(1-Phi(|x_i|))
+pvals = None   # TODO: 2 * (1 - stats.norm.cdf(np.abs(data)))
+
+# TODO: for each simulated sample, take the minimum P-value across the n coordinates
+min_pvals = None   # TODO: pvals.min(axis=1)
+
+# TODO: empirical rate at which min P-value < 0.05 (a false rejection, since the model is correct)
+empirical_rate = None   # TODO: np.mean(min_pvals < 0.05)
+theoretical_rate = 1 - 0.95 ** n
+
+print(f"Empirical P(min P-value < 0.05)  = {empirical_rate:.4f}" if empirical_rate is not None else "Empirical: TODO")
+print(f"Theoretical 1-(0.95)^n           = {theoretical_rate:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(0)
+n = 10
+N_SIM = 20000
+
+data = rng.normal(0, 1, (N_SIM, n))
+pvals = 2 * (1 - stats.norm.cdf(np.abs(data)))
+
+min_pvals = pvals.min(axis=1)
+
+empirical_rate = np.mean(min_pvals < 0.05)
+theoretical_rate = 1 - 0.95 ** n
+
+print(f"Empirical P(min P-value < 0.05)  = {empirical_rate:.4f}")
+print(f"Theoretical 1-(0.95)^n           = {theoretical_rate:.4f}")
+print("Even though the model is exactly correct, checking n=10 coordinates independently")
+print("flags it as 'wrong' about 40% of the time.")
+`,
+      expectedHint: 'The empirical rate should land close to 1-(0.95)^10 ≈ 0.40. Try increasing n to 20 or 50 and watch the false-rejection rate climb toward 1, exactly as Example 9.3.1 describes.',
+    },
+    {
+      id: 'py-ch9-mc-2',
+      number: '2',
+      title: 'Correcting the Cutoff to Control the Overall Error Rate',
+      description: 'Derive and verify by simulation the per-test P-value cutoff needed so that, across n independent checks, the overall false-rejection rate stays at a target level (e.g. 0.05).',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+def per_test_alpha(overall_alpha, n):
+    # TODO: solve 1-(1-alpha)^n = overall_alpha for alpha
+    return None   # TODO: 1 - (1 - overall_alpha) ** (1 / n)
+
+n = 100
+overall_target = 0.05
+alpha_needed = per_test_alpha(overall_target, n)
+print(f"n={n}: per-test alpha needed = {alpha_needed}" if alpha_needed is not None else "alpha_needed: TODO")
+
+rng = np.random.default_rng(1)
+N_SIM = 20000
+data = rng.normal(0, 1, (N_SIM, n))
+pvals = 2 * (1 - stats.norm.cdf(np.abs(data)))
+min_pvals = pvals.min(axis=1)
+
+# TODO: empirical overall error rate using the corrected cutoff, and using the naive 0.05 cutoff
+empirical_corrected = None   # TODO: np.mean(min_pvals < alpha_needed)
+empirical_naive      = None   # TODO: np.mean(min_pvals < 0.05)
+
+print(f"Corrected cutoff overall rate = {empirical_corrected}" if empirical_corrected is not None else "corrected: TODO")
+print(f"Naive 0.05 cutoff overall rate = {empirical_naive}" if empirical_naive is not None else "naive: TODO")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+def per_test_alpha(overall_alpha, n):
+    return 1 - (1 - overall_alpha) ** (1 / n)
+
+n = 100
+overall_target = 0.05
+alpha_needed = per_test_alpha(overall_target, n)
+print(f"n={n}: per-test alpha needed = {alpha_needed:.6f}")
+
+rng = np.random.default_rng(1)
+N_SIM = 20000
+data = rng.normal(0, 1, (N_SIM, n))
+pvals = 2 * (1 - stats.norm.cdf(np.abs(data)))
+min_pvals = pvals.min(axis=1)
+
+empirical_corrected = np.mean(min_pvals < alpha_needed)
+empirical_naive      = np.mean(min_pvals < 0.05)
+
+print(f"Corrected cutoff overall rate  = {empirical_corrected:.4f}  (target 0.05)")
+print(f"Naive 0.05 cutoff overall rate = {empirical_naive:.4f}  (way too high!)")
+`,
+      expectedHint: 'The per-test alpha needed at n=100 is tiny (~0.0005). With it, the empirical overall rate should land close to 0.05, while the naive per-test 0.05 cutoff gives an overall rate near 0.99 — essentially guaranteed to "reject" a correct model.',
+    },
+  ],
 };

@@ -4472,4 +4472,297 @@ plt.tight_layout()
 plt.show()`,
     },
   ],
+
+  'checking-sampling-model': [
+    {
+      id: 'ch9-csm-lab-1',
+      title: 'Chi-Squared Goodness of Fit Test',
+      description: 'Reproduce Example 9.1.7 (testing a random number generator): bucket 10⁴ Uniform draws into 10 categories, plot observed vs expected counts, and overlay the observed X² statistic on its χ²(9) reference distribution.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(1)
+N = 10000
+U = rng.uniform(0, 1, N)
+x = np.ceil(10 * U).astype(int)
+counts = np.array([np.sum(x == i) for i in range(1, 11)])
+expected = N / 10
+resid = (counts - expected) / np.sqrt(expected * 0.9)
+X2 = np.sum(0.9 * resid**2)
+df = 9
+p_value = 1 - stats.chi2.cdf(X2, df=df)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+cats = np.arange(1, 11)
+axes[0].bar(cats, counts, color='#38bdf8', alpha=0.85, label='Observed')
+axes[0].axhline(expected, color='#fb923c', lw=2, ls='--', label=f'Expected = {expected:.0f}')
+axes[0].set_xlabel('Category', color='#94a3b8'); axes[0].set_ylabel('Count', color='#94a3b8')
+axes[0].set_title('Observed vs Expected Counts (n=10 categories)', color='white')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+xs = np.linspace(0, 25, 400)
+axes[1].plot(xs, stats.chi2.pdf(xs, df), color='#818cf8', lw=2.5, label=f'χ²({df})')
+axes[1].axvline(X2, color='#34d399', lw=2, ls='--', label=f'Observed X²={X2:.2f}')
+axes[1].fill_between(xs, stats.chi2.pdf(xs, df), where=(xs >= X2), color='#34d399', alpha=0.3)
+axes[1].set_xlabel('X²', color='#94a3b8'); axes[1].set_ylabel('Density', color='#94a3b8')
+axes[1].set_title(f'Chi-Squared Goodness of Fit (P-value={p_value:.3f})', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+print(f"X² = {X2:.4f}, df = {df}, P-value = {p_value:.4f}")
+print("No evidence the generator is defective." if p_value > 0.05 else "Evidence against the generator.")
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch9-csm-lab-2',
+      title: 'Residual Plots: Normal vs Heavy-Tailed vs Skewed',
+      description: 'Plot standardized residuals (i, rᵢ⋆) for samples from N(0,1), a scaled t(3), and Exponential(1), marking points that fall outside (−3,3) — the qualitative diagnostic described in Section 9.1.1.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(0)
+n = 150
+
+def standardized_residuals(sample):
+    return (sample - sample.mean()) / sample.std(ddof=1)
+
+samples = {
+    'N(0,1)':             rng.normal(0, 1, n),
+    '3^{-1/2}t(3)':        rng.standard_t(3, n) / np.sqrt(3),
+    'Exponential(1) - 1':  rng.exponential(1, n) - 1,
+}
+colors = ['#38bdf8', '#818cf8', '#fb923c']
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), facecolor='#0f172a', sharey=True)
+for ax, (label, sample), color in zip(axes, samples.items(), colors):
+    ax.set_facecolor('#1e293b')
+    r = standardized_residuals(sample)
+    outside = np.abs(r) > 3
+    ax.scatter(np.arange(1, n + 1)[~outside], r[~outside], s=14, color=color, alpha=0.8)
+    ax.scatter(np.arange(1, n + 1)[outside], r[outside], s=30, color='#f87171', marker='x', label='|r*| > 3')
+    ax.axhline(3, color='#94a3b8', lw=1, ls=':')
+    ax.axhline(-3, color='#94a3b8', lw=1, ls=':')
+    ax.axhline(0, color='#94a3b8', lw=0.8)
+    ax.set_title(f'Sample from {label}\\n{outside.sum()} point(s) outside (-3,3)', color='white', fontsize=10)
+    ax.set_xlabel('i', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    if outside.any():
+        ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+axes[0].set_ylabel('standardized residual  rᵢ*', color='#94a3b8')
+
+plt.suptitle('Standardized Residual Plots: Normal vs Heavy-Tailed vs Skewed', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch9-csm-lab-3',
+      title: 'Normal Probability Plots: Good Fit vs Poor Fit',
+      description: 'Compare a normal probability plot for a genuinely Normal sample against one from a strongly right-skewed Lognormal sample, with a fitted reference line on each — illustrating how curvature away from a straight line signals non-normality.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(5)
+n = 40
+
+x_good = rng.normal(5, 2, n)                       # genuinely Normal
+x_bad  = rng.lognormal(mean=0, sigma=1, size=n)     # strongly right-skewed
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0f172a')
+for ax, (data, title) in zip(axes, [(x_good, 'Sample from N(5, 4)'), (x_bad, 'Sample from Lognormal(0, 1)')]):
+    ax.set_facecolor('#1e293b')
+    order = np.sort(data)
+    i = np.arange(1, n + 1)
+    normal_scores = stats.norm.ppf(i / (n + 1))
+    ax.scatter(order, normal_scores, s=24, color='#38bdf8')
+
+    b, a = np.polyfit(order, normal_scores, 1)
+    xs = np.linspace(order.min(), order.max(), 10)
+    ax.plot(xs, a + b * xs, color='#fb923c', lw=2, ls='--', label='linear fit')
+
+    ax.set_title(title, color='white')
+    ax.set_xlabel('order statistic  x₍ᵢ₎', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+    ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].set_ylabel('normal score  Φ⁻¹(i/(n+1))', color='#94a3b8')
+
+plt.suptitle('Normal Probability Plots: Good Fit vs Poor Fit', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'checking-prior-data-conflict': [
+    {
+      id: 'ch9-pdc-lab-1',
+      title: 'Prior Predictive Distributions and Conflict Detection',
+      description: 'Reproduce Figures 9.2.1 and 9.2.2: the Beta-Binomial prior predictive distribution of the sample count y for two priors, with the observed count highlighted, showing how far into the tail it falls.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+# Panel 1: n=20, Beta(2,2) prior (Figure 9.2.1)
+n1, a1, b1, y1_obs = 20, 2, 2, 3
+y1 = np.arange(n1 + 1)
+m1 = stats.betabinom.pmf(y1, n1, a1, b1)
+axes[0].bar(y1, m1, color='#38bdf8', alpha=0.85)
+axes[0].bar(y1_obs, m1[y1_obs], color='#f87171')
+axes[0].set_title(f'n=20, Beta(2,2) prior — observed y={y1_obs}', color='white', fontsize=10)
+axes[0].set_xlabel('y', color='#94a3b8'); axes[0].set_ylabel('prior predictive m(y)', color='#94a3b8')
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+# Panel 2: n=50, Beta(2,4) prior (Figure 9.2.2)
+n2, a2, b2, y2_obs = 50, 2, 4, 35
+y2 = np.arange(n2 + 1)
+m2 = stats.betabinom.pmf(y2, n2, a2, b2)
+axes[1].bar(y2, m2, color='#818cf8', alpha=0.85)
+axes[1].bar(y2_obs, m2[y2_obs], color='#f87171')
+axes[1].set_title(f'n=50, Beta(2,4) prior — observed y={y2_obs}', color='white', fontsize=10)
+axes[1].set_xlabel('y', color='#94a3b8')
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+p2 = np.sum(m2[m2 <= m2[y2_obs]])
+print(f"Right panel: prior predictive P-value at y={y2_obs} is {p2:.4f}")
+plt.suptitle('Prior Predictive Distributions — Spotting Prior-Data Conflict', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch9-pdc-lab-2',
+      title: 'Normal Prior-Data Conflict Across Observed Values',
+      description: 'Plot the prior predictive density of X̄ for a Normal-on-Normal model (Example 9.2.3) alongside the resulting P-value curve from formula (9.2.1), marking a conflicting and a non-conflicting observed x̄.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+mu0, tau0_sq, sigma0_sq, n = 10, 1, 4, 16
+se = np.sqrt(tau0_sq + sigma0_sq / n)
+
+xbar_grid = np.linspace(mu0 - 6, mu0 + 6, 400)
+prior_pred_density = stats.norm.pdf(xbar_grid, mu0, se)
+pvals = 2 * (1 - stats.norm.cdf(np.abs(xbar_grid - mu0) / se))
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+axes[0].plot(xbar_grid, prior_pred_density, color='#818cf8', lw=2.5)
+for xbar_obs, color in [(13, '#f87171'), (10.5, '#34d399')]:
+    axes[0].axvline(xbar_obs, color=color, lw=2, ls='--', label=f'x̄={xbar_obs}')
+axes[0].set_title('Prior Predictive Density of X̄', color='white')
+axes[0].set_xlabel('x̄', color='#94a3b8'); axes[0].set_ylabel('density', color='#94a3b8')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[0].tick_params(colors='#94a3b8')
+for sp in axes[0].spines.values(): sp.set_edgecolor('#334155')
+
+axes[1].plot(xbar_grid, pvals, color='#38bdf8', lw=2.5)
+axes[1].axhline(0.05, color='#fb923c', lw=1.5, ls=':', label='0.05 threshold')
+for xbar_obs, color in [(13, '#f87171'), (10.5, '#34d399')]:
+    p = 2 * (1 - stats.norm.cdf(np.abs(xbar_obs - mu0) / se))
+    axes[1].scatter([xbar_obs], [p], color=color, zorder=5, s=50)
+axes[1].set_title('Prior–Data Conflict P-value, Eq. (9.2.1)', color='white')
+axes[1].set_xlabel('x̄', color='#94a3b8'); axes[1].set_ylabel('P-value', color='#94a3b8')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+axes[1].tick_params(colors='#94a3b8')
+for sp in axes[1].spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle(f'Normal Prior N({mu0},{tau0_sq}) vs Data (σ₀²={sigma0_sq}, n={n})', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'multiple-checks': [
+    {
+      id: 'ch9-mc-lab-1',
+      title: 'The Multiple-Checks Trap: False-Rejection Rate vs n',
+      description: 'Plot P(at least one false rejection) = 1-(0.95)ⁿ as a function of the number of independent checks n, reproducing the numbers from Example 9.3.1 (0.40 at n=10, 0.64 at n=20, 0.99 at n=100).',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+n_grid = np.arange(1, 151)
+rate = 1 - 0.95 ** n_grid
+
+fig, ax = plt.subplots(figsize=(9, 5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(n_grid, rate, color='#38bdf8', lw=2.5)
+for n_mark in [10, 20, 100]:
+    r = 1 - 0.95 ** n_mark
+    ax.scatter([n_mark], [r], color='#f87171', zorder=5)
+    ax.annotate(f'n={n_mark}\\n{r:.2f}', (n_mark, r), textcoords='offset points',
+                xytext=(8, -14), color='white', fontsize=9)
+ax.axhline(1.0, color='#94a3b8', lw=1, ls=':')
+ax.set_xlabel('number of coordinates checked, n', color='#94a3b8')
+ax.set_ylabel('P(at least one false rejection)', color='#94a3b8')
+ax.set_title('The Multiple-Checks Trap: P(min Pᵢ < 0.05) = 1 − (0.95)ⁿ  (model is actually correct)', color='white')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch9-mc-lab-2',
+      title: 'Fixing the Trap: Lowering the Per-Test Cutoff',
+      description: 'Compare the overall error rate 1-(1-α)ⁿ for a naive per-test cutoff (α=0.05) against a corrected, much stricter cutoff (α=0.0001), showing how the correction keeps the overall error controlled as n grows.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+n_grid = np.arange(1, 151)
+
+fig, ax = plt.subplots(figsize=(9, 5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+
+for alpha, color, label in [(0.05, '#f87171', 'per-test α = 0.05 (naive)'),
+                             (0.0001, '#34d399', 'per-test α = 0.0001 (corrected)')]:
+    overall = 1 - (1 - alpha) ** n_grid
+    ax.plot(n_grid, overall, color=color, lw=2.5, label=label)
+
+ax.axhline(0.05, color='#94a3b8', lw=1.5, ls=':', label='target overall rate = 0.05')
+ax.set_xlabel('number of checks, n', color='#94a3b8')
+ax.set_ylabel('overall P(at least one false rejection)', color='#94a3b8')
+ax.set_title('Lowering the Per-Test Cutoff Controls the Overall Error Rate', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9)
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
 };
