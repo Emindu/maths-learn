@@ -452,7 +452,7 @@ export const Hub: React.FC = () => {
                     alignItems: 'flex-start',
                     gap: '4px',
                     textAlign: 'left',
-                    padding: 'var(--space-14) var(--space-16)',
+                    padding: 'var(--space-12) var(--space-16)',
                     borderRadius: '12px',
                     border: `1.5px solid ${isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
                     background: isActive ? 'var(--color-primary-subtle)' : 'var(--color-surface)',
