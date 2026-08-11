@@ -215,3 +215,211 @@ export const VizStationaryBalance: React.FC = () => {
     </svg>
   );
 };
+
+// ── 5. Metropolis-Hastings — trace and histogram converging to the target ────
+export const VizMetropolisHastings: React.FC = () => {
+  const [n, setN] = useState(200);
+  const states = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+  // Unnormalized bimodal target: two bumps, at -2 and 2.
+  const target = (s: number) => Math.exp(-0.3 * (s + 2) ** 2) + 0.7 * Math.exp(-0.3 * (s - 2) ** 2);
+
+  const rnd = lcg(42);
+  let x = 0;
+  const trace: number[] = [x];
+  const counts: Record<number, number> = Object.fromEntries(states.map(s => [s, 0]));
+  counts[x] += 1;
+  for (let i = 0; i < n; i++) {
+    const propose = rnd() < 0.5 ? x - 1 : x + 1;
+    if (propose >= -4 && propose <= 4) {
+      const alpha = Math.min(1, target(propose) / target(x));
+      if (rnd() < alpha) x = propose;
+    }
+    trace.push(x);
+    counts[x] += 1;
+  }
+
+  const PAD = { l: 30, r: 16, t: 30, b: 30 };
+  const pw = W - PAD.l - PAD.r, ph = (H - PAD.t - PAD.b - 10) / 2;
+
+  // Trace plot (top half)
+  const traceXS = (i: number) => PAD.l + (i / n) * pw;
+  const traceYS = (s: number) => PAD.t + ph - ((s + 4) / 8) * ph;
+  const tracePts = trace.map((s, i) => `${traceXS(i).toFixed(1)},${traceYS(s).toFixed(1)}`).join(' ');
+
+  // Histogram (bottom half)
+  const histY0 = PAD.t + ph + 10;
+  const maxCount = Math.max(...Object.values(counts));
+  const barW = pw / states.length * 0.7;
+  const barXC = (s: number) => PAD.l + pw * (s + 4.5) / 9;
+
+  return (
+    <div style={{ background: BG, borderRadius: 12, padding: 16, userSelect: 'none' }}>
+      <div style={{ color: TEXT, fontSize: 13, fontWeight: 600, marginBottom: 4, textAlign: 'center' }}>
+        Metropolis–Hastings: Trace (top) and Visited-State Histogram (bottom)
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+        <rect width={W} height={H} fill={BG} />
+        <rect x={PAD.l} y={PAD.t} width={pw} height={ph} fill={SURFACE} rx={3} />
+        <polyline points={tracePts} fill="none" stroke={PRIMARY} strokeWidth={1} opacity={0.85} />
+        <rect x={PAD.l} y={histY0} width={pw} height={ph} fill={SURFACE} rx={3} />
+        {states.map(s => {
+          const h = (counts[s] / maxCount) * ph;
+          return (
+            <rect key={s} x={barXC(s) - barW / 2} y={histY0 + ph - h} width={barW} height={h} fill={ACCENT} opacity={0.85} rx={1} />
+          );
+        })}
+        <text x={W / 2} y={18} fill={TEXT} fontSize={11} textAnchor="middle" fontWeight="700">n = {n} iterations</text>
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
+        <SliderRow label="iterations n" value={n} min={10} max={2000} step={10} onChange={setN} display={String(n)} color={ACCENT} />
+      </div>
+    </div>
+  );
+};
+
+// ── 6. Martingale + Optional Stopping — average stays at the starting value ──
+export const VizMartingaleStopping: React.FC = () => {
+  const [numPaths, setNumPaths] = useState(50);
+  const a = 10, r = 0, s = 20;
+
+  const finals: number[] = [];
+  for (let i = 0; i < numPaths; i++) {
+    const rnd = lcg(1000 + i * 37);
+    let x = a;
+    let guard = 0;
+    while (x > r && x < s && guard < 5000) {
+      x += rnd() < 0.5 ? 1 : -1;
+      guard++;
+    }
+    finals.push(x);
+  }
+  const avgFinal = finals.reduce((acc, v) => acc + v, 0) / finals.length;
+  const fracHitS = finals.filter(v => v === s).length / finals.length;
+
+  const PAD = { l: 30, r: 16, t: 34, b: 34 };
+  const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+  const yS = (v: number) => PAD.t + ph - ((v - r) / (s - r)) * ph;
+
+  return (
+    <div style={{ background: BG, borderRadius: 12, padding: 16, userSelect: 'none' }}>
+      <div style={{ color: TEXT, fontSize: 13, fontWeight: 600, marginBottom: 4, textAlign: 'center' }}>
+        Optional Stopping: average of X_T across simulated paths
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+        <rect width={W} height={H} fill={BG} />
+        <rect x={PAD.l} y={PAD.t} width={pw} height={ph} fill={SURFACE} rx={3} />
+        <line x1={PAD.l} y1={yS(a)} x2={PAD.l + pw} y2={yS(a)} stroke={TEXT} strokeWidth={2} strokeDasharray="6,3" />
+        <line x1={PAD.l} y1={yS(avgFinal)} x2={PAD.l + pw} y2={yS(avgFinal)} stroke={SUCCESS} strokeWidth={2} />
+        <line x1={PAD.l} y1={yS(r)} x2={PAD.l + pw} y2={yS(r)} stroke={DANGER} strokeWidth={1} strokeDasharray="3,3" />
+        <line x1={PAD.l} y1={yS(s)} x2={PAD.l + pw} y2={yS(s)} stroke={SUCCESS} strokeWidth={1} strokeDasharray="3,3" />
+        {finals.map((v, i) => (
+          <circle key={i} cx={PAD.l + 6 + (i / numPaths) * (pw - 12)} cy={yS(v)} r={2} fill={v === s ? SUCCESS : DANGER} opacity={0.6} />
+        ))}
+        <text x={W / 2} y={18} fill={TEXT} fontSize={11} textAnchor="middle" fontWeight="700">
+          avg X_T = {avgFinal.toFixed(2)} (dashed white = a={a}) · {(fracHitS * 100).toFixed(0)}% hit {s}
+        </text>
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
+        <SliderRow label="simulated paths" value={numPaths} min={5} max={200} step={5} onChange={setNumPaths} display={String(numPaths)} color={ACCENT} />
+      </div>
+    </div>
+  );
+};
+
+// ── 7. Brownian Motion — a sample path and N(0,t) spread ─────────────────────
+export const VizBrownianMotion: React.FC = () => {
+  const [t, setT] = useState(10);
+  const rnd = lcg(99);
+  const steps = 400;
+  const path: number[] = [0];
+  for (let i = 1; i <= steps; i++) {
+    const dt = t / steps;
+    const z = Math.sqrt(-2 * Math.log(Math.max(rnd(), 1e-9))) * Math.cos(2 * Math.PI * rnd());
+    path.push(path[i - 1] + Math.sqrt(dt) * z);
+  }
+
+  const PAD = { l: 34, r: 40, t: 30, b: 34 };
+  const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+  const sd = Math.sqrt(t);
+  const yMax = Math.max(3 * sd, 2);
+  const xS = (i: number) => PAD.l + (i / steps) * pw;
+  const yS = (v: number) => PAD.t + ph / 2 - (v / yMax) * (ph / 2);
+
+  const pathPts = path.map((v, i) => `${xS(i).toFixed(1)},${yS(v).toFixed(1)}`).join(' ');
+
+  return (
+    <div style={{ background: BG, borderRadius: 12, padding: 16, userSelect: 'none' }}>
+      <div style={{ color: TEXT, fontSize: 13, fontWeight: 600, marginBottom: 4, textAlign: 'center' }}>
+        A Sample Path of Brownian Motion — B_t ~ N(0, t)
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+        <rect width={W} height={H} fill={BG} />
+        <rect x={PAD.l} y={PAD.t} width={pw} height={ph} fill={SURFACE} rx={3} />
+        <line x1={PAD.l} y1={yS(0)} x2={PAD.l + pw} y2={yS(0)} stroke={MUTED} strokeWidth={0.7} />
+        <line x1={PAD.l} y1={yS(sd)} x2={PAD.l + pw} y2={yS(sd)} stroke={MUTED} strokeWidth={0.6} strokeDasharray="3,3" />
+        <line x1={PAD.l} y1={yS(-sd)} x2={PAD.l + pw} y2={yS(-sd)} stroke={MUTED} strokeWidth={0.6} strokeDasharray="3,3" />
+        <polyline points={pathPts} fill="none" stroke={PRIMARY} strokeWidth={1.5} />
+        <circle cx={xS(steps)} cy={yS(path[steps])} r={4} fill={WARN} />
+        <text x={PAD.l + pw + 6} y={yS(sd) + 3} fill={MUTED} fontSize={8}>+√t</text>
+        <text x={PAD.l + pw + 6} y={yS(-sd) + 3} fill={MUTED} fontSize={8}>−√t</text>
+        <text x={W / 2} y={18} fill={TEXT} fontSize={11} textAnchor="middle" fontWeight="700">
+          t = {t} · B_t = {path[steps].toFixed(2)} · sd = √t = {sd.toFixed(2)}
+        </text>
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
+        <SliderRow label="time horizon t" value={t} min={1} max={40} step={1} onChange={setT} display={String(t)} color={ACCENT} />
+      </div>
+    </div>
+  );
+};
+
+// ── 8. Poisson Process — event arrivals over time ────────────────────────────
+export const VizPoissonProcess: React.FC = () => {
+  const [rate, setRate] = useState(2);
+  const horizon = 10;
+  const rnd = lcg(55);
+  const arrivals: number[] = [];
+  let tCur = 0;
+  while (tCur < horizon) {
+    const r = -Math.log(Math.max(rnd(), 1e-9)) / rate;
+    tCur += r;
+    if (tCur < horizon) arrivals.push(tCur);
+  }
+
+  const PAD = { l: 34, r: 16, t: 30, b: 34 };
+  const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+  const xS = (tv: number) => PAD.l + (tv / horizon) * pw;
+  const maxN = Math.max(arrivals.length, 1);
+  const yS = (n: number) => PAD.t + ph - (n / maxN) * ph;
+
+  const stepPts: string[] = [`${xS(0)},${yS(0)}`];
+  arrivals.forEach((tv, i) => {
+    stepPts.push(`${xS(tv)},${yS(i)}`);
+    stepPts.push(`${xS(tv)},${yS(i + 1)}`);
+  });
+  stepPts.push(`${xS(horizon)},${yS(arrivals.length)}`);
+
+  return (
+    <div style={{ background: BG, borderRadius: 12, padding: 16, userSelect: 'none' }}>
+      <div style={{ color: TEXT, fontSize: 13, fontWeight: 600, marginBottom: 4, textAlign: 'center' }}>
+        Poisson Process — Event Arrivals and the Count N_t
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+        <rect width={W} height={H} fill={BG} />
+        <rect x={PAD.l} y={PAD.t} width={pw} height={ph} fill={SURFACE} rx={3} />
+        <polyline points={stepPts.join(' ')} fill="none" stroke={PRIMARY} strokeWidth={2} />
+        {arrivals.map((tv, i) => (
+          <circle key={i} cx={xS(tv)} cy={PAD.t + ph + 8} r={2.6} fill={WARN} />
+        ))}
+        <text x={W / 2} y={18} fill={TEXT} fontSize={11} textAnchor="middle" fontWeight="700">
+          {arrivals.length} events by t={horizon} (rate a={rate}/unit time)
+        </text>
+        <text x={PAD.l + pw / 2} y={H - 4} fill={MUTED} fontSize={9} textAnchor="middle">time t (dots = individual event arrivals)</text>
+        <text x={9} y={PAD.t + ph / 2} fill={MUTED} fontSize={9} textAnchor="middle" transform={`rotate(-90,9,${PAD.t + ph / 2})`}>N_t</text>
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
+        <SliderRow label="intensity a" value={rate} min={0.5} max={6} step={0.5} onChange={setRate} display={rate.toFixed(1)} color={ACCENT} />
+      </div>
+    </div>
+  );
+};

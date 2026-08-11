@@ -185,7 +185,12 @@ const CATEGORIES: Category[] = [
     id: 'ch11concepts', label: 'Stochastic Processes', icon: Shuffle,
     topics: [
       { title: 'Simple Random Walk', desc: 'Repeated $1 gambling as a stochastic process: the exact distribution of your fortune, fair vs. subfair vs. superfair games, and the gambler\'s ruin problem.', to: '/ch11/simple-random-walk' },
-      { title: 'Markov Chains', desc: 'State spaces, transition probabilities, and the Markov property; computing multi-step probabilities via matrix powers, and stationary distributions.', to: '/ch11/markov-chains' },
+      { title: 'Markov Chains', desc: 'State spaces, transition probabilities, and the Markov property; computing multi-step probabilities via matrix powers, stationary distributions, reversibility, and the convergence theorem.', to: '/ch11/markov-chains' },
+      { title: 'Markov Chain Monte Carlo', desc: 'Sampling from distributions with no easy direct method, by building a Markov chain that has them as a stationary distribution: the Metropolis–Hastings algorithm and the Gibbs sampler.', to: '/ch11/markov-chain-monte-carlo' },
+      { title: 'Martingales', desc: 'Processes that stay the same on average, stopping times, and the optional stopping theorem — which solves the gambler\'s ruin problem in a few lines instead of a page.', to: '/ch11/martingales' },
+      { title: 'Brownian Motion', desc: 'The continuous-time limit of faster and faster random walks: exact Normal distributions at every instant, independent increments, and diffusion models for stock prices.', to: '/ch11/brownian-motion' },
+      { title: 'Poisson Processes', desc: 'Events occurring at random times built from i.i.d. Exponential waiting times, and why the resulting event count is exactly Poisson distributed.', to: '/ch11/poisson-processes' },
+      { title: 'Further Proofs', desc: 'Rigorous derivations: the random walk distribution and gambler\'s ruin via a recursive trick, Metropolis–Hastings reversibility, the Brownian motion limit theorem, and the Poisson process.', to: '/ch11/stochastic-processes-proofs' },
     ],
   },
   {

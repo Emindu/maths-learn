@@ -5670,4 +5670,536 @@ print("after enough steps, are two views of the same stationary distribution.")
       expectedHint: 'Both the direct linear-system solution and the 50-step forward iteration should land close to (2/11, 3/11, 6/11) ≈ (0.182, 0.273, 0.545) — Example 11.2.16\'s stationary distribution.',
     },
   ],
+
+  'markov-chain-monte-carlo': [
+    {
+      id: 'py-ch11-mcmc-1',
+      number: '1',
+      title: 'A Metropolis-Hastings Sampler for a Target Known Only Up to a Constant',
+      description: 'Implement the Metropolis-Hastings algorithm (Example 11.3.3) to sample from a target distribution on integers -10..10 defined only up to an unknown normalizing constant, using simple-random-walk proposals.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(1)
+
+def unnorm_target(j):
+    # Unnormalized weight -- the true normalizing constant is never computed
+    return (j**2 + 1) * np.exp(-0.05 * j**2) * (np.cos(j) ** 2 + 0.1)
+
+states = np.arange(-10, 11)
+N = 20000
+x = 0
+samples = np.zeros(N, dtype=int)
+
+for n in range(N):
+    # TODO: propose x+1 or x-1 with probability 1/2 each (within range)
+    propose = x + (1 if rng.uniform() < 0.5 else -1)
+    if -10 <= propose <= 10:
+        # TODO: compute acceptance probability alpha = min(1, target(propose)/target(x))
+        alpha = None   # TODO
+        if alpha is not None and rng.uniform() < alpha:
+            x = propose
+    samples[n] = x
+
+# TODO: compare the empirical distribution of samples to unnorm_target (normalized)
+weights = unnorm_target(states)
+true_dist = weights / weights.sum()
+empirical = np.array([np.mean(samples == s) for s in states])
+
+print("State | True (normalized) | Empirical")
+for s, t, e in zip(states, true_dist, empirical):
+    print(f"{s:3d} | {t:.4f} | {e:.4f}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(1)
+
+def unnorm_target(j):
+    return (j**2 + 1) * np.exp(-0.05 * j**2) * (np.cos(j) ** 2 + 0.1)
+
+states = np.arange(-10, 11)
+N = 20000
+x = 0
+samples = np.zeros(N, dtype=int)
+
+for n in range(N):
+    propose = x + (1 if rng.uniform() < 0.5 else -1)
+    if -10 <= propose <= 10:
+        alpha = min(1, unnorm_target(propose) / unnorm_target(x))
+        if rng.uniform() < alpha:
+            x = propose
+    samples[n] = x
+
+weights = unnorm_target(states)
+true_dist = weights / weights.sum()
+empirical = np.array([np.mean(samples == s) for s in states])
+
+print("State | True (normalized) | Empirical")
+for s, t, e in zip(states, true_dist, empirical):
+    print(f"{s:3d} | {t:.4f} | {e:.4f}")
+print("\\nThe empirical frequencies should track the true normalized distribution closely,")
+print("even though we never computed the normalizing constant Z = sum(unnorm_target(states)).")
+`,
+      expectedHint: 'The empirical frequencies from the Markov chain should track the true (normalized) target distribution reasonably closely after 20,000 iterations — notice the algorithm never needed to compute the normalizing constant at all.',
+    },
+    {
+      id: 'py-ch11-mcmc-2',
+      number: '2',
+      title: 'A Two-Dimensional Gibbs Sampler',
+      description: 'Implement a Gibbs sampler for a simple bivariate discrete distribution, alternating vertical and horizontal moves as in Section 11.3.2, and verify it never rejects.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(2)
+
+# Target: unnormalized weight on a 5x5 grid, biased toward the diagonal
+def weight(i1, i2):
+    return np.exp(-0.5 * (i1 - i2) ** 2)
+
+grid = range(5)
+
+def conditional_probs(fixed_idx, fixed_val, vary_idx):
+    # Returns normalized conditional distribution over the varying coordinate
+    weights = []
+    for v in grid:
+        if vary_idx == 0:
+            weights.append(weight(v, fixed_val))
+        else:
+            weights.append(weight(fixed_val, v))
+    weights = np.array(weights)
+    return weights / weights.sum()
+
+N = 10000
+i1, i2 = 0, 0
+samples = np.zeros((N, 2), dtype=int)
+
+for n in range(N):
+    # TODO: Gibbs step 1 -- resample i1 given i2 (always accept)
+    p1 = conditional_probs(1, i2, vary_idx=0)
+    i1 = rng.choice(list(grid), p=p1)
+    # TODO: Gibbs step 2 -- resample i2 given i1 (always accept)
+    p2 = None   # TODO: conditional_probs(0, i1, vary_idx=1)
+    i2 = rng.choice(list(grid), p=p2) if p2 is not None else i2
+    samples[n] = [i1, i2]
+
+# Check: fraction of samples where i1 == i2 should be relatively high (diagonal bias)
+frac_diag = np.mean(samples[:, 0] == samples[:, 1])
+print(f"Fraction on the diagonal (i1==i2): {frac_diag:.3f}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(2)
+
+def weight(i1, i2):
+    return np.exp(-0.5 * (i1 - i2) ** 2)
+
+grid = range(5)
+
+def conditional_probs(fixed_idx, fixed_val, vary_idx):
+    weights = []
+    for v in grid:
+        if vary_idx == 0:
+            weights.append(weight(v, fixed_val))
+        else:
+            weights.append(weight(fixed_val, v))
+    weights = np.array(weights)
+    return weights / weights.sum()
+
+N = 10000
+i1, i2 = 0, 0
+samples = np.zeros((N, 2), dtype=int)
+
+for n in range(N):
+    p1 = conditional_probs(1, i2, vary_idx=0)
+    i1 = rng.choice(list(grid), p=p1)
+    p2 = conditional_probs(0, i1, vary_idx=1)
+    i2 = rng.choice(list(grid), p=p2)
+    samples[n] = [i1, i2]
+
+frac_diag = np.mean(samples[:, 0] == samples[:, 1])
+print(f"Fraction on the diagonal (i1==i2): {frac_diag:.3f}")
+print("\\nBecause weight(i1,i2) decays away from the diagonal, samples should cluster")
+print("there noticeably more than the 1/5=0.20 that uniform i1,i2 would give --")
+print("and every single Gibbs step was accepted, exactly as Theorem 11.3.4 promises.")
+`,
+      expectedHint: 'The fraction of samples on the diagonal should be noticeably higher than 0.20 (what uniform random (i1,i2) would give), reflecting the diagonal-biased target weight — and note the sampler never has an accept/reject step at all.',
+    },
+  ],
+
+  'martingales': [
+    {
+      id: 'py-ch11-mart-1',
+      number: '1',
+      title: 'Verifying the Martingale Property by Simulation',
+      description: 'Simulate the transformed process Zn=(q/p)^Xn from Example 11.4.4 for simple random walk with p!=1/2, and confirm empirically that E(Zn) stays constant even though E(Xn) drifts.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(5)
+p = 0.35
+q = 1 - p
+a = 5
+n_steps = 20
+n_sims = 20000
+
+X = np.full(n_sims, a)
+for step in range(n_steps):
+    moves = np.where(rng.uniform(size=n_sims) < p, 1, -1)
+    X += moves
+
+# TODO: compute Z = (q/p)^X for the final X values
+Z = None   # TODO: (q / p) ** X
+
+print(f"E(X_n) empirical = {X.mean():.3f}  (theory: a+n(2p-1) = {a + n_steps*(2*p-1):.3f})")
+print(f"E(Z_n) empirical = {Z.mean() if Z is not None else 'TODO'}  (theory: (q/p)^a = {(q/p)**a:.3f})")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(5)
+p = 0.35
+q = 1 - p
+a = 5
+n_steps = 20
+n_sims = 20000
+
+X = np.full(n_sims, a)
+for step in range(n_steps):
+    moves = np.where(rng.uniform(size=n_sims) < p, 1, -1)
+    X += moves
+
+Z = (q / p) ** X.astype(float)
+
+print(f"E(X_n) empirical = {X.mean():.3f}  (theory: a+n(2p-1) = {a + n_steps*(2*p-1):.3f})")
+print(f"E(Z_n) empirical = {Z.mean():.3f}  (theory: (q/p)^a = {(q/p)**a:.3f})")
+print("\\nE(X_n) drifts away from a (since p != 1/2, X_n is NOT a martingale),")
+print("but E(Z_n) stays close to (q/p)^a = Z_0 at every step -- Z_n IS a martingale.")
+`,
+      expectedHint: 'E(Xₙ) should drift noticeably away from a=5 (toward smaller values, since p<1/2), while E(Zₙ) should stay close to its starting value (q/p)^a — confirming Zₙ is a martingale even though Xₙ is not.',
+    },
+    {
+      id: 'py-ch11-mart-2',
+      number: '2',
+      title: "Solving Gambler's Ruin via the Optional Stopping Theorem, by Simulation",
+      description: 'Simulate many runs of simple random walk stopped at the boundaries 0 or c, and confirm E(X_T) equals the starting value a exactly as the optional stopping theorem predicts.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(8)
+a, c, p = 12, 20, 0.5
+n_sims = 20000
+
+finals = np.zeros(n_sims)
+for i in range(n_sims):
+    x = a
+    while 0 < x < c:
+        x += 1 if rng.uniform() < p else -1
+    finals[i] = x
+
+# TODO: compute the empirical mean of finals and compare to a
+mean_final = None   # TODO: finals.mean()
+print(f"E(X_T) empirical = {mean_final}")
+print(f"Starting value a = {a}")
+
+# TODO: also compute the empirical P(X_T = c) and compare to a/c (Theorem 11.1.2, p=0.5)
+frac_success = None   # TODO: np.mean(finals == c)
+print(f"P(hit c before 0) empirical = {frac_success}, theory = {a/c}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(8)
+a, c, p = 12, 20, 0.5
+n_sims = 20000
+
+finals = np.zeros(n_sims)
+for i in range(n_sims):
+    x = a
+    while 0 < x < c:
+        x += 1 if rng.uniform() < p else -1
+    finals[i] = x
+
+mean_final = finals.mean()
+print(f"E(X_T) empirical = {mean_final:.3f}")
+print(f"Starting value a = {a}")
+
+frac_success = np.mean(finals == c)
+print(f"P(hit c before 0) empirical = {frac_success:.4f}, theory = {a/c}")
+print("\\nBoth quantities should closely match: E(X_T) ~= a (optional stopping theorem),")
+print("and P(hit c before 0) ~= a/c (gambler's ruin, Theorem 11.1.2 at p=0.5).")
+`,
+      expectedHint: 'The empirical mean of the final fortune should land very close to a=12, and the empirical success rate should land close to a/c=0.6 — both confirming the theory numerically.',
+    },
+  ],
+
+  'brownian-motion': [
+    {
+      id: 'py-ch11-bm-1',
+      number: '1',
+      title: 'Constructing Brownian Motion as a Limit of Sped-Up Random Walks',
+      description: 'Build the sped-up random walk Y^M_t from Section 11.5.1 for increasing M, and confirm its distribution at a fixed time t approaches the predicted N(0,t) as M grows (Theorem 11.5.1).',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(3)
+t = 4
+n_sims = 5000
+
+def simulate_YMt(M, t, n_sims, rng):
+    n_steps = int(t * M)
+    Z = np.where(rng.uniform(size=(n_sims, n_steps)) < 0.5, 1, -1)
+    # TODO: Y^M_t = (1/sqrt(M)) * sum of the first floor(t*M) steps
+    return None   # TODO: Z.sum(axis=1) / np.sqrt(M)
+
+for M in [1, 10, 100, 1000]:
+    Y = simulate_YMt(M, t, n_sims, rng)
+    if Y is not None:
+        print(f"M={M:5d}: mean={Y.mean():.3f} (theory 0), var={Y.var():.3f} (theory {t})")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(3)
+t = 4
+n_sims = 5000
+
+def simulate_YMt(M, t, n_sims, rng):
+    n_steps = int(t * M)
+    Z = np.where(rng.uniform(size=(n_sims, n_steps)) < 0.5, 1, -1)
+    return Z.sum(axis=1) / np.sqrt(M)
+
+for M in [1, 10, 100, 1000]:
+    Y = simulate_YMt(M, t, n_sims, rng)
+    print(f"M={M:5d}: mean={Y.mean():.3f} (theory 0), var={Y.var():.3f} (theory {t})")
+print("\\nAs M grows, the variance should stabilize near t=4 (it already should be close")
+print("even at small M), and a histogram of Y at large M would look increasingly Normal --")
+print("this is the central limit theorem argument behind Theorem 11.5.1.")
+`,
+      expectedHint: 'The empirical mean should stay near 0 and the variance should stay near t=4 for every M — what changes with larger M is that the *shape* of the distribution becomes increasingly close to exactly Normal (a histogram would show this, though this exercise only checks the first two moments).',
+    },
+    {
+      id: 'py-ch11-bm-2',
+      number: '2',
+      title: 'Simulating a Diffusion (Stock Price) Model',
+      description: 'Simulate a diffusion X_t = a + mu*t + sigma*B_t by approximating Brownian motion with small Normal increments, and check the resulting distribution against Theorem 11.5.3.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(6)
+a, mu, sigma = 20, 3, 1.4
+t = 2.5
+n_sims = 20000
+n_steps = 500
+
+def simulate_diffusion(a, mu, sigma, t, n_steps, rng):
+    dt = t / n_steps
+    increments = rng.normal(0, np.sqrt(dt), size=n_steps)
+    B_t = increments.sum()
+    return a + mu * t + sigma * B_t
+
+# TODO: simulate n_sims independent diffusion paths and collect X_t
+X_t = None   # TODO: np.array([simulate_diffusion(a, mu, sigma, t, n_steps, rng) for _ in range(n_sims)])
+
+print(f"Empirical mean: {X_t.mean() if X_t is not None else 'TODO'}  (theory: {a + mu*t})")
+print(f"Empirical var:  {X_t.var() if X_t is not None else 'TODO'}  (theory: {sigma**2 * t})")
+
+# P(X_t > 30), matching Example 11.5.6
+if X_t is not None:
+    print(f"P(X_t > 30) empirical = {np.mean(X_t > 30):.4f}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(6)
+a, mu, sigma = 20, 3, 1.4
+t = 2.5
+n_sims = 20000
+n_steps = 500
+
+def simulate_diffusion(a, mu, sigma, t, n_steps, rng):
+    dt = t / n_steps
+    increments = rng.normal(0, np.sqrt(dt), size=n_steps)
+    B_t = increments.sum()
+    return a + mu * t + sigma * B_t
+
+X_t = np.array([simulate_diffusion(a, mu, sigma, t, n_steps, rng) for _ in range(n_sims)])
+
+print(f"Empirical mean: {X_t.mean():.3f}  (theory: {a + mu*t})")
+print(f"Empirical var:  {X_t.var():.3f}  (theory: {sigma**2 * t})")
+print(f"P(X_t > 30) empirical = {np.mean(X_t > 30):.4f}")
+print("\\nCompare to Example 11.5.6's exact answer of about 0.129 --")
+print("the simulation should land close to that value.")
+`,
+      expectedHint: 'The empirical mean should land close to a+μt=27.5, the empirical variance close to σ²t=4.9, and P(Xₜ>30) should land close to the exact value ≈0.129 computed in Example 11.5.6.',
+    },
+  ],
+
+  'poisson-processes': [
+    {
+      id: 'py-ch11-pp-1',
+      number: '1',
+      title: 'Simulating a Poisson Process from Exponential Waiting Times',
+      description: 'Generate a Poisson process by summing i.i.d. Exponential waiting times, count events up to a fixed time, and confirm the count matches the predicted Poisson(at) distribution.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(4)
+a = 3
+t = 5
+n_sims = 20000
+
+def count_events(a, t, rng):
+    total_time = 0.0
+    count = 0
+    while True:
+        # TODO: generate the next Exponential(a) waiting time
+        wait = None   # TODO: rng.exponential(1 / a)
+        total_time += wait
+        if total_time >= t:
+            break
+        count += 1
+    return count
+
+counts = np.array([count_events(a, t, rng) for _ in range(n_sims)])
+print(f"Empirical mean N_t: {counts.mean():.3f}  (theory: a*t = {a*t})")
+print(f"Empirical var N_t:  {counts.var():.3f}  (theory: a*t = {a*t}, since Poisson has mean=var)")
+
+# Compare empirical P(N_t = k) to the exact Poisson pmf for a few k
+for k in [10, 15, 20]:
+    emp = np.mean(counts == k)
+    theory = stats.poisson.pmf(k, a * t)
+    print(f"P(N_t={k}): empirical={emp:.4f}, theory={theory:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(4)
+a = 3
+t = 5
+n_sims = 20000
+
+def count_events(a, t, rng):
+    total_time = 0.0
+    count = 0
+    while True:
+        wait = rng.exponential(1 / a)
+        total_time += wait
+        if total_time >= t:
+            break
+        count += 1
+    return count
+
+counts = np.array([count_events(a, t, rng) for _ in range(n_sims)])
+print(f"Empirical mean N_t: {counts.mean():.3f}  (theory: a*t = {a*t})")
+print(f"Empirical var N_t:  {counts.var():.3f}  (theory: a*t = {a*t}, since Poisson has mean=var)")
+
+for k in [10, 15, 20]:
+    emp = np.mean(counts == k)
+    theory = stats.poisson.pmf(k, a * t)
+    print(f"P(N_t={k}): empirical={emp:.4f}, theory={theory:.4f}")
+print("\\nThe empirical mean/variance and pmf values should closely match Poisson(a*t=15) --")
+print("built entirely from Exponential(a) waiting times, with no direct Poisson sampling used.")
+`,
+      expectedHint: 'The empirical mean and variance of the counts should both land close to at=15 (a defining feature of the Poisson distribution — mean equals variance), and the empirical P(Nₜ=k) values should track the exact Poisson(15) pmf reasonably closely.',
+    },
+  ],
+
+  'stochastic-processes-proofs': [
+    {
+      id: 'py-ch11-pf-1',
+      number: '1',
+      title: "Verifying Metropolis-Hastings Reversibility Numerically",
+      description: 'For a small discrete target distribution and a chosen proposal, verify numerically that the resulting Metropolis-Hastings chain satisfies the reversibility identity pi_i * p_ij = pi_j * p_ji for every pair of states, as proved in Section 11.7.',
+      starterCode:
+`import numpy as np
+
+states = np.array([0, 1, 2, 3, 4])
+weights = np.array([1.0, 3.0, 5.0, 2.0, 1.0])
+pi = weights / weights.sum()
+
+def q(i, j):
+    # Simple random walk proposal on {0,...,4} (no wraparound)
+    if abs(i - j) == 1 and 0 <= j <= 4:
+        return 0.5
+    return 0.0
+
+def build_transition_matrix(pi, q, states):
+    n = len(states)
+    P = np.zeros((n, n))
+    for i in states:
+        for j in states:
+            if i == j:
+                continue
+            qij = q(i, j)
+            if qij == 0:
+                continue
+            qji = q(j, i)
+            # TODO: acceptance probability alpha = min(1, pi[j]*qji / (pi[i]*qij))
+            alpha = None   # TODO
+            P[i, j] = qij * alpha if alpha is not None else 0
+        P[i, i] = 1 - P[i].sum()
+    return P
+
+P = build_transition_matrix(pi, q, states)
+print("Transition matrix P:\\n", np.round(P, 4))
+
+# TODO: check reversibility pi_i * P[i,j] == pi_j * P[j,i] for all i, j
+for i in states:
+    for j in states:
+        lhs = pi[i] * P[i, j]
+        rhs = pi[j] * P[j, i]
+        if abs(lhs - rhs) > 1e-9:
+            print(f"MISMATCH at ({i},{j}): {lhs} vs {rhs}")
+print("Reversibility check complete (no mismatches printed above means it holds).")
+`,
+      solution:
+`import numpy as np
+
+states = np.array([0, 1, 2, 3, 4])
+weights = np.array([1.0, 3.0, 5.0, 2.0, 1.0])
+pi = weights / weights.sum()
+
+def q(i, j):
+    if abs(i - j) == 1 and 0 <= j <= 4:
+        return 0.5
+    return 0.0
+
+def build_transition_matrix(pi, q, states):
+    n = len(states)
+    P = np.zeros((n, n))
+    for i in states:
+        for j in states:
+            if i == j:
+                continue
+            qij = q(i, j)
+            if qij == 0:
+                continue
+            qji = q(j, i)
+            alpha = min(1, pi[j] * qji / (pi[i] * qij))
+            P[i, j] = qij * alpha
+        P[i, i] = 1 - P[i].sum()
+    return P
+
+P = build_transition_matrix(pi, q, states)
+print("Transition matrix P:\\n", np.round(P, 4))
+
+for i in states:
+    for j in states:
+        lhs = pi[i] * P[i, j]
+        rhs = pi[j] * P[j, i]
+        if abs(lhs - rhs) > 1e-9:
+            print(f"MISMATCH at ({i},{j}): {lhs} vs {rhs}")
+print("Reversibility check complete (no mismatches printed above means it holds).")
+print("\\nThis numerically confirms the Section 11.7 proof: pi_i*p_ij = pi_j*p_ji")
+print("for every pair of states, which by Theorem 11.2.6 guarantees pi is stationary.")
+`,
+      expectedHint: 'No mismatches should print — for every pair (i,j), πᵢP[i,j] should exactly equal πⱼP[j,i] to within floating-point precision, numerically confirming the reversibility argument used to prove Theorem 11.3.3.',
+    },
+  ],
 };
