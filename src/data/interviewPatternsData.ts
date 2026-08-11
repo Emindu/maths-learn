@@ -776,6 +776,144 @@ private int lowerBound(int[] nums, int target) {
     order: 8,
     title: 'Graphs & Matrices (BFS/DFS)',
     shortDesc: 'Depth-first for exploring every path, breadth-first for shortest paths, over graphs or grid cells.',
+    content: {
+      whenToUse: [
+        'Searching a graph or a grid/matrix of cells',
+        'DFS: exploring every possible path, such as tracing a word through a maze',
+        'BFS: finding the shortest path, or the minimum time for something to spread',
+        'Topological Sort: ordering tasks based on dependencies between them',
+      ],
+      technique:
+        'DFS dives as deep as possible down one branch before backtracking, using recursion (or an explicit stack) plus a visited set so you never process the same node twice. BFS instead explores every neighbor of the current layer before moving one layer further out, using a queue — which is exactly why it finds shortest paths: the first time BFS reaches a node is guaranteed to be via the fewest possible steps. In a graph, "neighbors" come from an adjacency list; in a matrix, they are usually the up/down/left/right cells (sometimes diagonals too). Topological sort is DFS with a twist — track whether each node is unvisited, in-progress, or done, and a back edge into an in-progress node means the graph has a cycle and no valid ordering exists.',
+      codeTemplates: [
+        {
+          title: 'BFS over a grid',
+          problem:
+            'General shape: explore a grid outward one ring of neighbors at a time using a queue, marking cells visited the moment they are enqueued so the same cell is never queued twice. Because it expands level by level, BFS is the standard choice whenever you need the shortest number of steps from a source — or, as in Rotting Oranges (LeetCode 994), the minimum time for something to spread across a grid from several starting points at once.',
+          code:
+`List<int[]> bfsMatrix(int[][] grid, int startRow, int startCol) {
+    int rows = grid.length, cols = grid[0].length;
+    boolean[][] visited = new boolean[rows][cols];
+    int[][] directions = {{-1,0},{1,0},{0,-1},{0,1}};
+
+    List<int[]> order = new ArrayList<>();
+    Queue<int[]> queue = new LinkedList<>();
+    queue.offer(new int[]{startRow, startCol});
+    visited[startRow][startCol] = true;
+
+    while (!queue.isEmpty()) {
+        int[] cell = queue.poll();
+        order.add(cell); // process the cell
+
+        for (int[] d : directions) {
+            int r = cell[0] + d[0], c = cell[1] + d[1];
+            if (r >= 0 && r < rows && c >= 0 && c < cols && !visited[r][c]) {
+                visited[r][c] = true;
+                queue.offer(new int[]{r, c});
+            }
+        }
+    }
+    return order;
+}`,
+        },
+        {
+          title: 'DFS over a grid',
+          problem:
+            'General shape: dive as deep as possible down one path before backtracking, marking cells visited so you never revisit them. This is the natural fit whenever you need to explore or verify an entire path through a grid — tracing a word out letter by letter in Word Search (LeetCode 79), or flood-filling every cell reachable from a coastline in Pacific Atlantic Water Flow (LeetCode 417).',
+          code:
+`boolean[][] visited;
+
+void dfsMatrix(char[][] grid, int row, int col, List<int[]> path) {
+    int rows = grid.length, cols = grid[0].length;
+    if (row < 0 || row >= rows || col < 0 || col >= cols || visited[row][col]) {
+        return;
+    }
+    visited[row][col] = true;
+    path.add(new int[]{row, col}); // process the cell
+
+    dfsMatrix(grid, row - 1, col, path);
+    dfsMatrix(grid, row + 1, col, path);
+    dfsMatrix(grid, row, col - 1, path);
+    dfsMatrix(grid, row, col + 1, path);
+}`,
+        },
+        {
+          title: 'Worked example — Rotting Oranges (multi-source BFS)',
+          problem:
+            'Rotting Oranges (LeetCode 994): a grid contains fresh oranges (1), rotten oranges (2), and empty cells (0). Every minute, every rotten orange rots its fresh neighbors. Find the minimum minutes until no fresh orange remains, or -1 if some can never rot. This is BFS with every rotten orange as a starting source simultaneously — process the grid one full "minute" (one queue level) at a time.',
+          code:
+`int orangesRotting(int[][] grid) {
+    int rows = grid.length, cols = grid[0].length;
+    Queue<int[]> queue = new LinkedList<>();
+    int fresh = 0;
+
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            if (grid[r][c] == 2) queue.offer(new int[]{r, c});
+            else if (grid[r][c] == 1) fresh++;
+        }
+    }
+
+    int minutes = 0;
+    int[][] directions = {{-1,0},{1,0},{0,-1},{0,1}};
+    while (!queue.isEmpty() && fresh > 0) {
+        int size = queue.size();
+        for (int i = 0; i < size; i++) {
+            int[] cell = queue.poll();
+            for (int[] d : directions) {
+                int r = cell[0] + d[0], c = cell[1] + d[1];
+                if (r >= 0 && r < rows && c >= 0 && c < cols && grid[r][c] == 1) {
+                    grid[r][c] = 2;
+                    fresh--;
+                    queue.offer(new int[]{r, c});
+                }
+            }
+        }
+        minutes++;
+    }
+    return fresh == 0 ? minutes : -1;
+}`,
+        },
+        {
+          title: 'Worked example — Course Schedule (topological sort)',
+          problem:
+            'Course Schedule (LeetCode 207): given numCourses and a list of prerequisite pairs, determine whether it is possible to finish all courses — i.e. whether the prerequisite graph is acyclic. DFS each course, marking it "in progress" while its neighbors are still being explored; reaching a neighbor that is already "in progress" is a back edge, meaning a cycle exists and no valid course order can ever finish.',
+          code:
+`boolean canFinish(int numCourses, int[][] prerequisites) {
+    List<List<Integer>> graph = new ArrayList<>();
+    for (int i = 0; i < numCourses; i++) graph.add(new ArrayList<>());
+    for (int[] p : prerequisites) graph.get(p[1]).add(p[0]);
+
+    int[] state = new int[numCourses]; // 0 = unvisited, 1 = in progress, 2 = done
+
+    for (int course = 0; course < numCourses; course++) {
+        if (state[course] == 0 && hasCycle(course, graph, state)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+private boolean hasCycle(int course, List<List<Integer>> graph, int[] state) {
+    state[course] = 1;
+    for (int next : graph.get(course)) {
+        if (state[next] == 1) return true; // back edge -> cycle
+        if (state[next] == 0 && hasCycle(next, graph, state)) return true;
+    }
+    state[course] = 2;
+    return false;
+}`,
+        },
+      ],
+      questions: [
+        { number: 79, title: 'Word Search', url: 'https://leetcode.com/problems/word-search/' },
+        { number: 207, title: 'Course Schedule', url: 'https://leetcode.com/problems/course-schedule/' },
+        { number: 994, title: 'Rotting Oranges', url: 'https://leetcode.com/problems/rotting-oranges/' },
+        { number: 417, title: 'Pacific Atlantic Water Flow', url: 'https://leetcode.com/problems/pacific-atlantic-water-flow/' },
+        { number: 127, title: 'Word Ladder', url: 'https://leetcode.com/problems/word-ladder/' },
+      ],
+      vizId: 'viz-graphs-matrices',
+    },
   },
   {
     id: 'backtracking',
