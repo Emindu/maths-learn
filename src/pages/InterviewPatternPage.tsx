@@ -11,6 +11,7 @@ import { VizSlidingWindowDynamic, VizSlidingWindowFixed } from '../visualization
 import { VizTwoPointers } from '../visualizations/VizTwoPointers';
 import { VizFastSlowPointers } from '../visualizations/VizFastSlowPointers';
 import { VizLinkedListReversal } from '../visualizations/VizLinkedListReversal';
+import { VizBinarySearch } from '../visualizations/VizBinarySearch';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -23,6 +24,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-two-pointers': VizTwoPointers,
   'viz-fast-slow-pointers': VizFastSlowPointers,
   'viz-linked-list-reversal': VizLinkedListReversal,
+  'viz-binary-search': VizBinarySearch,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (

@@ -443,6 +443,132 @@ export const interviewPatterns: InterviewPattern[] = [
     order: 5,
     title: 'Binary Search',
     shortDesc: 'Halve the search space each step to find a target — or a boundary — in sorted or rotated arrays.',
+    content: {
+      whenToUse: [
+        'The input is sorted and you need to find a number, or determine that it is absent',
+        'Finding the leftmost or rightmost position of a value, or the position to insert one',
+        'Handling duplicates in a sorted array',
+        'Searching in a rotated sorted array',
+      ],
+      technique:
+        'Keep left and right pointers spanning the search space, look at the midpoint, and use one comparison to throw away half the remaining space every iteration — turning an O(n) scan into O(log n). The classic version compares arr[mid] to a target directly, but the more general and more useful version bisects on a boolean condition: find the smallest index where condition(index) flips from false to true. Every "find the boundary of X" problem is this same template with a different condition function — find the first index ≥ target, the first index > target, the first index where a rotated array stops being sorted, and so on.',
+      variants: [
+        {
+          title: 'Classic search',
+          description: 'Compare arr[mid] to target directly: equal returns mid, less moves left up, greater moves right down. Finds an exact match.',
+        },
+        {
+          title: 'Boundary search (bisection)',
+          description: 'Search on a monotonic condition(mid) instead of equality — returns the first index where the condition holds. The same template powers first/last occurrence, insertion position, and more.',
+        },
+        {
+          title: 'Rotated array search',
+          description: 'A sorted array rotated at an unknown pivot still has one sorted half around every midpoint. Check which half is sorted, then check whether the target falls inside that half\'s range to decide which side to keep.',
+        },
+      ],
+      codeTemplates: [
+        {
+          title: 'Boundary search — first index where a condition holds',
+          problem:
+            'General shape: instead of only checking arr[mid] == target, find the smallest index where some boolean condition first becomes true, given the array is monotonic with respect to that condition (all false, then all true). This single template is the basis of Find First and Last Position of Element in Sorted Array (LeetCode 34): call it once with "arr[mid] >= target" for the first occurrence, and once with "arr[mid] > target" for one past the last occurrence.',
+          code:
+`int binarySearch(int[] arr, IntPredicate condition) {
+    int left = 0, right = arr.length;
+
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (condition.test(mid)) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return left; // first index where condition(index) is true
+}`,
+        },
+        {
+          title: 'Worked example — Find First and Last Position of Element in Sorted Array',
+          problem:
+            'Find First and Last Position of Element in Sorted Array (LeetCode 34): given a sorted array that may contain duplicates, find the first and last index of a target value in O(log n), or [-1, -1] if it is absent. Reuse the boundary-search template twice: once to find the first index ≥ target, once to find the first index ≥ target + 1 (one past the last occurrence).',
+          code:
+`int[] searchRange(int[] nums, int target) {
+    int left = lowerBound(nums, target);
+    if (left == nums.length || nums[left] != target) {
+        return new int[]{-1, -1};
+    }
+    int right = lowerBound(nums, target + 1) - 1;
+    return new int[]{left, right};
+}
+
+private int lowerBound(int[] nums, int target) {
+    int left = 0, right = nums.length;
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] >= target) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return left;
+}`,
+        },
+        {
+          title: 'Worked example — Find Minimum in Rotated Sorted Array',
+          problem:
+            'Find Minimum in Rotated Sorted Array (LeetCode 153): a sorted array with no duplicates was rotated at some unknown pivot; find its minimum element in O(log n). Compare nums[mid] to nums[right]: if nums[mid] is bigger, the rotation point — and the minimum — must be to the right of mid; otherwise it is at mid or further left. This converges on the rotation point in log n steps.',
+          code:
+`int findMin(int[] nums) {
+    int left = 0, right = nums.length - 1;
+
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] > nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return nums[left];
+}`,
+        },
+        {
+          title: 'Worked example — Search in Rotated Sorted Array',
+          problem:
+            'Search in Rotated Sorted Array (LeetCode 33): given a rotated sorted array with no duplicates, find the index of target in O(log n), or -1. At every midpoint, one of the two halves [left, mid] or [mid, right] is guaranteed to be normally sorted; check whether target falls inside that sorted half\'s value range to decide which half to keep searching.',
+          code:
+`int search(int[] nums, int target) {
+    int left = 0, right = nums.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] == target) return mid;
+
+        if (nums[left] <= nums[mid]) { // left half is sorted
+            if (nums[left] <= target && target < nums[mid]) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        } else { // right half is sorted
+            if (nums[mid] < target && target <= nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    }
+    return -1;
+}`,
+        },
+      ],
+      questions: [
+        { number: 34, title: 'Find First and Last Position of Element in Sorted Array', url: 'https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/' },
+        { number: 153, title: 'Find Minimum in Rotated Sorted Array', url: 'https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/' },
+        { number: 33, title: 'Search in Rotated Sorted Array', url: 'https://leetcode.com/problems/search-in-rotated-sorted-array/' },
+      ],
+      vizId: 'viz-binary-search',
+    },
   },
   {
     id: 'top-k-elements',
