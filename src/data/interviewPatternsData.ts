@@ -1226,6 +1226,91 @@ long fibTopDown(int n) {
     order: 12,
     title: 'Overlapping Intervals',
     shortDesc: 'Sort by start time, then merge, insert, or find conflicts among ranges in a single pass.',
+    content: {
+      whenToUse: [
+        'Merging or consolidating a set of ranges',
+        'Scheduling, or finding conflicts — e.g. meeting rooms',
+        'Finding gaps, or the minimum number of intervals to remove so the rest fit together',
+      ],
+      technique:
+        'Almost every interval problem starts the same way: sort first, so you can process intervals in a guaranteed order instead of comparing every pair. Which field you sort by depends on the question. Sort by start time when you are merging or inserting — that way you only ever need to compare a new interval against the single most recently merged one, since anything earlier is already guaranteed not to reach this far. Sort by end time when you are greedily choosing which intervals to keep, as in scheduling the maximum number of non-overlapping meetings — keeping whichever interval finishes earliest always leaves the most room for everything that comes after it.',
+      codeTemplates: [
+        {
+          title: 'Merge overlapping intervals (sort by start)',
+          problem:
+            'Merge Intervals (LeetCode 56): given a collection of intervals, merge all of the overlapping ones. Sorting by start time first guarantees each new interval only ever needs to be compared against the single most recently merged interval, instead of checked against every interval that came before it.',
+          code:
+`List<int[]> mergeIntervals(int[][] intervals) {
+    Arrays.sort(intervals, (a, b) -> a[0] - b[0]); // sort by start time
+
+    List<int[]> result = new ArrayList<>();
+    for (int[] interval : intervals) {
+        if (result.isEmpty() || result.get(result.size() - 1)[1] < interval[0]) {
+            result.add(interval); // no overlap with the last merged interval
+        } else {
+            int[] last = result.get(result.size() - 1);
+            last[1] = Math.max(last[1], interval[1]); // merge
+        }
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Insert Interval',
+          problem:
+            'Insert Interval (LeetCode 57): given a list of non-overlapping intervals already sorted by start time, insert a new interval and merge if necessary. Since the input is already sorted, one straight pass covers it: everything strictly before the new interval, everything that overlaps it (absorbed into one growing merge), then everything strictly after — with no re-sorting needed.',
+          code:
+`int[][] insert(int[][] intervals, int[] newInterval) {
+    List<int[]> result = new ArrayList<>();
+    int i = 0, n = intervals.length;
+
+    while (i < n && intervals[i][1] < newInterval[0]) {
+        result.add(intervals[i++]); // entirely before newInterval
+    }
+
+    int mergedStart = newInterval[0], mergedEnd = newInterval[1];
+    while (i < n && intervals[i][0] <= mergedEnd) {
+        mergedStart = Math.min(mergedStart, intervals[i][0]);
+        mergedEnd = Math.max(mergedEnd, intervals[i][1]);
+        i++;
+    }
+    result.add(new int[]{mergedStart, mergedEnd});
+
+    while (i < n) {
+        result.add(intervals[i++]); // entirely after newInterval
+    }
+    return result.toArray(new int[result.size()][]);
+}`,
+        },
+        {
+          title: 'Worked example — Non-overlapping Intervals (sort by end)',
+          problem:
+            'Non-overlapping Intervals (LeetCode 435): find the minimum number of intervals to remove so that none of the remaining ones overlap. Sort by END time instead of start: greedily keeping whichever interval finishes earliest always leaves the most room for everything after it, so any interval that starts before the previously kept one ends must be the one removed.',
+          code:
+`int eraseOverlapIntervals(int[][] intervals) {
+    Arrays.sort(intervals, (a, b) -> a[1] - b[1]); // sort by END time this time
+
+    int removed = 0;
+    int prevEnd = Integer.MIN_VALUE;
+    for (int[] interval : intervals) {
+        if (interval[0] >= prevEnd) {
+            prevEnd = interval[1]; // keep this interval
+        } else {
+            removed++; // overlaps the one we kept — remove it instead
+        }
+    }
+    return removed;
+}`,
+        },
+      ],
+      questions: [
+        { number: 57, title: 'Insert Interval', url: 'https://leetcode.com/problems/insert-interval/' },
+        { number: 56, title: 'Merge Intervals', url: 'https://leetcode.com/problems/merge-intervals/' },
+        { number: 435, title: 'Non-overlapping Intervals', url: 'https://leetcode.com/problems/non-overlapping-intervals/' },
+        { number: 1834, title: 'Single-Threaded CPU', url: 'https://leetcode.com/problems/single-threaded-cpu/' },
+      ],
+      vizId: 'viz-overlapping-intervals',
+    },
   },
   {
     id: 'monotonic-stack',

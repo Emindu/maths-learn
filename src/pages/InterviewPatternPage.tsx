@@ -18,6 +18,7 @@ import { VizGraphsMatrices } from '../visualizations/VizGraphsMatrices';
 import { VizBacktracking } from '../visualizations/VizBacktracking';
 import { VizDynamicProgramming } from '../visualizations/VizDynamicProgramming';
 import { VizBitManipulation } from '../visualizations/VizBitManipulation';
+import { VizOverlappingIntervals } from '../visualizations/VizOverlappingIntervals';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -37,6 +38,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-backtracking': VizBacktracking,
   'viz-dynamic-programming': VizDynamicProgramming,
   'viz-bit-manipulation': VizBitManipulation,
+  'viz-overlapping-intervals': VizOverlappingIntervals,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
