@@ -12,12 +12,15 @@ interface Topic {
   is3D?: boolean;
 }
 
+type TrackId = 'math' | 'interview';
+
 interface Category {
   id: string;
   label: string;
   sectionTitle?: string;
   icon: React.ComponentType<{ size?: number | string; className?: string }>;
   gridVariant?: 'topic' | 'module';
+  track?: TrackId; // defaults to 'math' when omitted
   topics: Topic[];
 }
 
@@ -77,7 +80,7 @@ const HubCard: React.FC<HubCardProps> = ({ title, desc, to, isLegacy = false, is
 
 const CATEGORIES: Category[] = [
   {
-    id: 'interview-patterns', label: 'Interview Patterns', sectionTitle: 'Programming Interview Patterns', icon: Code2,
+    id: 'interview-patterns', label: 'Interview Patterns', sectionTitle: 'Programming Interview Patterns', icon: Code2, track: 'interview',
     topics: interviewPatterns.map((p) => ({
       title: `${p.order}. ${p.title}`,
       desc: p.shortDesc,
@@ -275,18 +278,70 @@ const CATEGORIES: Category[] = [
   },
 ];
 
+interface TrackMeta {
+  id: TrackId;
+  label: string;
+  tagline: string;
+  eyebrow: string;
+  heroTitle: React.ReactNode;
+  heroSubtitle: string;
+  language: string;
+  languageNote: string;
+  icon: React.ComponentType<{ size?: number | string; className?: string }>;
+}
+
+const TRACKS: TrackMeta[] = [
+  {
+    id: 'math',
+    label: 'Math Concepts',
+    tagline: 'Probability, statistics & ML — Python, runs live in your browser.',
+    eyebrow: '✦ Interactive Learning Platform',
+    heroTitle: <>Mathematics &amp;<br /><span>Statistics</span> Visualised</>,
+    heroSubtitle: 'Explore probability distributions, statistical algorithms, and machine learning concepts through hands-on interactive visualisations — with runnable Python exercises powered by Pyodide, right in your browser tab.',
+    language: 'Python',
+    languageNote: 'Runs in your browser',
+    icon: BookOpen,
+  },
+  {
+    id: 'interview',
+    label: 'Interview Concepts',
+    tagline: 'Coding interview patterns — Java reference solutions.',
+    eyebrow: '✦ Coding Interview Prep',
+    heroTitle: <>Programming<br /><span>Interview</span> Patterns</>,
+    heroSubtitle: 'Master the patterns that solve almost any coding interview question — when to use each one, step-by-step interactive visualizations, and Java reference solutions tied to real LeetCode problems.',
+    language: 'Java',
+    languageNote: 'Reference solutions',
+    icon: Code2,
+  },
+];
+
+const CATEGORIES_BY_TRACK: Record<TrackId, Category[]> = {
+  math: CATEGORIES.filter((c) => (c.track ?? 'math') === 'math'),
+  interview: CATEGORIES.filter((c) => c.track === 'interview'),
+};
+
+const trackOfCategory = (id: string): TrackId => {
+  const cat = CATEGORIES.find((c) => c.id === id);
+  return cat?.track === 'interview' ? 'interview' : 'math';
+};
+
 export const Hub: React.FC = () => {
   const location = useLocation();
-  const [activeCategory, setActiveCategory] = useState('concepts');
+  const initialHashId = location.hash ? location.hash.substring(1) : null;
+  const [track, setTrack] = useState<TrackId>(() => (initialHashId ? trackOfCategory(initialHashId) : 'math'));
+  const [activeCategory, setActiveCategory] = useState(() => initialHashId ?? CATEGORIES_BY_TRACK.math[0].id);
   const [searchQuery, setSearchQuery] = useState('');
   const { isUnlocked, isCompleted, devMode, toggleDevMode } = useProgress();
+
+  const trackMeta = TRACKS.find((t) => t.id === track)!;
+  const trackCategories = CATEGORIES_BY_TRACK[track];
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const isSearching = normalizedQuery.length > 0;
 
   const visibleCategories = useMemo(() => {
-    if (!isSearching) return CATEGORIES;
-    return CATEGORIES
+    if (!isSearching) return trackCategories;
+    return trackCategories
       .map((cat) => ({
         ...cat,
         topics: cat.topics.filter(
@@ -294,9 +349,10 @@ export const Hub: React.FC = () => {
         ),
       }))
       .filter((cat) => cat.topics.length > 0);
-  }, [normalizedQuery, isSearching]);
+  }, [normalizedQuery, isSearching, trackCategories]);
 
   const totalResults = useMemo(() => visibleCategories.reduce((sum, c) => sum + c.topics.length, 0), [visibleCategories]);
+  const trackTopicCount = useMemo(() => trackCategories.reduce((sum, c) => sum + c.topics.length, 0), [trackCategories]);
 
   const handleCategoryClick = (id: string) => {
     setActiveCategory(id);
@@ -306,15 +362,27 @@ export const Hub: React.FC = () => {
     }
   };
 
+  const handleTrackChange = (t: TrackId) => {
+    if (t === track) return;
+    setTrack(t);
+    setSearchQuery('');
+    const first = CATEGORIES_BY_TRACK[t][0];
+    if (first) setActiveCategory(first.id);
+    requestAnimationFrame(() => {
+      document.getElementById('hub-track-switcher')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   useEffect(() => {
-    // Scroll to initial hash if present on load
+    // Scroll to initial hash if present on load, or when navigated to via a Link elsewhere
     if (location.hash) {
       const id = location.hash.substring(1);
-      const el = document.getElementById(id);
-      if (el) {
+      const cat = CATEGORIES.find((c) => c.id === id);
+      if (cat) {
+        setTrack(cat.track === 'interview' ? 'interview' : 'math');
         setActiveCategory(id);
         setTimeout(() => {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
       }
     }
@@ -339,27 +407,78 @@ export const Hub: React.FC = () => {
 
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, [isSearching, visibleCategories.length]);
+  }, [isSearching, visibleCategories.length, track]);
 
   return (
     <div style={{ width: '100%' }}>
       {/* Hero (Spans full width) */}
       <div className="hub-hero">
         <div className="hub-hero__inner">
-          <div className="hub-hero__eyebrow">✦ Interactive Learning Platform</div>
+          <div className="hub-hero__eyebrow">{trackMeta.eyebrow}</div>
           <h1 className="hub-hero__title">
-            Mathematics &amp;<br /><span>Statistics</span> Visualised
+            {trackMeta.heroTitle}
           </h1>
           <p className="hub-hero__subtitle">
-            Explore probability distributions, statistical algorithms, and machine learning concepts — plus programming interview patterns — through hands-on interactive visualisations.
+            {trackMeta.heroSubtitle}
           </p>
+
+          {/* Track switcher: the two main parts of the site */}
+          <div
+            id="hub-track-switcher"
+            role="tablist"
+            aria-label="Choose a section"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 'var(--space-12)',
+              maxWidth: '560px',
+              margin: '0 auto var(--space-24)',
+            }}
+          >
+            {TRACKS.map((t) => {
+              const Icon = t.icon;
+              const isActive = t.id === track;
+              const count = CATEGORIES_BY_TRACK[t.id].reduce((sum, c) => sum + c.topics.length, 0);
+              return (
+                <button
+                  key={t.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => handleTrackChange(t.id)}
+                  className="hover-lift"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '4px',
+                    textAlign: 'left',
+                    padding: 'var(--space-14) var(--space-16)',
+                    borderRadius: '12px',
+                    border: `1.5px solid ${isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    background: isActive ? 'var(--color-primary-subtle)' : 'var(--color-surface)',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.15s, background 0.15s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: isActive ? 'var(--color-primary)' : 'var(--color-text)' }}>
+                    <Icon size={17} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{t.label}</span>
+                  </div>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{t.tagline}</span>
+                  <span style={{ fontSize: '0.7rem', color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)', fontWeight: 600, marginTop: '2px' }}>
+                    {count} topic{count !== 1 ? 's' : ''}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
           <div className="hub-search">
             <Search size={18} className="hub-search__icon" />
             <input
               type="search"
               className="hub-search__input"
-              placeholder="Search topics — e.g. &quot;Bayes&quot;, &quot;Poisson&quot;, &quot;MLE&quot;..."
+              placeholder={`Search ${trackMeta.label.toLowerCase()} — e.g. ${track === 'math' ? '"Bayes", "Poisson", "MLE"' : '"sliding window", "two pointers"'}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search topics"
@@ -379,16 +498,16 @@ export const Hub: React.FC = () => {
           {!isSearching && (
             <div className="hub-hero__stats">
               <div className="hub-stat">
-                <span className="hub-stat__number">62+</span>
+                <span className="hub-stat__number">{trackTopicCount}+</span>
                 <span className="hub-stat__label">Topics</span>
               </div>
               <div className="hub-stat">
-                <span className="hub-stat__number">10</span>
+                <span className="hub-stat__number">{trackCategories.length}</span>
                 <span className="hub-stat__label">Categories</span>
               </div>
               <div className="hub-stat">
-                <span className="hub-stat__number">45+</span>
-                <span className="hub-stat__label">React Modules</span>
+                <span className="hub-stat__number">{trackMeta.language}</span>
+                <span className="hub-stat__label">{trackMeta.languageNote}</span>
               </div>
             </div>
           )}
@@ -406,7 +525,7 @@ export const Hub: React.FC = () => {
             onChange={(e) => handleCategoryClick(e.target.value)}
             aria-label="Jump to category"
           >
-            {CATEGORIES.map((cat) => (
+            {trackCategories.map((cat) => (
               <option key={cat.id} value={cat.id}>{cat.label} ({cat.topics.length})</option>
             ))}
           </select>
@@ -414,9 +533,9 @@ export const Hub: React.FC = () => {
 
         {/* Sidebar */}
         <aside className="hub-sidebar">
-          <div className="hub-sidebar__label">Categories</div>
+          <div className="hub-sidebar__label">{trackMeta.label} · Categories</div>
           <nav className="hub-nav" style={{ display: 'flex', flexDirection: 'column' }}>
-            {(isSearching ? visibleCategories : CATEGORIES).map((cat) => {
+            {(isSearching ? visibleCategories : trackCategories).map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.id;
               return (
