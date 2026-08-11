@@ -5450,4 +5450,224 @@ print("exactly the family-wise error control the Bonferroni correction promises.
       expectedHint: 'With k=5 groups (m=10 comparisons) and H₀ true for all of them, the naive false-positive rate should land well above 0.05 — often around 0.3–0.4 — while the Bonferroni-corrected rate should be much closer to the target 0.05.',
     },
   ],
+
+  'simple-random-walk': [
+    {
+      id: 'py-ch11-srw-1',
+      number: '1',
+      title: "Simulating Gambler's Ruin",
+      description: 'Simulate many independent runs of simple random walk until it hits either 0 or c, estimate P(τ_c<τ₀) by Monte Carlo, and compare against the exact formula of Theorem 11.1.2.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(0)
+a, c, p = 5, 10, 0.499
+N_SIM = 20000
+
+def simulate_one_run(a, c, p, rng):
+    x = a
+    while 0 < x < c:
+        x += 1 if rng.uniform() < p else -1
+    return x == c
+
+# TODO: run N_SIM simulations and estimate P(reach c before 0)
+results = None   # TODO: [simulate_one_run(a, c, p, rng) for _ in range(N_SIM)]
+mc_estimate = None if results is None else np.mean(results)
+
+# Exact formula (Theorem 11.1.2)
+q = 1 - p
+ratio = q / p
+exact = (1 - ratio**a) / (1 - ratio**c)
+
+print(f"Monte Carlo estimate: {mc_estimate}")
+print(f"Exact formula:        {exact:.6f}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(0)
+a, c, p = 5, 10, 0.499
+N_SIM = 20000
+
+def simulate_one_run(a, c, p, rng):
+    x = a
+    while 0 < x < c:
+        x += 1 if rng.uniform() < p else -1
+    return x == c
+
+results = [simulate_one_run(a, c, p, rng) for _ in range(N_SIM)]
+mc_estimate = np.mean(results)
+
+q = 1 - p
+ratio = q / p
+exact = (1 - ratio**a) / (1 - ratio**c)
+
+print(f"Monte Carlo estimate: {mc_estimate:.4f}")
+print(f"Exact formula:        {exact:.6f}")
+print("\\nWith N_SIM=20000 the Monte Carlo estimate should land close to the exact")
+print("value from Theorem 11.1.2 -- though at a=5,c=10 with p near 0.5 this can")
+print("take a while, since paths near a 50/50 win rate wander for a long time")
+print("before finally hitting 0 or c.")
+`,
+      expectedHint: 'The Monte Carlo estimate should land reasonably close to the exact formula value (roughly 0.495 for these parameters), though with some simulation noise — try increasing N_SIM to tighten the estimate.',
+    },
+    {
+      id: 'py-ch11-srw-2',
+      number: '2',
+      title: "The Extreme Sensitivity of Gambler's Ruin",
+      description: 'Reproduce Examples 11.1.6 and 11.1.7: compute the exact gambler\'s ruin probability at three nearby values of p, at both a small scale (a=5,c=10) and a 1000x larger scale (a=5000,c=10000), to see how dramatically the sensitivity to p changes.',
+      starterCode:
+`import numpy as np
+
+def ruin_success_prob(a, c, p):
+    if p == 0.5:
+        return a / c
+    q = 1 - p
+    ratio = q / p
+    return (1 - ratio**a) / (1 - ratio**c)
+
+ps = [0.499, 0.500, 0.501]
+
+# TODO: compute success probability at (a=5, c=10) for each p in ps
+small_scale = None   # TODO: [ruin_success_prob(5, 10, p) for p in ps]
+
+# TODO: compute success probability at (a=5000, c=10000) for each p in ps
+large_scale = None   # TODO: [ruin_success_prob(5000, 10000, p) for p in ps]
+
+print("p values:          ", ps)
+print("Small scale (5,10):", small_scale)
+print("Large scale (5000,10000):", large_scale)
+`,
+      solution:
+`import numpy as np
+
+def ruin_success_prob(a, c, p):
+    if p == 0.5:
+        return a / c
+    q = 1 - p
+    ratio = q / p
+    return (1 - ratio**a) / (1 - ratio**c)
+
+ps = [0.499, 0.500, 0.501]
+
+small_scale = [ruin_success_prob(5, 10, p) for p in ps]
+large_scale = [ruin_success_prob(5000, 10000, p) for p in ps]
+
+print("p values:                 ", ps)
+print("Small scale (a=5,c=10):   ", [round(v, 4) for v in small_scale])
+print("Large scale (a=5000,c=10000):", [f"{v:.3e}" for v in large_scale])
+print("\\nAt the small scale, success probability barely moves (about 0.495 to 0.505).")
+print("At the large scale, the SAME change in p swings success probability from")
+print("about 2e-9 all the way to nearly 1 -- exactly Examples 11.1.6 and 11.1.7.")
+`,
+      expectedHint: 'The small-scale probabilities should barely move (roughly 0.495, 0.500, 0.505), while the large-scale probabilities should swing enormously — from about 2×10⁻⁹ up to nearly 1 — for exactly the same three values of p.',
+    },
+  ],
+
+  'markov-chains': [
+    {
+      id: 'py-ch11-mc-1',
+      number: '1',
+      title: 'Computing n-Step Transition Probabilities via Matrix Powers',
+      description: 'Implement vₙ=v₀Aⁿ directly with matrix multiplication and confirm Pᵢ(Xₙ=j) equals the (i,j) entry of Aⁿ, reproducing Example 11.2.12\'s P₁(X₃=3)=31/72.',
+      starterCode:
+`import numpy as np
+
+A = np.array([
+    [0,    1/2,  1/2],
+    [1/3,  1/3,  1/3],
+    [1/4,  1/4,  1/2],
+])
+
+# TODO: compute A cubed (matrix power, not elementwise power!)
+A3 = None   # TODO: np.linalg.matrix_power(A, 3)
+
+print("A^3 =\\n", A3)
+print(f"P_1(X_3=3) = {A3[0, 2] if A3 is not None else 'TODO'}")
+print(f"31/72 = {31/72:.6f}")
+
+# TODO: also verify via v0 A^3, starting at state 1 (index 0)
+v0 = np.array([1, 0, 0])
+v3 = None   # TODO: v0 @ A3
+print(f"v3 = {v3}")
+`,
+      solution:
+`import numpy as np
+
+A = np.array([
+    [0,    1/2,  1/2],
+    [1/3,  1/3,  1/3],
+    [1/4,  1/4,  1/2],
+])
+
+A3 = np.linalg.matrix_power(A, 3)
+
+print("A^3 =\\n", A3)
+print(f"P_1(X_3=3) = {A3[0, 2]:.6f}")
+print(f"31/72 = {31/72:.6f}")
+
+v0 = np.array([1, 0, 0])
+v3 = v0 @ A3
+print(f"v3 = {v3}")
+print("\\nA3[0,2] should match 31/72 (Example 11.2.12) almost exactly,")
+print("and v3 (starting distribution times A^3) should equal row 0 of A^3 --")
+print("since v0 = [1,0,0] simply selects that row.")
+`,
+      expectedHint: 'A3[0,2] should equal 31/72 ≈ 0.4306, matching Example 11.2.12. Since v0=[1,0,0] starts the chain at state 1 with certainty, v3 should come out identical to the first row of A³.',
+    },
+    {
+      id: 'py-ch11-mc-2',
+      number: '2',
+      title: 'Solving for a Stationary Distribution',
+      description: 'Find the stationary distribution of a Markov chain two ways: (a) solving the linear balance equations directly, and (b) running the chain forward for many steps and watching vₙ converge — reproducing Example 11.2.16\'s π=(2/11, 3/11, 6/11).',
+      starterCode:
+`import numpy as np
+
+P = np.array([
+    [0.5,  0.25, 0.25],
+    [1/3,  1/3,  1/3],
+    [0,    0.25, 0.75],
+])
+
+# (a) Solve pi P = pi, sum(pi)=1 as a linear system.
+# This is equivalent to pi (P - I) = 0 with the normalization constraint.
+# TODO: build the linear system A_mat @ pi = b_vec and solve
+A_mat = np.vstack([(P.T - np.eye(3)), np.ones(3)])
+b_vec = np.array([0, 0, 0, 1])
+pi_exact = None   # TODO: np.linalg.lstsq(A_mat, b_vec, rcond=None)[0]
+print("Exact stationary distribution:", pi_exact)
+print("Expected: [2/11, 3/11, 6/11] =", [2/11, 3/11, 6/11])
+
+# (b) Iterate v_{n+1} = v_n P starting from an arbitrary distribution
+v = np.array([1.0, 0.0, 0.0])
+for _ in range(50):
+    v = v @ P
+print("v after 50 steps:", v)
+`,
+      solution:
+`import numpy as np
+
+P = np.array([
+    [0.5,  0.25, 0.25],
+    [1/3,  1/3,  1/3],
+    [0,    0.25, 0.75],
+])
+
+A_mat = np.vstack([(P.T - np.eye(3)), np.ones(3)])
+b_vec = np.array([0, 0, 0, 1])
+pi_exact = np.linalg.lstsq(A_mat, b_vec, rcond=None)[0]
+print("Exact stationary distribution:", pi_exact)
+print("Expected: [2/11, 3/11, 6/11] =", [2/11, 3/11, 6/11])
+
+v = np.array([1.0, 0.0, 0.0])
+for _ in range(50):
+    v = v @ P
+print("v after 50 steps:", v)
+print("\\nBoth methods should agree closely with (2/11, 3/11, 6/11) ~= (0.1818, 0.2727, 0.5455) --")
+print("solving the balance equations directly, and watching the chain settle there")
+print("after enough steps, are two views of the same stationary distribution.")
+`,
+      expectedHint: 'Both the direct linear-system solution and the 50-step forward iteration should land close to (2/11, 3/11, 6/11) ≈ (0.182, 0.273, 0.545) — Example 11.2.16\'s stationary distribution.',
+    },
+  ],
 };

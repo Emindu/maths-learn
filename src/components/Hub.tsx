@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck, Shuffle } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface Topic {
@@ -179,6 +179,13 @@ const CATEGORIES: Category[] = [
       { title: 'Quantitative Response and Predictors', desc: 'Least squares, the simple linear regression model, R² and correlation, residual diagnostics, and multiple regression in matrix form.', to: '/ch10/simple-linear-regression' },
       { title: 'Quantitative Response and Categorical Predictors', desc: 'One-way and two-way ANOVA, interaction and blocking, paired comparisons, and controlling the false-positive rate across multiple comparisons.', to: '/ch10/anova' },
       { title: 'Categorical Response and Quantitative Predictors', desc: 'Logistic regression: link functions, the logit model for a binary response, maximum likelihood fitting, and reading a fitted log-odds coefficient.', to: '/ch10/logistic-regression' },
+    ],
+  },
+  {
+    id: 'ch11concepts', label: 'Stochastic Processes', icon: Shuffle,
+    topics: [
+      { title: 'Simple Random Walk', desc: 'Repeated $1 gambling as a stochastic process: the exact distribution of your fortune, fair vs. subfair vs. superfair games, and the gambler\'s ruin problem.', to: '/ch11/simple-random-walk' },
+      { title: 'Markov Chains', desc: 'State spaces, transition probabilities, and the Markov property; computing multi-step probabilities via matrix powers, and stationary distributions.', to: '/ch11/markov-chains' },
     ],
   },
   {
