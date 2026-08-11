@@ -134,6 +134,10 @@ import {
   VizGamblersRuinScale,
   VizMarkovChainSteps,
   VizStationaryBalance,
+  VizMetropolisHastings,
+  VizMartingaleStopping,
+  VizBrownianMotion,
+  VizPoissonProcess,
 } from '../visualizations/VizStochasticProcesses';
 import 'katex/dist/katex.min.css';
 
@@ -269,6 +273,10 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch11-gamblers-ruin':         VizGamblersRuinScale,
   'viz-ch11-markov-steps':          VizMarkovChainSteps,
   'viz-ch11-stationary-balance':    VizStationaryBalance,
+  'viz-ch11-metropolis':            VizMetropolisHastings,
+  'viz-ch11-martingale-stopping':   VizMartingaleStopping,
+  'viz-ch11-brownian-motion':       VizBrownianMotion,
+  'viz-ch11-poisson-process':       VizPoissonProcess,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,

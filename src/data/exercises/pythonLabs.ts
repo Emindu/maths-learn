@@ -5173,4 +5173,280 @@ plt.show()
 print("Stationary distribution (Example 11.2.16):", pi_exact)`,
     },
   ],
+
+  'markov-chain-monte-carlo': [
+    {
+      id: 'ch11-mcmc-lab-1',
+      title: 'Metropolis-Hastings: Trace Plot, Histogram, and Acceptance Rate',
+      description: 'Run a Metropolis-Hastings sampler for a bimodal target distribution, and visualise the trace plot, the resulting histogram against the true (normalized) target, and how the acceptance rate depends on proposal step size.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(10)
+
+def unnorm_target(x):
+    return np.exp(-0.5 * (x + 3) ** 2) + 1.5 * np.exp(-0.5 * (x - 3) ** 2)
+
+def run_mh(step_size, n_steps, rng):
+    x = 0.0
+    trace = np.zeros(n_steps)
+    accepted = 0
+    for i in range(n_steps):
+        propose = x + rng.normal(0, step_size)
+        alpha = min(1, unnorm_target(propose) / unnorm_target(x))
+        if rng.uniform() < alpha:
+            x = propose
+            accepted += 1
+        trace[i] = x
+    return trace, accepted / n_steps
+
+n_steps = 8000
+trace, acc_rate = run_mh(step_size=2.0, n_steps=n_steps, rng=rng)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+axes[0].plot(trace, color='#38bdf8', lw=0.6)
+axes[0].set_title(f'Trace Plot (acceptance rate={acc_rate:.2f})', color='white')
+axes[0].set_xlabel('iteration', color='#94a3b8'); axes[0].set_ylabel('x', color='#94a3b8')
+
+xs = np.linspace(-8, 8, 300)
+target_density = unnorm_target(xs)
+target_density = target_density / np.trapz(target_density, xs)
+axes[1].hist(trace, bins=60, density=True, color='#818cf8', alpha=0.7, label='MCMC samples')
+axes[1].plot(xs, target_density, color='#fb923c', lw=2.5, label='true target (normalized)')
+axes[1].set_title('Histogram vs. True Target', color='white')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+for ax in axes:
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Metropolis-Hastings Sampling a Bimodal Target', color='white', fontsize=13)
+plt.tight_layout()
+plt.show()
+print(f"Acceptance rate: {acc_rate:.3f}")`,
+    },
+  ],
+
+  'martingales': [
+    {
+      id: 'ch11-mart-lab-1',
+      title: "Optional Stopping in Action: Many Gambler's Ruin Paths",
+      description: 'Simulate many simple random walk paths stopped at 0 or c, plot a sample of the paths, and show that both E(X_T) and P(hit c before 0) converge to their theoretical martingale-derived values as the number of simulated paths grows.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(13)
+a, c, p = 15, 30, 0.5
+n_sims = 3000
+
+def simulate_path(a, c, p, rng, max_steps=5000):
+    path = [a]
+    x = a
+    for _ in range(max_steps):
+        if x <= 0 or x >= c:
+            break
+        x += 1 if rng.uniform() < p else -1
+        path.append(x)
+    return path
+
+finals = np.zeros(n_sims)
+sample_paths = []
+for i in range(n_sims):
+    path = simulate_path(a, c, p, rng)
+    finals[i] = path[-1]
+    if i < 15:
+        sample_paths.append(path)
+
+running_mean = np.cumsum(finals) / np.arange(1, n_sims + 1)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+for path in sample_paths:
+    color = '#34d399' if path[-1] >= c else '#f87171'
+    axes[0].plot(range(len(path)), path, color=color, lw=1, alpha=0.7)
+axes[0].axhline(0, color='#94a3b8', lw=1, ls='--')
+axes[0].axhline(c, color='#94a3b8', lw=1, ls='--')
+axes[0].set_title('15 Sample Paths', color='white')
+axes[0].set_xlabel('step', color='#94a3b8'); axes[0].set_ylabel('fortune', color='#94a3b8')
+
+axes[1].plot(running_mean, color='#38bdf8', lw=1.5)
+axes[1].axhline(a, color='#fb923c', lw=2, ls='--', label=f'E(X_T) theory = a = {a}')
+axes[1].set_title('Running Mean of X_T Across Simulations', color='white')
+axes[1].set_xlabel('number of simulated paths', color='#94a3b8')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+for ax in axes:
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle("Optional Stopping Theorem: E(X_T) = X_0", color='white', fontsize=13)
+plt.tight_layout()
+plt.show()
+print(f"Final running mean: {running_mean[-1]:.3f} (theory: {a})")
+print(f"Empirical P(hit c before 0): {np.mean(finals == c):.4f} (theory: {a/c})")`,
+    },
+  ],
+
+  'brownian-motion': [
+    {
+      id: 'ch11-bm-lab-1',
+      title: 'Brownian Motion Paths and the Growing Spread √t',
+      description: 'Plot many simulated Brownian motion sample paths together, overlaying the theoretical ±1 and ±2 standard-deviation envelopes (which grow as √t), visualising Theorem 11.5.2 directly.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(9)
+T = 20
+n_steps = 500
+dt = T / n_steps
+n_paths = 25
+
+t_grid = np.linspace(0, T, n_steps + 1)
+paths = np.zeros((n_paths, n_steps + 1))
+for i in range(n_paths):
+    increments = rng.normal(0, np.sqrt(dt), n_steps)
+    paths[i, 1:] = np.cumsum(increments)
+
+fig, ax = plt.subplots(figsize=(10, 5.5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+
+for i in range(n_paths):
+    ax.plot(t_grid, paths[i], color='#38bdf8', lw=0.7, alpha=0.5)
+
+sd = np.sqrt(t_grid)
+ax.plot(t_grid, sd, color='#fb923c', lw=2, ls='--', label='±√t (1 sd)')
+ax.plot(t_grid, -sd, color='#fb923c', lw=2, ls='--')
+ax.plot(t_grid, 2 * sd, color='#f87171', lw=1.5, ls=':', label='±2√t (2 sd)')
+ax.plot(t_grid, -2 * sd, color='#f87171', lw=1.5, ls=':')
+ax.axhline(0, color='#94a3b8', lw=1)
+
+ax.set_xlabel('t', color='#94a3b8')
+ax.set_ylabel('B_t', color='#94a3b8')
+ax.set_title(f'{n_paths} Simulated Brownian Motion Paths (B_t ~ N(0,t))', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()
+print(f"At t={T}, empirical std of final B_t values: {paths[:, -1].std():.3f} (theory: sqrt(T)={np.sqrt(T):.3f})")`,
+    },
+  ],
+
+  'poisson-processes': [
+    {
+      id: 'ch11-pp-lab-1',
+      title: 'Poisson Process Arrivals and the Poisson Count Distribution',
+      description: 'Simulate a Poisson process timeline of event arrivals, plot the step-function count N_t alongside the arrival times, and compare the empirical distribution of N_t at a fixed time to the exact Poisson pmf.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(17)
+a = 4
+T = 15
+n_sims = 5000
+
+def simulate_arrivals(a, T, rng):
+    arrivals = []
+    t = 0.0
+    while True:
+        t += rng.exponential(1 / a)
+        if t >= T:
+            break
+        arrivals.append(t)
+    return arrivals
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+arrivals = simulate_arrivals(a, T, rng)
+step_t = [0] + [x for x in arrivals for _ in range(2)] + [T]
+step_n = [0] + [n for n in range(len(arrivals)) for _ in range(2)][1:] + [len(arrivals)] * 2
+step_n = step_n[:len(step_t)]
+axes[0].plot(step_t, step_n, color='#38bdf8', lw=2)
+axes[0].scatter(arrivals, [0.3] * len(arrivals), color='#fb923c', s=20, zorder=5)
+axes[0].set_title(f'One Realization: {len(arrivals)} events by t={T}', color='white')
+axes[0].set_xlabel('t', color='#94a3b8'); axes[0].set_ylabel('N_t', color='#94a3b8')
+
+counts = np.array([len(simulate_arrivals(a, T, rng)) for _ in range(n_sims)])
+k_max = int(counts.max()) + 2
+ks = np.arange(0, k_max)
+axes[1].hist(counts, bins=np.arange(-0.5, k_max + 0.5, 1), density=True, color='#818cf8', alpha=0.7, label='simulated N_T')
+axes[1].plot(ks, stats.poisson.pmf(ks, a * T), 'o-', color='#fb923c', label=f'Poisson({a*T}) pmf')
+axes[1].set_title('Distribution of N_T', color='white')
+axes[1].set_xlabel('count', color='#94a3b8')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+
+for ax in axes:
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle(f'Poisson Process with Intensity a={a}', color='white', fontsize=13)
+plt.tight_layout()
+plt.show()
+print(f"Empirical mean N_T: {counts.mean():.3f}, theory: {a*T}")`,
+    },
+  ],
+
+  'stochastic-processes-proofs': [
+    {
+      id: 'ch11-pf-lab-1',
+      title: "Gambler's Ruin: The Recursive Proof, Visualised",
+      description: 'Plot the function s(b)=P(hit c before 0 | start at b) for every starting fortune b at once (the quantity solved for simultaneously in the Section 11.7 proof), for several values of p, showing the shift from a straight line (p=0.5) to an S-curve (p!=0.5).',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+c = 30
+b_vals = np.arange(0, c + 1)
+
+def s(b, p, c):
+    if p == 0.5:
+        return b / c
+    q = 1 - p
+    ratio = q / p
+    return (1 - ratio**b) / (1 - ratio**c)
+
+fig, ax = plt.subplots(figsize=(9, 5.5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+
+for p, color in [(0.5, '#38bdf8'), (0.45, '#fb923c'), (0.55, '#34d399'), (0.4, '#f87171')]:
+    s_vals = [s(b, p, c) for b in b_vals]
+    ax.plot(b_vals, s_vals, lw=2.5, color=color, label=f'p={p}')
+
+ax.set_xlabel('starting fortune b', color='#94a3b8')
+ax.set_ylabel('s(b) = P(hit c before 0)', color='#94a3b8')
+ax.set_title(f"The Gambler's Ruin Function s(b), Solved for Every b at Once (c={c})", color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()
+print("Notice p=0.5 gives an exact straight line b/c, while p != 0.5 gives a curve --")
+print("both come from the SAME recursion s(b) = p*s(b+1) + q*s(b-1), solved with")
+print("boundary conditions s(0)=0, s(c)=1, exactly as derived in Section 11.7.")`,
+    },
+  ],
 };

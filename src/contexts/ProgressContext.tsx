@@ -69,6 +69,11 @@ export const TOPIC_SEQUENCE = [
 
   '/ch11/simple-random-walk',
   '/ch11/markov-chains',
+  '/ch11/markov-chain-monte-carlo',
+  '/ch11/martingales',
+  '/ch11/brownian-motion',
+  '/ch11/poisson-processes',
+  '/ch11/stochastic-processes-proofs',
 
   '/distribution/bernoulli',
   '/distribution/beta',
