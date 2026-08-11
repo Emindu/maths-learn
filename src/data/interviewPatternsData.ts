@@ -259,6 +259,85 @@ export const interviewPatterns: InterviewPattern[] = [
     order: 3,
     title: 'Fast & Slow Pointers',
     shortDesc: 'One pointer moves twice as fast as the other to detect cycles or find the middle of a list in O(1) space.',
+    content: {
+      whenToUse: [
+        'Working with a linear data structure — most commonly a linked list',
+        'You need to detect whether a list has a cycle',
+        'You need to find the middle of a list without knowing its length in advance',
+        'You want to solve it in one pass using O(1) extra space',
+      ],
+      technique:
+        'Use two pointers that both start at the head: slow moves one node per step, fast moves two. If the list has no cycle, fast simply reaches the end first, and slow ends up on the middle node. If the list does have a cycle, fast will eventually lap it and land on the exact same node as slow — it is mathematically guaranteed to happen within one full trip around the cycle, so a plain while loop is enough; no visited-set or extra memory required. The same "move one pointer ahead, then walk both together" idea also solves problems like finding the nth-from-last node: advance one pointer n steps first, then move both at the same speed until the lead pointer runs out.',
+      codeTemplates: [
+        {
+          title: 'Slow and fast pointers over a linked list',
+          problem:
+            'General shape: "advance slow by one node and fast by two nodes each iteration." With no cycle, this finds the middle of the list in O(1) space. With a cycle, slow and fast are guaranteed to land on the same node eventually — the basis of Linked List Cycle II (LeetCode 142), which additionally resets one pointer to the head after the meeting point to find where the cycle begins.',
+          code:
+`ListNode slowFastPointers(ListNode head) {
+    ListNode slow = head;
+    ListNode fast = head;
+
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+
+        // custom logic here, e.g.:
+        // if (slow == fast) { /* cycle detected */ }
+    }
+    return slow; // the middle node, when there is no cycle
+}`,
+        },
+        {
+          title: 'Worked example — Linked List Cycle',
+          problem:
+            'Linked List Cycle (LeetCode 141): given the head of a linked list, determine if it has a cycle. Move slow one step and fast two steps per iteration; if a cycle exists, fast is guaranteed to lap the list and land exactly on slow. If fast (or fast.next) reaches null first, there is no cycle.',
+          code:
+`boolean hasCycle(ListNode head) {
+    ListNode slow = head;
+    ListNode fast = head;
+
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+        if (slow == fast) {
+            return true;
+        }
+    }
+    return false;
+}`,
+        },
+        {
+          title: 'Worked example — Remove Nth Node From End of List',
+          problem:
+            'Remove Nth Node From End of List (LeetCode 19): given the head of a list, remove the nth node from the end and return the new head. Rather than first counting the list\'s length, advance a fast pointer n steps ahead of a slow pointer, then move both together one step at a time; when fast falls off the end, slow is sitting exactly one node before the one that needs to be removed.',
+          code:
+`ListNode removeNthFromEnd(ListNode head, int n) {
+    ListNode dummy = new ListNode(0, head);
+    ListNode fast = dummy;
+    ListNode slow = dummy;
+
+    for (int i = 0; i < n; i++) {
+        fast = fast.next;
+    }
+
+    while (fast.next != null) {
+        fast = fast.next;
+        slow = slow.next;
+    }
+
+    slow.next = slow.next.next;
+    return dummy.next;
+}`,
+        },
+      ],
+      questions: [
+        { number: 141, title: 'Linked List Cycle', url: 'https://leetcode.com/problems/linked-list-cycle/' },
+        { number: 142, title: 'Linked List Cycle II', url: 'https://leetcode.com/problems/linked-list-cycle-ii/' },
+        { number: 19, title: 'Remove Nth Node From End of List', url: 'https://leetcode.com/problems/remove-nth-node-from-end-of-list/' },
+      ],
+      vizId: 'viz-fast-slow-pointers',
+    },
   },
   {
     id: 'linked-list-reversal',
