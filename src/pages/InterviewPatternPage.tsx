@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Code2, ExternalLink, ListChecks, Sparkles, Copy, Check } from 'lucide-react';
+import { Highlight, themes } from 'prism-react-renderer';
 import {
   getInterviewPatternById,
   getNextInterviewPattern,
   CodeTemplate,
 } from '../data/interviewPatternsData';
 import { VizSlidingWindowDynamic, VizSlidingWindowFixed } from '../visualizations/VizSlidingWindow';
+import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-sliding-window': () => (
@@ -34,6 +36,7 @@ const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) =
 );
 
 const CodeBlock: React.FC<{ template: CodeTemplate }> = ({ template }) => {
+  const { theme } = useTheme();
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -76,24 +79,34 @@ const CodeBlock: React.FC<{ template: CodeTemplate }> = ({ template }) => {
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre style={{
-        margin: 0,
-        overflowX: 'auto',
-        background: 'var(--color-background)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '8px',
-        padding: '14px 16px',
-      }}>
-        <code style={{
-          fontFamily: 'var(--font-mono, monospace)',
-          fontSize: '0.82rem',
-          lineHeight: 1.6,
-          color: 'var(--color-text)',
-          whiteSpace: 'pre',
-        }}>
-          {template.code}
-        </code>
-      </pre>
+      <Highlight code={template.code.trimEnd()} language="java" theme={theme === 'dark' ? themes.vsDark : themes.vsLight}>
+        {({ style, tokens, getLineProps, getTokenProps }) => (
+          <pre style={{
+            ...style,
+            margin: 0,
+            overflowX: 'auto',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            padding: '14px 16px',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: '0.82rem',
+            lineHeight: 1.6,
+          }}>
+            {tokens.map((line, i) => {
+              const { key: lineKey, ...lineProps } = getLineProps({ line, key: i });
+              return (
+                <div key={i} {...lineProps}>
+                  <span style={{ display: 'inline-block', width: '1.8em', opacity: 0.35, userSelect: 'none' }}>{i + 1}</span>
+                  {line.map((token, tIdx) => {
+                    const { key: tokenKey, ...tokenProps } = getTokenProps({ token, key: tIdx });
+                    return <span key={tIdx} {...tokenProps} />;
+                  })}
+                </div>
+              );
+            })}
+          </pre>
+        )}
+      </Highlight>
     </div>
   );
 };
