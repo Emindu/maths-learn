@@ -689,6 +689,87 @@ private int lowerBound(int[] nums, int target) {
     order: 7,
     title: 'Binary Tree Traversal',
     shortDesc: 'Preorder, inorder, postorder, and level-order — the four ways to visit every node in a tree.',
+    content: {
+      whenToUse: [
+        'Preorder: serializing a tree, or rebuilding one from a serialized form',
+        'Inorder: reading the values of a binary search tree out in sorted order',
+        'Postorder: any computation that needs both children\'s results before it can compute its own (bottom-up)',
+        'Level-order (BFS): scanning or processing a tree level by level',
+      ],
+      technique:
+        'The three depth-first orders — preorder, inorder, postorder — are the exact same recursive skeleton with the "visit this node" line moved to a different spot relative to the two recursive calls: before both (preorder), between them (inorder), or after both (postorder). Where you place that line determines what you get: preorder always outputs a subtree\'s root before its children, which is exactly what you need to reconstruct the tree later; postorder always finishes both children first, which is exactly what you need for any bottom-up computation like a node\'s depth or a subtree sum. Level-order breaks from recursion entirely — you can\'t peek "one level down" with a stack, so you use a queue instead, processing nodes in the order they were discovered rather than the order you\'d reach them by diving deep first.',
+      codeTemplates: [
+        {
+          title: 'Preorder traversal — node, then left, then right',
+          problem:
+            'General shape: visit the node before either subtree. Used to serialize a tree (a root always appears before its children in the output) and to reconstruct one — Construct Binary Tree from Preorder and Inorder Traversal (LeetCode 105) relies on the fact that a preorder sequence\'s first element is always the current subtree\'s root.',
+          code:
+`void preorderTraversal(TreeNode node, List<Integer> result) {
+    if (node == null) return;
+    result.add(node.val); // visit node
+    preorderTraversal(node.left, result);
+    preorderTraversal(node.right, result);
+}`,
+        },
+        {
+          title: 'Inorder traversal — left, then node, then right',
+          problem:
+            'General shape: visit the left subtree, then the node, then the right subtree. For a binary search tree specifically, this always produces the values in sorted order — which is why inorder is the standard way to validate a BST or flatten one back into a sorted list, and why it pairs with preorder in LeetCode 105 to pin down each subtree\'s exact boundaries.',
+          code:
+`void inorderTraversal(TreeNode node, List<Integer> result) {
+    if (node == null) return;
+    inorderTraversal(node.left, result);
+    result.add(node.val); // visit node
+    inorderTraversal(node.right, result);
+}`,
+        },
+        {
+          title: 'Worked example — Maximum Depth of Binary Tree (postorder)',
+          problem:
+            'Maximum Depth of Binary Tree (LeetCode 104): find the number of nodes along the longest path from the root down to a leaf. This is naturally postorder: you need both children\'s depths before you can compute your own, so the combining step happens last, after both recursive calls return.',
+          code:
+`int maxDepth(TreeNode node) {
+    if (node == null) return 0;
+    int leftDepth = maxDepth(node.left);
+    int rightDepth = maxDepth(node.right);
+    return 1 + Math.max(leftDepth, rightDepth); // visit node last
+}`,
+        },
+        {
+          title: 'Worked example — Binary Tree Level Order Traversal (BFS)',
+          problem:
+            'Binary Tree Level Order Traversal (LeetCode 102): return the node values grouped level by level. Use a queue instead of recursion: at the start of each round the queue holds exactly the nodes of one level — record that count first, then pop exactly that many nodes while pushing their children for the next round.',
+          code:
+`List<List<Integer>> levelOrder(TreeNode root) {
+    List<List<Integer>> levels = new ArrayList<>();
+    if (root == null) return levels;
+
+    Queue<TreeNode> queue = new LinkedList<>();
+    queue.offer(root);
+
+    while (!queue.isEmpty()) {
+        int levelSize = queue.size();
+        List<Integer> level = new ArrayList<>();
+        for (int i = 0; i < levelSize; i++) {
+            TreeNode node = queue.poll();
+            level.add(node.val);
+            if (node.left != null) queue.offer(node.left);
+            if (node.right != null) queue.offer(node.right);
+        }
+        levels.add(level);
+    }
+    return levels;
+}`,
+        },
+      ],
+      questions: [
+        { number: 104, title: 'Maximum Depth of Binary Tree', url: 'https://leetcode.com/problems/maximum-depth-of-binary-tree/' },
+        { number: 102, title: 'Binary Tree Level Order Traversal', url: 'https://leetcode.com/problems/binary-tree-level-order-traversal/' },
+        { number: 105, title: 'Construct Binary Tree from Preorder and Inorder Traversal', url: 'https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/' },
+        { number: 124, title: 'Binary Tree Maximum Path Sum', url: 'https://leetcode.com/problems/binary-tree-maximum-path-sum/' },
+      ],
+      vizId: 'viz-tree-traversal',
+    },
   },
   {
     id: 'graphs-matrices',

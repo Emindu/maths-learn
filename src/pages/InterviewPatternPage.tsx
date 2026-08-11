@@ -13,6 +13,7 @@ import { VizFastSlowPointers } from '../visualizations/VizFastSlowPointers';
 import { VizLinkedListReversal } from '../visualizations/VizLinkedListReversal';
 import { VizBinarySearch } from '../visualizations/VizBinarySearch';
 import { VizTopKElements } from '../visualizations/VizTopKElements';
+import { VizTreeTraversal } from '../visualizations/VizTreeTraversal';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -27,6 +28,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-linked-list-reversal': VizLinkedListReversal,
   'viz-binary-search': VizBinarySearch,
   'viz-top-k-elements': VizTopKElements,
+  'viz-tree-traversal': VizTreeTraversal,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
