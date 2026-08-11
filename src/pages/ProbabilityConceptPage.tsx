@@ -119,6 +119,16 @@ import {
   VizBayesDecision,
   VizRiskFunction,
 } from '../visualizations/VizOptimalInferences';
+import {
+  VizScatterRelationship,
+  VizContingencyTable,
+  VizRegressionLine,
+  VizRegressionResiduals,
+  VizCorrelationStrength,
+  VizANOVAGroups,
+  VizMultipleComparisons,
+  VizLogisticRegression,
+} from '../visualizations/VizRelationshipsAmongVariables';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -239,6 +249,15 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch8-power-function':         VizPowerFunction,
   'viz-ch8-bayes-decision':         VizBayesDecision,
   'viz-ch8-risk-function':          VizRiskFunction,
+  // Chapter 10 — Relationships Among Variables
+  'viz-ch10-scatter-relationship':  VizScatterRelationship,
+  'viz-ch10-contingency':           VizContingencyTable,
+  'viz-ch10-regression-line':       VizRegressionLine,
+  'viz-ch10-regression-residuals':  VizRegressionResiduals,
+  'viz-ch10-correlation':           VizCorrelationStrength,
+  'viz-ch10-anova':                 VizANOVAGroups,
+  'viz-ch10-multiple-comparisons':  VizMultipleComparisons,
+  'viz-ch10-logistic':              VizLogisticRegression,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,

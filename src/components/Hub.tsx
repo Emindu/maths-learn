@@ -172,6 +172,16 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    id: 'ch10concepts', label: 'Relationships Among Variables', icon: GitMerge,
+    topics: [
+      { title: 'Related Variables', desc: 'What it means for two variables to be related, the danger of confounding variables, and why only a controlled experiment can support a cause–effect claim.', to: '/ch10/related-variables' },
+      { title: 'Categorical Response and Predictors', desc: 'Contingency tables for random and deterministic predictors, and the chi-squared test of independence — Fisher\'s exact test generalised to r×c tables.', to: '/ch10/categorical-relationships' },
+      { title: 'Quantitative Response and Predictors', desc: 'Least squares, the simple linear regression model, R² and correlation, residual diagnostics, and multiple regression in matrix form.', to: '/ch10/simple-linear-regression' },
+      { title: 'Quantitative Response and Categorical Predictors', desc: 'One-way and two-way ANOVA, interaction and blocking, paired comparisons, and controlling the false-positive rate across multiple comparisons.', to: '/ch10/anova' },
+      { title: 'Categorical Response and Quantitative Predictors', desc: 'Logistic regression: link functions, the logit model for a binary response, maximum likelihood fitting, and reading a fitted log-odds coefficient.', to: '/ch10/logistic-regression' },
+    ],
+  },
+  {
     id: 'distributions', label: 'Probability Distributions', icon: BarChart2,
     topics: [
       { title: 'Bernoulli Distribution', desc: 'Single-trial binary outcomes with interactive probability slider.', to: '/distribution/bernoulli' },

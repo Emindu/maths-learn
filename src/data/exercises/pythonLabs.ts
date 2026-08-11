@@ -4765,4 +4765,306 @@ plt.tight_layout()
 plt.show()`,
     },
   ],
+
+  'related-variables': [
+    {
+      id: 'ch10-rv-lab-1',
+      title: 'Related vs Unrelated Scatterplots',
+      description: 'Side-by-side scatterplots of independent variables and related variables, with the true conditional mean E(Y|X=x) overlaid on the related panel — the visual definition of Section 10.1.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(0)
+n = 300
+
+x_indep = rng.normal(0, 1, n)
+y_indep = rng.normal(0, 1, n)
+
+x_rel = rng.normal(0, 1, n)
+y_rel = 1.3 * x_rel + rng.normal(0, 1, n)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+axes[0].scatter(x_indep, y_indep, s=14, color='#fb923c', alpha=0.7)
+axes[0].set_title('X, Y independent\\nf(y|x) = f(y)', color='white')
+
+axes[1].scatter(x_rel, y_rel, s=14, color='#38bdf8', alpha=0.7)
+xs = np.linspace(-3, 3, 50)
+axes[1].plot(xs, 1.3 * xs, color='#34d399', lw=2.5, ls='--', label='E(Y|X=x) = 1.3x')
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[1].set_title('X, Y related\\nE(Y|X=x) shifts with x', color='white')
+
+for ax in axes:
+    ax.set_xlabel('x', color='#94a3b8'); ax.set_ylabel('y', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Definition 10.1.1 in Pictures', color='white', fontsize=13)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'categorical-relationships': [
+    {
+      id: 'ch10-cr-lab-1',
+      title: 'Contingency Table Heatmap and Chi-Squared Contributions',
+      description: 'Visualise a contingency table as a heatmap of observed vs expected counts, and show each cell\'s contribution to the chi-squared statistic X² of Theorem 10.2.1.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+observed = np.array([[30, 10, 5],
+                      [15, 25, 15]])
+row_totals = observed.sum(axis=1, keepdims=True)
+col_totals = observed.sum(axis=0, keepdims=True)
+n = observed.sum()
+expected = row_totals @ col_totals / n
+contrib = (observed - expected) ** 2 / expected
+X2 = contrib.sum()
+df = (observed.shape[0] - 1) * (observed.shape[1] - 1)
+p_value = 1 - stats.chi2.cdf(X2, df=df)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), facecolor='#0f172a')
+titles = ['Observed', 'Expected (under independence)', 'Contribution to X²']
+data_list = [observed, expected, contrib]
+cmaps = ['Blues', 'Oranges', 'Reds']
+
+for ax, data, title, cmap in zip(axes, data_list, titles, cmaps):
+    ax.set_facecolor('#1e293b')
+    im = ax.imshow(data, cmap=cmap, aspect='auto')
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            ax.text(j, i, f"{data[i,j]:.1f}", ha='center', va='center', color='black', fontsize=10, fontweight='bold')
+    ax.set_title(title, color='white', fontsize=10)
+    ax.set_xticks(range(data.shape[1])); ax.set_yticks(range(data.shape[0]))
+    ax.tick_params(colors='#94a3b8')
+
+plt.suptitle(f'Chi-Squared Test of Independence — X²={X2:.2f}, df={df}, P-value={p_value:.4f}', color='white', fontsize=12)
+plt.tight_layout()
+plt.show()
+print(f"X² = {X2:.4f}, df = {df}, P-value = {p_value:.4f}")`,
+    },
+  ],
+
+  'simple-linear-regression': [
+    {
+      id: 'ch10-slr-lab-1',
+      title: 'Least Squares Fit and Its Residual Plot, Side by Side',
+      description: 'Fit a simple linear regression, plot the scatter with the OLS line, and show the standardized residual plot beside it — the two views used together throughout Sections 9.1 and 10.3 to both fit and check a model.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(7)
+n = 40
+x = rng.uniform(-3, 5, n)
+y = 2 + 1.6 * x + rng.normal(0, 2.2, n)
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+b1 = Sxy / Sxx
+b0 = ybar - b1 * xbar
+yhat = b0 + b1 * x
+resid = y - yhat
+S = np.sqrt(np.sum(resid ** 2) / (n - 2))
+r_star = resid / S
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+axes[0].scatter(x, y, s=20, color='#f1f5f9')
+xs = np.linspace(x.min(), x.max(), 50)
+axes[0].plot(xs, b0 + b1 * xs, color='#38bdf8', lw=2.5, label=f'ŷ = {b0:.2f} + {b1:.2f}x')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[0].set_title('Least Squares Fit', color='white')
+axes[0].set_xlabel('x', color='#94a3b8'); axes[0].set_ylabel('y', color='#94a3b8')
+
+colors = ['#f87171' if abs(r) > 2 else '#818cf8' for r in r_star]
+axes[1].scatter(x, r_star, s=20, c=colors)
+axes[1].axhline(0, color='#94a3b8', lw=1)
+axes[1].axhline(2, color='#94a3b8', lw=0.7, ls=':')
+axes[1].axhline(-2, color='#94a3b8', lw=0.7, ls=':')
+axes[1].set_title('Standardized Residuals rᵢ* = eᵢ/s', color='white')
+axes[1].set_xlabel('x', color='#94a3b8'); axes[1].set_ylabel('rᵢ*', color='#94a3b8')
+
+for ax in axes:
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('Fitting and Checking a Simple Linear Regression', color='white', fontsize=13)
+plt.tight_layout()
+plt.show()`,
+    },
+    {
+      id: 'ch10-cmr-lab-1',
+      title: 'Correlation Strength Gallery',
+      description: 'A grid of scatterplots for several values of the population correlation ρ, each annotated with the resulting sample correlation r — building visual intuition for what different r values actually look like (Theorem 10.3.5: R²=r²).',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(21)
+n = 150
+rhos = [-0.95, -0.5, 0, 0.3, 0.7, 0.98]
+
+fig, axes = plt.subplots(2, 3, figsize=(13, 8), facecolor='#0f172a')
+axes = axes.flatten()
+
+for ax, rho in zip(axes, rhos):
+    ax.set_facecolor('#1e293b')
+    x = rng.normal(0, 1, n)
+    z = rng.normal(0, 1, n)
+    y = rho * x + np.sqrt(max(0, 1 - rho**2)) * z
+    r = np.corrcoef(x, y)[0, 1]
+    color = '#34d399' if r >= 0 else '#f87171'
+    ax.scatter(x, y, s=12, color=color, alpha=0.75)
+    ax.set_title(f'ρ={rho}  (sample r={r:.2f})', color='white', fontsize=11)
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('What Different Correlation Strengths Look Like', color='white', fontsize=14)
+plt.tight_layout()
+plt.show()`,
+    },
+  ],
+
+  'logistic-regression': [
+    {
+      id: 'ch10-logit-lab-1',
+      title: 'The Sigmoid Curve, Fitted vs. True, with Binned Success Rates',
+      description: 'Simulate binary data from a known logistic model, fit the coefficients by maximum likelihood, and overlay the fitted probability curve on the raw 0/1 data alongside binned empirical success rates — the full logistic-regression diagnostic picture from Section 10.5.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import minimize
+
+rng = np.random.default_rng(15)
+n = 400
+x = rng.uniform(0, 10, n)
+true_beta0, true_beta1 = -4.0, 0.9
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+p_true = sigmoid(true_beta0 + true_beta1 * x)
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+def neg_log_lik(params):
+    b0, b1 = params
+    p = np.clip(sigmoid(b0 + b1 * x), 1e-10, 1 - 1e-10)
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+result = minimize(neg_log_lik, x0=[0, 0], method='BFGS')
+fit_b0, fit_b1 = result.x
+
+# Binned empirical success rate, for a visual goodness-of-fit check
+n_bins = 10
+edges = np.linspace(0, 10, n_bins + 1)
+bin_centers, bin_rates = [], []
+for i in range(n_bins):
+    mask = (x >= edges[i]) & (x < edges[i + 1])
+    if mask.sum() > 0:
+        bin_centers.append((edges[i] + edges[i + 1]) / 2)
+        bin_rates.append(y[mask].mean())
+
+fig, ax = plt.subplots(figsize=(9, 5.5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+
+jitter = rng.uniform(-0.02, 0.02, n)
+ax.scatter(x, y + jitter, s=10, color='#94a3b8', alpha=0.4, label='raw data (jittered)')
+ax.scatter(bin_centers, bin_rates, s=60, color='#fb923c', zorder=5, label='binned success rate')
+
+xs = np.linspace(0, 10, 300)
+ax.plot(xs, sigmoid(true_beta0 + true_beta1 * xs), color='#94a3b8', lw=2, ls='--', label=f'true curve (β0={true_beta0}, β1={true_beta1})')
+ax.plot(xs, sigmoid(fit_b0 + fit_b1 * xs), color='#38bdf8', lw=2.5, label=f'fitted curve (β̂0={fit_b0:.2f}, β̂1={fit_b1:.2f})')
+
+ax.set_xlabel('x', color='#94a3b8')
+ax.set_ylabel('P(Y=1|X=x)', color='#94a3b8')
+ax.set_title('Logistic Regression: Fitted Sigmoid vs. Binned Empirical Rates', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9, loc='upper left')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()
+print(f"True (beta0, beta1)      = ({true_beta0}, {true_beta1})")
+print(f"Fitted (beta0, beta1)    = ({fit_b0:.4f}, {fit_b1:.4f})")`,
+    },
+  ],
+
+  'anova': [
+    {
+      id: 'ch10-anova-lab-1',
+      title: 'ANOVA: Group Means, the F-Distribution, and the Observed F',
+      description: 'Plot the k=4 group distributions with their means, alongside the F(k-1, N-k) reference distribution with the observed F statistic marked — visualising the one-way ANOVA decomposition of Section 10.4 end to end.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(14)
+k = 4
+n_per = 10
+true_means = [5, 8, 6, 9]
+groups = [rng.normal(mu, 1.8, n_per) for mu in true_means]
+all_vals = np.concatenate(groups)
+grand_mean = all_vals.mean()
+N = len(all_vals)
+
+SSB = sum(len(g) * (g.mean() - grand_mean) ** 2 for g in groups)
+SSW = sum(np.sum((g - g.mean()) ** 2) for g in groups)
+dfb, dfw = k - 1, N - k
+F = (SSB / dfb) / (SSW / dfw)
+p_value = 1 - stats.f.cdf(F, dfb, dfw)
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 5), facecolor='#0f172a')
+for ax in axes:
+    ax.set_facecolor('#1e293b')
+
+colors = ['#38bdf8', '#818cf8', '#fb923c', '#34d399']
+for i, g in enumerate(groups):
+    jitter = rng.uniform(-0.15, 0.15, len(g))
+    axes[0].scatter(np.full(len(g), i) + jitter, g, s=18, color=colors[i], alpha=0.8)
+    axes[0].plot([i - 0.2, i + 0.2], [g.mean(), g.mean()], color=colors[i], lw=3)
+axes[0].axhline(grand_mean, color='#94a3b8', lw=1.5, ls='--', label=f'grand mean={grand_mean:.2f}')
+axes[0].set_xticks(range(k)); axes[0].set_xticklabels([f'group {i+1}' for i in range(k)])
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[0].set_title('Group Means vs Grand Mean', color='white')
+
+xs = np.linspace(0.001, 8, 400)
+axes[1].plot(xs, stats.f.pdf(xs, dfb, dfw), color='#818cf8', lw=2.5, label=f'F({dfb},{dfw})')
+axes[1].axvline(F, color='#34d399', lw=2, ls='--', label=f'observed F={F:.2f}')
+axes[1].fill_between(xs, stats.f.pdf(xs, dfb, dfw), where=(xs >= F), color='#34d399', alpha=0.3)
+axes[1].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+axes[1].set_title(f'F-Test: P-value={p_value:.5f}', color='white')
+
+for ax in axes:
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.suptitle('One-Way ANOVA End to End', color='white', fontsize=13)
+plt.tight_layout()
+plt.show()
+print(f"SSB={SSB:.3f}, SSW={SSW:.3f}, F={F:.4f}, P-value={p_value:.5f}")`,
+    },
+  ],
 };

@@ -4626,4 +4626,828 @@ print(f"Naive 0.05 cutoff overall rate = {empirical_naive:.4f}  (way too high!)"
       expectedHint: 'The per-test alpha needed at n=100 is tiny (~0.0005). With it, the empirical overall rate should land close to 0.05, while the naive per-test 0.05 cutoff gives an overall rate near 0.99 — essentially guaranteed to "reject" a correct model.',
     },
   ],
+
+  'related-variables': [
+    {
+      id: 'py-ch10-rv-1',
+      number: '1',
+      title: 'Related vs Unrelated: Estimating E(Y|X=x) from Data',
+      description: 'Generate two synthetic datasets — one where X and Y are independent, one where Y depends on X — and estimate the regression function m(x)=E(Y|X=x) by binning, to see the difference directly in the data rather than the population formula.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(0)
+n = 2000
+
+# Dataset A: independent
+xA = rng.uniform(-3, 3, n)
+yA = rng.normal(0, 1, n)   # Y does not depend on X at all
+
+# Dataset B: related, Y = 0.8*X + noise
+xB = rng.uniform(-3, 3, n)
+yB = 0.8 * xB + rng.normal(0, 1, n)
+
+def binned_means(x, y, nbins=6):
+    edges = np.linspace(x.min(), x.max(), nbins + 1)
+    means = []
+    for i in range(nbins):
+        mask = (x >= edges[i]) & (x < edges[i + 1])
+        # TODO: append the mean of y[mask] to means (handle empty bins as np.nan)
+        means.append(None)  # TODO
+    return edges, means
+
+edgesA, meansA = binned_means(xA, yA)
+edgesB, meansB = binned_means(xB, yB)
+print("Bin means, Dataset A (independent):", meansA)
+print("Bin means, Dataset B (related):    ", meansB)
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(0)
+n = 2000
+
+xA = rng.uniform(-3, 3, n)
+yA = rng.normal(0, 1, n)
+
+xB = rng.uniform(-3, 3, n)
+yB = 0.8 * xB + rng.normal(0, 1, n)
+
+def binned_means(x, y, nbins=6):
+    edges = np.linspace(x.min(), x.max(), nbins + 1)
+    means = []
+    for i in range(nbins):
+        mask = (x >= edges[i]) & (x < edges[i + 1])
+        means.append(y[mask].mean() if mask.sum() > 0 else np.nan)
+    return edges, means
+
+edgesA, meansA = binned_means(xA, yA)
+edgesB, meansB = binned_means(xB, yB)
+print("Bin means, Dataset A (independent):", [round(m, 2) for m in meansA])
+print("Bin means, Dataset B (related):    ", [round(m, 2) for m in meansB])
+print("\\nDataset A's bin means hover near 0 regardless of the bin (flat m(x)).")
+print("Dataset B's bin means rise steadily across bins, tracking the true slope 0.8.")
+`,
+      expectedHint: 'For Dataset A, every bin mean should be close to 0, regardless of x — that flatness is the signature of independence. For Dataset B, the bin means should increase roughly linearly with x, tracing out the true regression function m(x)=0.8x.',
+    },
+    {
+      id: 'py-ch10-rv-2',
+      number: '2',
+      title: 'A Nonlinear Relationship That Fools Correlation',
+      description: 'Reproduce the predict-box scenario: Y=X² plus noise. Show that the Pearson correlation r is near zero even though X and Y are perfectly related, then confirm the relationship is real using binned conditional means.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(3)
+n = 3000
+x = rng.uniform(-2, 2, n)
+y = x**2 + 0.1 * rng.normal(0, 1, n)
+
+# TODO: compute the Pearson correlation coefficient between x and y
+r = None   # TODO: np.corrcoef(x, y)[0, 1]
+print(f"Correlation r = {r:.4f}" if r is not None else "r: TODO")
+
+# TODO: compute binned conditional means of y given x, using 8 bins
+edges = np.linspace(x.min(), x.max(), 9)
+bin_means = []
+for i in range(8):
+    mask = (x >= edges[i]) & (x < edges[i+1])
+    bin_means.append(None)  # TODO: y[mask].mean()
+
+print("Binned E(Y|X=x) estimates:", bin_means)
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(3)
+n = 3000
+x = rng.uniform(-2, 2, n)
+y = x**2 + 0.1 * rng.normal(0, 1, n)
+
+r = np.corrcoef(x, y)[0, 1]
+print(f"Correlation r = {r:.4f}")
+
+edges = np.linspace(x.min(), x.max(), 9)
+bin_means = []
+for i in range(8):
+    mask = (x >= edges[i]) & (x < edges[i+1])
+    bin_means.append(round(y[mask].mean(), 3))
+
+print("Binned E(Y|X=x) estimates:", bin_means)
+print("\\nr is close to 0 (roughly symmetric parabola cancels the linear trend),")
+print("but the binned means clearly trace out a U-shape matching x^2 —")
+print("X and Y are strongly related, just not linearly.")
+`,
+      expectedHint: 'r should come out near 0 (the exact value depends on the noise seed but is typically well under 0.1 in magnitude). The binned means, in contrast, should show a clear U-shape — small near x=0, large near x=±2 — revealing the true quadratic relationship that r completely misses.',
+    },
+  ],
+
+  'categorical-relationships': [
+    {
+      id: 'py-ch10-cr-1',
+      number: '1',
+      title: 'Chi-Squared Test of Independence (Example 10.2.1)',
+      description: 'Reproduce the gender/employment 2x2 table from Example 10.2.1 by hand: compute expected counts, the X² statistic, and the P-value from Theorem 10.2.1, then verify against scipy.stats.chi2_contingency.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+# Observed table: rows = gender {male, female}, cols = {unemployed, employed}
+observed = np.array([[2, 4],
+                      [10, 4]])
+
+row_totals = observed.sum(axis=1)
+col_totals = observed.sum(axis=0)
+n = observed.sum()
+
+# TODO: compute the expected counts matrix e_ij = row_i * col_j / n
+expected = None   # TODO: np.outer(row_totals, col_totals) / n
+print("Expected counts:\\n", expected)
+
+# TODO: compute X^2 = sum((observed - expected)^2 / expected)
+X2 = None   # TODO
+df = (observed.shape[0] - 1) * (observed.shape[1] - 1)
+p_value = None if X2 is None else 1 - stats.chi2.cdf(X2, df=df)
+
+print(f"X^2 = {X2}")
+print(f"df = {df}, P-value = {p_value}")
+
+# Verify against scipy's built-in implementation (uses Yates' correction by default)
+chi2_scipy, p_scipy, dof_scipy, exp_scipy = stats.chi2_contingency(observed, correction=False)
+print(f"\\nscipy: X^2={chi2_scipy:.4f}, df={dof_scipy}, p={p_scipy:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+observed = np.array([[2, 4],
+                      [10, 4]])
+
+row_totals = observed.sum(axis=1)
+col_totals = observed.sum(axis=0)
+n = observed.sum()
+
+expected = np.outer(row_totals, col_totals) / n
+print("Expected counts:\\n", expected)
+
+X2 = np.sum((observed - expected) ** 2 / expected)
+df = (observed.shape[0] - 1) * (observed.shape[1] - 1)
+p_value = 1 - stats.chi2.cdf(X2, df=df)
+
+print(f"X^2 = {X2:.4f}")
+print(f"df = {df}, P-value = {p_value:.4f}")
+
+chi2_scipy, p_scipy, dof_scipy, exp_scipy = stats.chi2_contingency(observed, correction=False)
+print(f"\\nscipy: X^2={chi2_scipy:.4f}, df={dof_scipy}, p={p_scipy:.4f}")
+print("\\nMatches Example 10.2.1: X^2 ~= 1.984, p ~= 0.159 -- no evidence against independence,")
+print("consistent with the exact hypergeometric P-value of 0.161 from Example 9.1.4.")
+`,
+      expectedHint: 'Your hand-computed X² and P-value should match scipy\'s to a few decimal places. Both should land near X²≈1.98, P≈0.159 — no evidence against independence, matching the exact Fisher test result from Chapter 9.',
+    },
+    {
+      id: 'py-ch10-cr-2',
+      number: '2',
+      title: 'Simulating the Null Distribution of X²',
+      description: 'Instead of trusting the asymptotic chi-squared approximation, simulate the sampling distribution of X² directly under independence (fixed margins) and compare the simulated P-value to the χ² one — useful when expected counts are small.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(5)
+row_totals = np.array([16, 14])
+col_totals = np.array([12, 18])
+n = row_totals.sum()
+p_col = col_totals / n
+
+def chi2_stat(table):
+    r = table.sum(axis=1)
+    c = table.sum(axis=0)
+    e = np.outer(r, c) / table.sum()
+    return np.sum((table - e) ** 2 / e)
+
+N_SIM = 5000
+sim_stats = np.zeros(N_SIM)
+for s in range(N_SIM):
+    # TODO: simulate row 1 counts under independence via rng.multinomial(row_totals[0], p_col)
+    row1 = None   # TODO
+    row2 = col_totals - row1
+    table = np.array([row1, row2])
+    sim_stats[s] = chi2_stat(table)
+
+X2_obs = 3.5   # a hypothetical observed statistic to test against
+p_sim = np.mean(sim_stats >= X2_obs)
+p_asymp = 1 - stats.chi2.cdf(X2_obs, df=1)
+print(f"Simulated P-value = {p_sim:.4f}")
+print(f"Asymptotic chi-squared P-value = {p_asymp:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(5)
+row_totals = np.array([16, 14])
+col_totals = np.array([12, 18])
+n = row_totals.sum()
+p_col = col_totals / n
+
+def chi2_stat(table):
+    r = table.sum(axis=1)
+    c = table.sum(axis=0)
+    e = np.outer(r, c) / table.sum()
+    return np.sum((table - e) ** 2 / e)
+
+N_SIM = 5000
+sim_stats = np.zeros(N_SIM)
+for s in range(N_SIM):
+    row1 = rng.multinomial(row_totals[0], p_col)
+    row2 = col_totals - row1
+    table = np.array([row1, row2])
+    sim_stats[s] = chi2_stat(table)
+
+X2_obs = 3.5
+p_sim = np.mean(sim_stats >= X2_obs)
+p_asymp = 1 - stats.chi2.cdf(X2_obs, df=1)
+print(f"Simulated P-value = {p_sim:.4f}")
+print(f"Asymptotic chi-squared P-value = {p_asymp:.4f}")
+print("\\nWith these moderate margins the two P-values are usually close;")
+print("the gap would widen for smaller row/column totals, where the")
+print("chi-squared approximation of Theorem 10.2.1 becomes less reliable.")
+`,
+      expectedHint: 'The simulated and asymptotic P-values should be reasonably close for these margins (expected counts are all comfortably above 5). Try shrinking row_totals and col_totals to see the two P-values start to diverge — that is exactly when Fisher\'s exact test becomes the safer choice.',
+    },
+  ],
+
+  'simple-linear-regression': [
+    {
+      id: 'py-ch10-slr-1',
+      number: '1',
+      title: 'Least Squares by Hand, and Checking Against numpy.polyfit',
+      description: 'Implement the least squares formulas of Theorem 10.3.1 directly from Sxx and Sxy, then verify against numpy.polyfit and compute R².',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(2)
+n = 30
+x = rng.uniform(0, 10, n)
+y = 2.0 + 1.5 * x + rng.normal(0, 2, n)
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+
+# TODO: compute beta1_hat = Sxy / Sxx and beta0_hat = ybar - beta1_hat * xbar
+beta1_hat = None   # TODO
+beta0_hat = None   # TODO
+print(f"By hand: beta0={beta0_hat}, beta1={beta1_hat}")
+
+# Verify with numpy.polyfit (degree 1)
+beta1_np, beta0_np = np.polyfit(x, y, 1)
+print(f"numpy:   beta0={beta0_np:.4f}, beta1={beta1_np:.4f}")
+
+# TODO: compute R^2 = 1 - SSE/SST
+yhat = beta0_hat + beta1_hat * x if beta1_hat is not None else None
+SSE = None   # TODO: np.sum((y - yhat)**2)
+SST = np.sum((y - ybar) ** 2)
+R2 = None if SSE is None else 1 - SSE / SST
+print(f"R^2 = {R2}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(2)
+n = 30
+x = rng.uniform(0, 10, n)
+y = 2.0 + 1.5 * x + rng.normal(0, 2, n)
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+
+beta1_hat = Sxy / Sxx
+beta0_hat = ybar - beta1_hat * xbar
+print(f"By hand: beta0={beta0_hat:.4f}, beta1={beta1_hat:.4f}")
+
+beta1_np, beta0_np = np.polyfit(x, y, 1)
+print(f"numpy:   beta0={beta0_np:.4f}, beta1={beta1_np:.4f}")
+
+yhat = beta0_hat + beta1_hat * x
+SSE = np.sum((y - yhat) ** 2)
+SST = np.sum((y - ybar) ** 2)
+R2 = 1 - SSE / SST
+print(f"R^2 = {R2:.4f}")
+print("\\nThe hand-computed (beta0, beta1) should match numpy.polyfit to several decimals —")
+print("both are solving exactly the same least-squares minimisation (Theorem 10.3.1).")
+`,
+      expectedHint: 'Your by-hand (β̂₀, β̂₁) should agree with numpy.polyfit to at least 4 decimal places — both minimise the same SSE. R² should be reasonably high (data were generated from a true linear relationship with modest noise).',
+    },
+    {
+      id: 'py-ch10-slr-2',
+      number: '2',
+      title: 'Standardized Residuals: Checking the Fit',
+      description: 'Fit a simple linear regression, compute standardized residuals, and flag any points outside (-3,3) — the diagnostic from Section 9.1 applied to a regression fit.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(9)
+n = 25
+x = rng.uniform(-5, 5, n)
+y = 3 - 0.7 * x + rng.normal(0, 1.5, n)
+y[3] += 12   # inject one outlier
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+beta1_hat = Sxy / Sxx
+beta0_hat = ybar - beta1_hat * xbar
+
+yhat = beta0_hat + beta1_hat * x
+resid = y - yhat
+
+# TODO: compute S^2 = SSE / (n - 2), then standardized residuals resid / S
+SSE = np.sum(resid ** 2)
+S = None   # TODO: np.sqrt(SSE / (n - 2))
+standardized = None   # TODO: resid / S
+
+print("Standardized residuals:", np.round(standardized, 2) if standardized is not None else "TODO")
+outliers = None if standardized is None else np.where(np.abs(standardized) > 3)[0]
+print("Indices flagged as outliers (|r*|>3):", outliers)
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(9)
+n = 25
+x = rng.uniform(-5, 5, n)
+y = 3 - 0.7 * x + rng.normal(0, 1.5, n)
+y[3] += 12
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+beta1_hat = Sxy / Sxx
+beta0_hat = ybar - beta1_hat * xbar
+
+yhat = beta0_hat + beta1_hat * x
+resid = y - yhat
+
+SSE = np.sum(resid ** 2)
+S = np.sqrt(SSE / (n - 2))
+standardized = resid / S
+
+print("Standardized residuals:", np.round(standardized, 2))
+outliers = np.where(np.abs(standardized) > 3)[0]
+print("Indices flagged as outliers (|r*|>3):", outliers)
+print("\\nIndex 3 (the injected outlier) should stand out clearly —")
+print("exactly the kind of point a residual plot exists to catch (Section 9.1 / 10.3).")
+`,
+      expectedHint: 'Index 3 should have a standardized residual well outside (−3,3), flagging it as a clear outlier — all other points should fall inside that band, since they were generated exactly from the assumed linear model.',
+    },
+    {
+      id: 'py-ch10-cmr-1',
+      number: '3',
+      title: 'Correlation, R², and the Slope Test Agree',
+      description: 'Verify numerically that r² = R² for a simple regression, and that the correlation t-test gives the same T statistic as the slope t-test (Theorem 10.3.5).',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(4)
+n = 40
+x = rng.normal(0, 1, n)
+y = 1.2 * x + rng.normal(0, 1, n)
+
+r = np.corrcoef(x, y)[0, 1]
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+beta1_hat = Sxy / Sxx
+beta0_hat = ybar - beta1_hat * xbar
+yhat = beta0_hat + beta1_hat * x
+SSE = np.sum((y - yhat) ** 2)
+SST = np.sum((y - ybar) ** 2)
+R2 = 1 - SSE / SST
+
+print(f"r^2       = {r**2:.6f}")
+print(f"R^2       = {R2:.6f}")
+
+# TODO: correlation t-test statistic T_r = r*sqrt(n-2)/sqrt(1-r^2)
+T_r = None   # TODO
+
+# TODO: slope t-test statistic T_beta = beta1_hat / (S / sqrt(Sxx)), S=sqrt(SSE/(n-2))
+S = np.sqrt(SSE / (n - 2))
+T_beta = None   # TODO
+
+print(f"T_r    = {T_r}")
+print(f"T_beta = {T_beta}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(4)
+n = 40
+x = rng.normal(0, 1, n)
+y = 1.2 * x + rng.normal(0, 1, n)
+
+r = np.corrcoef(x, y)[0, 1]
+
+xbar, ybar = x.mean(), y.mean()
+Sxx = np.sum((x - xbar) ** 2)
+Sxy = np.sum((x - xbar) * (y - ybar))
+beta1_hat = Sxy / Sxx
+beta0_hat = ybar - beta1_hat * xbar
+yhat = beta0_hat + beta1_hat * x
+SSE = np.sum((y - yhat) ** 2)
+SST = np.sum((y - ybar) ** 2)
+R2 = 1 - SSE / SST
+
+print(f"r^2       = {r**2:.6f}")
+print(f"R^2       = {R2:.6f}")
+
+T_r = r * np.sqrt(n - 2) / np.sqrt(1 - r**2)
+
+S = np.sqrt(SSE / (n - 2))
+T_beta = beta1_hat / (S / np.sqrt(Sxx))
+
+print(f"T_r    = {T_r:.6f}")
+print(f"T_beta = {T_beta:.6f}")
+print("\\nr^2 and R^2 match, and T_r equals T_beta -- testing ho:rho=0")
+print("and testing H0:beta1=0 are algebraically the same test.")
+`,
+      expectedHint: 'r² and R² should match to many decimal places, and T_r and T_beta should also match almost exactly — small floating-point differences aside, they are the same statistic derived two ways.',
+    },
+    {
+      id: 'py-ch10-cmr-2',
+      number: '4',
+      title: 'Multicollinearity: Watching Standard Errors Explode',
+      description: 'Fit a multiple regression with two nearly-identical predictors and observe how the coefficient standard errors inflate compared to a version with independent predictors, using the closed-form (XᵀX)⁻¹ formula.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(6)
+n = 200
+x1 = rng.normal(0, 1, n)
+
+def fit_and_se(X, y):
+    XtX_inv = np.linalg.inv(X.T @ X)
+    beta_hat = XtX_inv @ X.T @ y
+    resid = y - X @ beta_hat
+    sigma2_hat = np.sum(resid**2) / (X.shape[0] - X.shape[1])
+    se = np.sqrt(np.diag(sigma2_hat * XtX_inv))
+    return beta_hat, se
+
+# Case A: independent predictors
+x2_indep = rng.normal(0, 1, n)
+y = 1 + 2 * x1 + 0.5 * x2_indep + rng.normal(0, 1, n)
+X_indep = np.column_stack([np.ones(n), x1, x2_indep])
+
+# Case B: near-collinear predictors (x2 almost equals x1)
+x2_collinear = x1 + rng.normal(0, 0.01, n)
+X_collinear = np.column_stack([np.ones(n), x1, x2_collinear])
+
+# TODO: call fit_and_se for both cases
+beta_indep, se_indep = fit_and_se(X_indep, y)      # TODO
+beta_collinear, se_collinear = None, None           # TODO: fit_and_se(X_collinear, y)
+
+print("Independent predictors  -- SE(beta1), SE(beta2):", se_indep[1:])
+print("Collinear predictors    -- SE(beta1), SE(beta2):", se_collinear[1:] if se_collinear is not None else "TODO")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(6)
+n = 200
+x1 = rng.normal(0, 1, n)
+
+def fit_and_se(X, y):
+    XtX_inv = np.linalg.inv(X.T @ X)
+    beta_hat = XtX_inv @ X.T @ y
+    resid = y - X @ beta_hat
+    sigma2_hat = np.sum(resid**2) / (X.shape[0] - X.shape[1])
+    se = np.sqrt(np.diag(sigma2_hat * XtX_inv))
+    return beta_hat, se
+
+x2_indep = rng.normal(0, 1, n)
+y = 1 + 2 * x1 + 0.5 * x2_indep + rng.normal(0, 1, n)
+X_indep = np.column_stack([np.ones(n), x1, x2_indep])
+
+x2_collinear = x1 + rng.normal(0, 0.01, n)
+X_collinear = np.column_stack([np.ones(n), x1, x2_collinear])
+
+beta_indep, se_indep = fit_and_se(X_indep, y)
+beta_collinear, se_collinear = fit_and_se(X_collinear, y)
+
+print("Independent predictors  -- SE(beta1), SE(beta2):", np.round(se_indep[1:], 4))
+print("Collinear predictors    -- SE(beta1), SE(beta2):", np.round(se_collinear[1:], 4))
+print("\\nThe collinear case's standard errors should be dramatically larger --")
+print("with x1 and x2 almost identical, (X'X) is nearly singular, and (X'X)^-1")
+print("blows up the variance of the individual coefficient estimates.")
+`,
+      expectedHint: 'The standard errors in the collinear case should be much larger (often 10-100x) than in the independent case, even though both models fit the same overall data reasonably well — that gap is the signature of multicollinearity.',
+    },
+  ],
+
+  'logistic-regression': [
+    {
+      id: 'py-ch10-logit-1',
+      number: '1',
+      title: 'Fitting a Logistic Regression by Maximum Likelihood',
+      description: 'Generate binary data from a known logistic model (10.5.2), then recover the coefficients by maximizing the Bernoulli log-likelihood directly with gradient ascent — no library shortcuts — and compare against scipy/statsmodels-style fitted values.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(11)
+n = 500
+x = rng.uniform(-4, 4, n)
+true_beta0, true_beta1 = -1.0, 0.8
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+p_true = sigmoid(true_beta0 + true_beta1 * x)
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+def neg_log_likelihood(beta0, beta1):
+    p = sigmoid(beta0 + beta1 * x)
+    p = np.clip(p, 1e-10, 1 - 1e-10)
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+# TODO: gradient ascent on the log-likelihood (gradient descent on negative log-likelihood)
+beta0, beta1 = 0.0, 0.0
+lr = 0.01
+for step in range(2000):
+    p = sigmoid(beta0 + beta1 * x)
+    # TODO: gradient of negative log-likelihood wrt beta0, beta1
+    grad_beta0 = None   # TODO: np.sum(p - y)
+    grad_beta1 = None   # TODO: np.sum((p - y) * x)
+    if grad_beta0 is not None:
+        beta0 -= lr * grad_beta0 / n
+        beta1 -= lr * grad_beta1 / n
+
+print(f"True:      beta0={true_beta0}, beta1={true_beta1}")
+print(f"Estimated: beta0={beta0:.3f}, beta1={beta1:.3f}")
+print(f"Final negative log-likelihood: {neg_log_likelihood(beta0, beta1):.3f}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(11)
+n = 500
+x = rng.uniform(-4, 4, n)
+true_beta0, true_beta1 = -1.0, 0.8
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+p_true = sigmoid(true_beta0 + true_beta1 * x)
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+def neg_log_likelihood(beta0, beta1):
+    p = sigmoid(beta0 + beta1 * x)
+    p = np.clip(p, 1e-10, 1 - 1e-10)
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+beta0, beta1 = 0.0, 0.0
+lr = 0.01
+for step in range(2000):
+    p = sigmoid(beta0 + beta1 * x)
+    grad_beta0 = np.sum(p - y)
+    grad_beta1 = np.sum((p - y) * x)
+    beta0 -= lr * grad_beta0 / n
+    beta1 -= lr * grad_beta1 / n
+
+print(f"True:      beta0={true_beta0}, beta1={true_beta1}")
+print(f"Estimated: beta0={beta0:.3f}, beta1={beta1:.3f}")
+print(f"Final negative log-likelihood: {neg_log_likelihood(beta0, beta1):.3f}")
+print("\\nWith n=500 the MLE should land close to the true (beta0, beta1) --")
+print("this is exactly the numerical optimization statistical software performs")
+print("under the hood, since (10.5.2) has no closed-form MLE.")
+`,
+      expectedHint: 'After 2000 gradient steps, (β̂₀, β̂₁) should land reasonably close to the true (−1.0, 0.8) — logistic regression has no closed-form MLE, so this loop is doing (a simplified version of) exactly what statsmodels or scikit-learn do internally.',
+    },
+    {
+      id: 'py-ch10-logit-2',
+      number: '2',
+      title: 'A Chi-Squared Goodness of Fit Check for a Logistic Model',
+      description: 'Bucket a quantitative predictor into groups, compare observed vs model-predicted success counts in each group, and compute a chi-squared goodness of fit statistic — the same style of check used on the ingot data in Example 10.5.1.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(21)
+n = 2000
+x = rng.uniform(0, 10, n)
+beta0, beta1 = -3.0, 0.7
+p_true = 1 / (1 + np.exp(-(beta0 + beta1 * x)))
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+# Pretend (beta0, beta1) below are already-fitted MLEs (close to the true values)
+fitted_beta0, fitted_beta1 = -2.9, 0.68
+
+n_bins = 8
+edges = np.linspace(x.min(), x.max(), n_bins + 1)
+X2 = 0.0
+for i in range(n_bins):
+    mask = (x >= edges[i]) & (x < edges[i + 1])
+    n_i = mask.sum()
+    if n_i == 0:
+        continue
+    observed_successes = y[mask].sum()
+    # TODO: expected successes = sum of fitted P(Y=1|x) for points in this bin
+    p_fitted = 1 / (1 + np.exp(-(fitted_beta0 + fitted_beta1 * x[mask])))
+    expected_successes = None   # TODO: p_fitted.sum()
+    if expected_successes is not None and 0 < expected_successes < n_i:
+        X2 += (observed_successes - expected_successes) ** 2 / (expected_successes * (1 - expected_successes / n_i))
+
+df = n_bins - 2   # 2 fitted parameters
+p_value = 1 - stats.chi2.cdf(X2, df=df) if X2 else None
+print(f"X^2 = {X2:.4f}" if X2 else "X^2: TODO")
+print(f"P-value = {p_value:.4f}" if p_value is not None else "P-value: TODO")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(21)
+n = 2000
+x = rng.uniform(0, 10, n)
+beta0, beta1 = -3.0, 0.7
+p_true = 1 / (1 + np.exp(-(beta0 + beta1 * x)))
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+fitted_beta0, fitted_beta1 = -2.9, 0.68
+
+n_bins = 8
+edges = np.linspace(x.min(), x.max(), n_bins + 1)
+X2 = 0.0
+for i in range(n_bins):
+    mask = (x >= edges[i]) & (x < edges[i + 1])
+    n_i = mask.sum()
+    if n_i == 0:
+        continue
+    observed_successes = y[mask].sum()
+    p_fitted = 1 / (1 + np.exp(-(fitted_beta0 + fitted_beta1 * x[mask])))
+    expected_successes = p_fitted.sum()
+    if 0 < expected_successes < n_i:
+        X2 += (observed_successes - expected_successes) ** 2 / (expected_successes * (1 - expected_successes / n_i))
+
+df = n_bins - 2
+p_value = 1 - stats.chi2.cdf(X2, df=df)
+print(f"X^2 = {X2:.4f}")
+print(f"P-value = {p_value:.4f}")
+print("\\nBecause the fitted coefficients are close to the true generating model,")
+print("this P-value should typically be unremarkable (no strong evidence of lack of fit) --")
+print("mirroring the P=0.633 goodness-of-fit result for the ingot data in Example 10.5.1.")
+`,
+      expectedHint: 'Since the fitted coefficients are close to the true model used to generate the data, the resulting P-value should typically not be small — no evidence the logistic model fits poorly, the same conclusion reached for the real ingot data in Example 10.5.1.',
+    },
+  ],
+
+  'anova': [
+    {
+      id: 'py-ch10-anova-1',
+      number: '1',
+      title: 'One-Way ANOVA from Scratch',
+      description: 'Compute the between- and within-groups sums of squares, the F statistic, and its P-value for three groups directly from the one-way ANOVA formulas of Section 10.4, then verify against scipy.stats.f_oneway.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(8)
+group1 = rng.normal(10, 2, 12)
+group2 = rng.normal(12, 2, 12)
+group3 = rng.normal(11, 2, 12)
+groups = [group1, group2, group3]
+
+all_vals = np.concatenate(groups)
+grand_mean = all_vals.mean()
+k = len(groups)
+N = len(all_vals)
+
+# TODO: SSB = sum over groups of n_j * (group_mean_j - grand_mean)^2
+SSB = None   # TODO
+# TODO: SSW = sum over groups of sum((values - group_mean_j)^2)
+SSW = None   # TODO
+
+dfb, dfw = k - 1, N - k
+MSB = None if SSB is None else SSB / dfb
+MSW = None if SSW is None else SSW / dfw
+F = None if (MSB is None or MSW is None) else MSB / MSW
+p_value = None if F is None else 1 - stats.f.cdf(F, dfb, dfw)
+
+print(f"SSB={SSB}, SSW={SSW}, F={F}, p={p_value}")
+
+F_scipy, p_scipy = stats.f_oneway(*groups)
+print(f"scipy: F={F_scipy:.4f}, p={p_scipy:.4f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(8)
+group1 = rng.normal(10, 2, 12)
+group2 = rng.normal(12, 2, 12)
+group3 = rng.normal(11, 2, 12)
+groups = [group1, group2, group3]
+
+all_vals = np.concatenate(groups)
+grand_mean = all_vals.mean()
+k = len(groups)
+N = len(all_vals)
+
+SSB = sum(len(g) * (g.mean() - grand_mean) ** 2 for g in groups)
+SSW = sum(np.sum((g - g.mean()) ** 2) for g in groups)
+
+dfb, dfw = k - 1, N - k
+MSB = SSB / dfb
+MSW = SSW / dfw
+F = MSB / MSW
+p_value = 1 - stats.f.cdf(F, dfb, dfw)
+
+print(f"SSB={SSB:.3f}, SSW={SSW:.3f}, F={F:.4f}, p={p_value:.4f}")
+
+F_scipy, p_scipy = stats.f_oneway(*groups)
+print(f"scipy: F={F_scipy:.4f}, p={p_scipy:.4f}")
+print("\\nBy-hand F and p should match scipy.stats.f_oneway almost exactly --")
+print("both implement the same one-way ANOVA decomposition directly.")
+`,
+      expectedHint: 'Your hand-computed F and p should agree with scipy.stats.f_oneway to several decimal places — both are exactly the same F-test. With true means 10, 12, 11 and modest within-group noise, expect F to be modestly large and the P-value to often (though not always, depending on the random seed) fall below 0.05.',
+    },
+    {
+      id: 'py-ch10-anova-2',
+      number: '2',
+      title: 'Multiple Comparisons: Naive vs Bonferroni-Corrected',
+      description: 'Simulate many datasets where all k=5 group means are secretly equal, run all pairwise t-tests, and compare how often the naive 0.05 cutoff vs the Bonferroni-corrected cutoff produces at least one false "significant" pair.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+from itertools import combinations
+
+rng = np.random.default_rng(12)
+k = 5
+n_per_group = 10
+m = len(list(combinations(range(k), 2)))   # number of pairwise comparisons
+alpha = 0.05
+alpha_bonf = alpha / m
+
+N_SIM = 2000
+naive_false_positive = 0
+bonf_false_positive = 0
+
+for _ in range(N_SIM):
+    groups = [rng.normal(0, 1, n_per_group) for _ in range(k)]   # all means truly equal (H0 true)
+    pvals = []
+    for i, j in combinations(range(k), 2):
+        # TODO: two-sample t-test p-value between groups[i] and groups[j]
+        _, p = stats.ttest_ind(groups[i], groups[j])
+        pvals.append(p)
+    pvals = np.array(pvals)
+    # TODO: naive_false_positive += 1 if any p-value < alpha
+    if None:   # TODO: (pvals < alpha).any()
+        naive_false_positive += 1
+    # TODO: bonf_false_positive += 1 if any p-value < alpha_bonf
+    if None:   # TODO: (pvals < alpha_bonf).any()
+        bonf_false_positive += 1
+
+print(f"m={m} comparisons, alpha_bonf={alpha_bonf:.5f}")
+print(f"Naive false-positive rate:      {naive_false_positive / N_SIM:.3f}")
+print(f"Bonferroni false-positive rate: {bonf_false_positive / N_SIM:.3f}")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+from itertools import combinations
+
+rng = np.random.default_rng(12)
+k = 5
+n_per_group = 10
+m = len(list(combinations(range(k), 2)))
+alpha = 0.05
+alpha_bonf = alpha / m
+
+N_SIM = 2000
+naive_false_positive = 0
+bonf_false_positive = 0
+
+for _ in range(N_SIM):
+    groups = [rng.normal(0, 1, n_per_group) for _ in range(k)]
+    pvals = []
+    for i, j in combinations(range(k), 2):
+        _, p = stats.ttest_ind(groups[i], groups[j])
+        pvals.append(p)
+    pvals = np.array(pvals)
+    if (pvals < alpha).any():
+        naive_false_positive += 1
+    if (pvals < alpha_bonf).any():
+        bonf_false_positive += 1
+
+print(f"m={m} comparisons, alpha_bonf={alpha_bonf:.5f}")
+print(f"Naive false-positive rate:      {naive_false_positive / N_SIM:.3f}")
+print(f"Bonferroni false-positive rate: {bonf_false_positive / N_SIM:.3f}")
+print("\\nThe naive rate should land well above 0.05 (often 0.3-0.4 with m=10 comparisons),")
+print("while the Bonferroni-corrected rate should land close to the target 0.05 --")
+print("exactly the family-wise error control the Bonferroni correction promises.")
+`,
+      expectedHint: 'With k=5 groups (m=10 comparisons) and H₀ true for all of them, the naive false-positive rate should land well above 0.05 — often around 0.3–0.4 — while the Bonferroni-corrected rate should be much closer to the target 0.05.',
+    },
+  ],
 };
