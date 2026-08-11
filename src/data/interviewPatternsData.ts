@@ -1317,6 +1317,106 @@ long fibTopDown(int n) {
     order: 13,
     title: 'Monotonic Stack',
     shortDesc: 'Keep a stack in increasing or decreasing order to find next-greater/smaller elements in O(n).',
+    content: {
+      whenToUse: [
+        'Finding the next greater or next smaller element for every position in an array',
+        'Finding left/right boundary points, such as in histogram or rectangle problems',
+        'Any time you would otherwise compare every pair of elements, but only ever need the nearest one satisfying some order relation',
+      ],
+      technique:
+        'Finding the next greater element for every position with brute force means comparing each element against everything to its right — O(n²). A monotonic stack does it in O(n) by keeping only the indices that are still "waiting" for their answer, in strictly increasing or decreasing order of value from bottom to top. Scan left to right: whenever the current element beats whatever is sitting on top of the stack, that top index has just found its answer, so pop it and record the result — and keep popping as long as the new element keeps beating the new top. Only then push the current index. Because every index is pushed exactly once and popped at most once, the whole scan is O(n) even though it looks like a nested loop.',
+      codeTemplates: [
+        {
+          title: 'Monotonic decreasing stack — next greater element',
+          problem:
+            'General shape: keep a stack of indices still waiting for their "next greater element." Whenever a new value beats the top of the stack, that top index has found its answer — pop it and record the result. Whatever survives on the stack once the scan ends has no next greater element at all.',
+          code:
+`int[] nextGreaterElement(int[] nums) {
+    int[] result = new int[nums.length];
+    Arrays.fill(result, -1);
+    Deque<Integer> stack = new ArrayDeque<>(); // indices, values decreasing bottom to top
+
+    for (int i = 0; i < nums.length; i++) {
+        while (!stack.isEmpty() && nums[stack.peek()] < nums[i]) {
+            result[stack.pop()] = nums[i]; // nums[i] is the next greater element for this index
+        }
+        stack.push(i);
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Daily Temperatures',
+          problem:
+            'Daily Temperatures (LeetCode 739): given daily temperatures, find how many days you would have to wait for a warmer day, or 0 if none exists. Exactly the "next greater element" template above, except the value recorded when an index is popped is the gap in days (i - day) rather than the temperature itself.',
+          code:
+`int[] dailyTemperatures(int[] temperatures) {
+    int[] result = new int[temperatures.length];
+    Deque<Integer> stack = new ArrayDeque<>(); // indices of days still waiting for a warmer day
+
+    for (int i = 0; i < temperatures.length; i++) {
+        while (!stack.isEmpty() && temperatures[stack.peek()] < temperatures[i]) {
+            int day = stack.pop();
+            result[day] = i - day; // days until a warmer temperature
+        }
+        stack.push(i);
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Next Greater Element I',
+          problem:
+            'Next Greater Element I (LeetCode 496): for each value in nums1 (a subset of nums2), find its next greater element to the right within nums2, or -1. Run the monotonic stack once over the larger array nums2 to build a value → next-greater lookup table, then answer every query in nums1 with a simple map lookup.',
+          code:
+`int[] nextGreaterElement(int[] nums1, int[] nums2) {
+    Map<Integer, Integer> nextGreater = new HashMap<>();
+    Deque<Integer> stack = new ArrayDeque<>(); // values, decreasing bottom to top
+
+    for (int num : nums2) {
+        while (!stack.isEmpty() && stack.peek() < num) {
+            nextGreater.put(stack.pop(), num);
+        }
+        stack.push(num);
+    }
+
+    int[] result = new int[nums1.length];
+    for (int i = 0; i < nums1.length; i++) {
+        result[i] = nextGreater.getOrDefault(nums1[i], -1);
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Largest Rectangle in Histogram',
+          problem:
+            'Largest Rectangle in Histogram (LeetCode 84): given bar heights, find the area of the largest rectangle that fits under the skyline. An increasing monotonic stack finds, for every bar, exactly how far it stretches left and right before hitting a shorter bar: the moment a shorter bar appears, the stack\'s top bar has its rectangle fully determined — its width runs from just after the new stack top to the current index.',
+          code:
+`int largestRectangleArea(int[] heights) {
+    Deque<Integer> stack = new ArrayDeque<>(); // indices, heights increasing bottom to top
+    int maxArea = 0;
+
+    for (int i = 0; i <= heights.length; i++) {
+        int h = (i == heights.length) ? 0 : heights[i]; // sentinel empties the stack at the end
+        while (!stack.isEmpty() && heights[stack.peek()] > h) {
+            int height = heights[stack.pop()];
+            int width = stack.isEmpty() ? i : i - stack.peek() - 1;
+            maxArea = Math.max(maxArea, height * width);
+        }
+        stack.push(i);
+    }
+    return maxArea;
+}`,
+        },
+      ],
+      questions: [
+        { number: 496, title: 'Next Greater Element I', url: 'https://leetcode.com/problems/next-greater-element-i/' },
+        { number: 503, title: 'Next Greater Element II', url: 'https://leetcode.com/problems/next-greater-element-ii/' },
+        { number: 739, title: 'Daily Temperatures', url: 'https://leetcode.com/problems/daily-temperatures/' },
+        { number: 84, title: 'Largest Rectangle in Histogram', url: 'https://leetcode.com/problems/largest-rectangle-in-histogram/' },
+      ],
+      vizId: 'viz-monotonic-stack',
+    },
   },
   {
     id: 'prefix-sum',
