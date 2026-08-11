@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck, Shuffle, EyeOff } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck, Shuffle, EyeOff, Code2 } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
+import { interviewPatterns } from '../data/interviewPatternsData';
 
 interface Topic {
   title: string;
@@ -75,6 +76,15 @@ const HubCard: React.FC<HubCardProps> = ({ title, desc, to, isLegacy = false, is
 };
 
 const CATEGORIES: Category[] = [
+  {
+    id: 'interview-patterns', label: 'Interview Patterns', sectionTitle: 'Programming Interview Patterns', icon: Code2,
+    topics: interviewPatterns.map((p) => ({
+      title: `${p.order}. ${p.title}`,
+      desc: p.shortDesc,
+      to: `/interview/${p.id}`,
+      isLegacy: !!p.content,
+    })),
+  },
   {
     id: 'concepts', label: 'Probability Concepts', icon: BookOpen,
     topics: [
@@ -341,7 +351,7 @@ export const Hub: React.FC = () => {
             Mathematics &amp;<br /><span>Statistics</span> Visualised
           </h1>
           <p className="hub-hero__subtitle">
-            Explore probability distributions, statistical algorithms, and machine learning concepts through hands-on interactive visualisations.
+            Explore probability distributions, statistical algorithms, and machine learning concepts — plus programming interview patterns — through hands-on interactive visualisations.
           </p>
 
           <div className="hub-search">
@@ -369,15 +379,15 @@ export const Hub: React.FC = () => {
           {!isSearching && (
             <div className="hub-hero__stats">
               <div className="hub-stat">
-                <span className="hub-stat__number">48+</span>
+                <span className="hub-stat__number">62+</span>
                 <span className="hub-stat__label">Topics</span>
               </div>
               <div className="hub-stat">
-                <span className="hub-stat__number">9</span>
+                <span className="hub-stat__number">10</span>
                 <span className="hub-stat__label">Categories</span>
               </div>
               <div className="hub-stat">
-                <span className="hub-stat__number">44+</span>
+                <span className="hub-stat__number">45+</span>
                 <span className="hub-stat__label">React Modules</span>
               </div>
             </div>

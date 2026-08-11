@@ -17,6 +17,7 @@ import { Ch9ConceptPage } from './pages/Ch9ConceptPage';
 import { Ch10ConceptPage } from './pages/Ch10ConceptPage';
 import { Ch11ConceptPage } from './pages/Ch11ConceptPage';
 import { Ch12ConceptPage } from './pages/Ch12ConceptPage';
+import { InterviewPatternPage } from './pages/InterviewPatternPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -73,6 +74,9 @@ export const App: React.FC = () => {
 
               {/* Advanced Topic — Hidden Markov Models (Chapter 12) */}
               <Route path="/ch12/:id" element={<ProtectedRoute><Ch12ConceptPage /></ProtectedRoute>} />
+
+              {/* Programming Interview Patterns (independent track, no unlock gate) */}
+              <Route path="/interview/:id" element={<InterviewPatternPage />} />
 
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />
