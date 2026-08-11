@@ -1145,6 +1145,81 @@ long fibTopDown(int n) {
     order: 11,
     title: 'Bit Manipulation',
     shortDesc: 'AND, OR, XOR, and shifts solve missing-number and no-arithmetic-addition problems in O(1) space.',
+    content: {
+      whenToUse: [
+        'Counting the number of 0 or 1 bits in a number',
+        'Adding two numbers without using the + or - operators',
+        'Finding a missing or unpaired number in a list',
+      ],
+      technique:
+        'Most bit-manipulation questions lean on the same small handful of operators — AND, OR, NOT, XOR, and the shifts — combined in a clever way rather than anything conceptually deep. XOR is the one with the most interview mileage: x ^ x = 0 and x ^ 0 = x, so XOR-ing a value with itself always cancels it out. That single fact is what lets you find a missing or unpaired number in O(1) extra space (every paired-up value cancels, leaving only the odd one out), and combined with AND and a left shift, it is also enough to add two integers together without ever touching + or -. These questions are worth knowing but relatively rare in interviews, so it is more valuable to be comfortable with the core operators than to memorize every trick.',
+      codeTemplates: [
+        {
+          title: 'The core bitwise operators',
+          problem:
+            'General shape: the handful of operators every bit-manipulation problem is built from. XOR is the one with the most surprising applications — x ^ x = 0 and x ^ 0 = x — which is exactly what makes it useful for finding a missing number and for adding two integers without + or -.',
+          code:
+`void bitwiseOperators(int a, int b) {
+    int and = a & b;        // AND: 1 where both bits are 1
+    int or = a | b;         // OR: 1 where either bit is 1
+    int xor = a ^ b;        // XOR: 1 where exactly one bit is 1
+    int not = ~a;           // NOT: flips every bit (~a == -a - 1)
+    int leftShift = a << 1; // multiply by 2
+    int rightShift = a >> 1; // divide by 2 (sign-preserving)
+    int lastBit = a & 1;    // isolate the least significant bit
+}`,
+        },
+        {
+          title: 'Worked example — Number of 1 Bits',
+          problem:
+            'Number of 1 Bits (LeetCode 191): count how many bits in an integer\'s binary representation are 1. n & (n - 1) is a classic trick: subtracting 1 flips every bit up to and including the lowest set bit, so ANDing that with the original number clears exactly that one bit. Repeating this exactly as many times as there are 1 bits is faster than checking all 32 bit positions one by one.',
+          code:
+`int hammingWeight(int n) {
+    int count = 0;
+    while (n != 0) {
+        n = n & (n - 1); // clears the lowest set bit
+        count++;
+    }
+    return count;
+}`,
+        },
+        {
+          title: 'Worked example — Missing Number',
+          problem:
+            'Missing Number (LeetCode 268): given n distinct numbers from 0 to n, find the one that is missing. XOR every index 0..n together with every value in the array; since a ^ a = 0, every number that appears in both the index range and the array cancels out in pairs, leaving only the one number with no pair — the missing one.',
+          code:
+`int missingNumber(int[] nums) {
+    int result = nums.length; // account for index n, which has no array slot
+    for (int i = 0; i < nums.length; i++) {
+        result ^= i ^ nums[i];
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Sum of Two Integers',
+          problem:
+            'Sum of Two Integers (LeetCode 371): compute a + b without using + or -. XOR adds two bits while ignoring any carry (1+1 "overflows" to 0), and AND followed by a left shift produces exactly the carry bits that XOR dropped. Keep folding that carry back in with XOR until there is no carry left.',
+          code:
+`int getSum(int a, int b) {
+    while (b != 0) {
+        int carry = (a & b) << 1; // bits that overflow into the next position
+        a = a ^ b;                // add without carrying
+        b = carry;                // add the carry in on the next pass
+    }
+    return a;
+}`,
+        },
+      ],
+      questions: [
+        { number: 191, title: 'Number of 1 Bits', url: 'https://leetcode.com/problems/number-of-1-bits/' },
+        { number: 190, title: 'Reverse Bits', url: 'https://leetcode.com/problems/reverse-bits/' },
+        { number: 268, title: 'Missing Number', url: 'https://leetcode.com/problems/missing-number/' },
+        { number: 371, title: 'Sum of Two Integers', url: 'https://leetcode.com/problems/sum-of-two-integers/' },
+        { number: 338, title: 'Counting Bits', url: 'https://leetcode.com/problems/counting-bits/' },
+      ],
+      vizId: 'viz-bit-manipulation',
+    },
   },
   {
     id: 'overlapping-intervals',
