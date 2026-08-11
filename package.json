@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/export-exercises.mjs && tsc && vite build",
+    "build": "node scripts/export-exercises.mjs && node scripts/compile-java-runnables.mjs && tsc && vite build",
     "export:api": "node scripts/export-exercises.mjs",
+    "compile:java": "node scripts/compile-java-runnables.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

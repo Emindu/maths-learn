@@ -147,7 +147,7 @@ const CodeBlock: React.FC<{ template: CodeTemplate }> = ({ template }) => {
       </Highlight>
 
       {template.runnable && (
-        <JavaCodeRunner code={template.code} mainClass={template.runnable.mainClass} />
+        <JavaCodeRunner mainClass={template.runnable.mainClass} />
       )}
     </div>
   );

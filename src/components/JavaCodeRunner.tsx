@@ -3,23 +3,23 @@ import { Play, Loader, RotateCcw } from 'lucide-react';
 import { useCheerpj } from '../hooks/useCheerpj';
 
 interface JavaCodeRunnerProps {
-  code: string;
   mainClass: string;
 }
 
-// Runs a complete Java program in the browser via CheerpJ (a WebAssembly JVM).
-// Compiles with the runtime's bundled javac, then executes the compiled class,
-// capturing System.out/System.err into an output pane — the Java-side
-// equivalent of PythonExercisePanel's Pyodide-backed runner.
-export const JavaCodeRunner: React.FC<JavaCodeRunnerProps> = ({ code, mainClass }) => {
-  const { isLoading, isReady, error, compileAndRun, output, running, clearOutput } = useCheerpj();
+// Runs a Java program in the browser via CheerpJ (a WebAssembly JVM). The
+// program was already compiled at build time (scripts/compile-java-runnables.mjs)
+// and shipped as a static .class file; this just executes it and captures
+// System.out/System.err into an output pane — the Java-side equivalent of
+// PythonExercisePanel's Pyodide-backed runner.
+export const JavaCodeRunner: React.FC<JavaCodeRunnerProps> = ({ mainClass }) => {
+  const { isLoading, isReady, error, runCompiled, output, running, clearOutput } = useCheerpj();
   const [hasRun, setHasRun] = useState(false);
 
   const canRun = isReady && !running;
 
   const handleRun = async () => {
     setHasRun(true);
-    await compileAndRun(code, mainClass);
+    await runCompiled(mainClass);
   };
 
   const handleReset = () => {
@@ -80,7 +80,7 @@ export const JavaCodeRunner: React.FC<JavaCodeRunnerProps> = ({ code, mainClass 
             fontFamily: 'var(--font-mono, monospace)', fontSize: '0.82rem', lineHeight: 1.6,
             whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '260px', overflowY: 'auto',
           }}>
-            {running ? 'Compiling and running…' : (output || '(no output)')}
+            {running ? 'Running…' : (output || '(no output)')}
           </pre>
         </div>
       )}
