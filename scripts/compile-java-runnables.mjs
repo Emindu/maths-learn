@@ -62,7 +62,13 @@ for (const r of runnables) {
   await writeFile(sourceFile, r.code);
 
   try {
-    execFileSync('javac', ['-d', workDir, sourceFile], { stdio: 'pipe' });
+    // CheerpJ 4.3 supports class files up to Java 17 (major version 61); a
+    // real-browser test confirmed 21's default output (major version 65) is
+    // rejected outright ("Required Java version 21, but CheerpJ only
+    // supports up to Java 17"), even though CheerpJ ran the class file fine
+    // once it found it — so --release pins the bytecode target explicitly
+    // rather than following whatever JDK happens to be on the build machine.
+    execFileSync('javac', ['--release', '17', '-d', workDir, sourceFile], { stdio: 'pipe' });
   } catch (err) {
     failed = true;
     console.error(`✗ Failed to compile ${r.mainClass} (${r.patternId} — "${r.title}")`);
