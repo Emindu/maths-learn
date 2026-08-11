@@ -575,6 +575,114 @@ private int lowerBound(int[] nums, int target) {
     order: 6,
     title: 'Top K Elements',
     shortDesc: 'A size-K heap finds the k largest/smallest/most-frequent elements in O(n log k), no full sort needed.',
+    content: {
+      whenToUse: [
+        'Finding the k largest or k smallest elements in a collection',
+        'Finding the kth largest or kth smallest element specifically',
+        'Finding the k most (or least) frequent elements',
+      ],
+      technique:
+        'Sorting everything first and taking the top k works, but costs O(n log n). A heap does better: push and pop cost only O(log k) when the heap never grows past size k, so scanning n elements costs O(n log k) overall — noticeably cheaper than a full sort once k is much smaller than n. To find the k largest elements, counter-intuitively use a MIN-heap of size k: push every element, and whenever the heap grows past k, pop the minimum. Whatever survives is always the k largest seen so far, because the smallest of the current candidates is exactly what gets evicted the moment a fuller set exists. Symmetrically, use a MAX-heap of size k to find the k smallest.',
+      codeTemplates: [
+        {
+          title: 'Top K largest elements via a size-k min-heap',
+          problem:
+            'General shape: maintain a min-heap capped at size k while scanning. Push every element; once the heap exceeds k, pop the minimum. The heap always holds exactly the k largest elements seen so far, and its root is the smallest of them — i.e. the kth largest overall once the whole input has been scanned.',
+          code:
+`int[] topKLargest(int[] arr, int k) {
+    PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+    for (int num : arr) {
+        minHeap.offer(num);
+        if (minHeap.size() > k) {
+            minHeap.poll();
+        }
+    }
+
+    int[] result = new int[k];
+    for (int i = k - 1; i >= 0; i--) {
+        result[i] = minHeap.poll();
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Kth Largest Element in an Array',
+          problem:
+            'Kth Largest Element in an Array (LeetCode 215): given an unsorted array, find the kth largest element. Maintain a min-heap capped at size k; after scanning every element, the heap\'s root — its current minimum — is exactly the kth largest value in the whole array.',
+          code:
+`int findKthLargest(int[] nums, int k) {
+    PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+    for (int num : nums) {
+        minHeap.offer(num);
+        if (minHeap.size() > k) {
+            minHeap.poll();
+        }
+    }
+    return minHeap.peek();
+}`,
+        },
+        {
+          title: 'Worked example — Top K Frequent Elements',
+          problem:
+            'Top K Frequent Elements (LeetCode 347): given an array, return its k most frequent elements. Count occurrences with a hashmap, then run the exact same size-k min-heap trick — only this time the heap orders candidates by frequency instead of by value.',
+          code:
+`int[] topKFrequent(int[] nums, int k) {
+    Map<Integer, Integer> freq = new HashMap<>();
+    for (int num : nums) {
+        freq.merge(num, 1, Integer::sum);
+    }
+
+    PriorityQueue<Integer> minHeap = new PriorityQueue<>(
+        (a, b) -> freq.get(a) - freq.get(b)
+    );
+    for (int num : freq.keySet()) {
+        minHeap.offer(num);
+        if (minHeap.size() > k) {
+            minHeap.poll();
+        }
+    }
+
+    int[] result = new int[k];
+    for (int i = k - 1; i >= 0; i--) {
+        result[i] = minHeap.poll();
+    }
+    return result;
+}`,
+        },
+        {
+          title: 'Worked example — Merge k Sorted Lists',
+          problem:
+            'Merge k Sorted Lists (LeetCode 23): merge k sorted linked lists into a single sorted list. Keep a min-heap holding the current head of each list (at most k nodes at a time); repeatedly pop the smallest, append it to the output, and push its successor back in. That is an O(N log k) merge instead of scanning all k heads by hand at every step.',
+          code:
+`ListNode mergeKLists(ListNode[] lists) {
+    PriorityQueue<ListNode> minHeap = new PriorityQueue<>(
+        (a, b) -> a.val - b.val
+    );
+    for (ListNode node : lists) {
+        if (node != null) minHeap.offer(node);
+    }
+
+    ListNode dummy = new ListNode(0);
+    ListNode tail = dummy;
+    while (!minHeap.isEmpty()) {
+        ListNode smallest = minHeap.poll();
+        tail.next = smallest;
+        tail = tail.next;
+        if (smallest.next != null) {
+            minHeap.offer(smallest.next);
+        }
+    }
+    return dummy.next;
+}`,
+        },
+      ],
+      questions: [
+        { number: 215, title: 'Kth Largest Element in an Array', url: 'https://leetcode.com/problems/kth-largest-element-in-an-array/' },
+        { number: 347, title: 'Top K Frequent Elements', url: 'https://leetcode.com/problems/top-k-frequent-elements/' },
+        { number: 23, title: 'Merge k Sorted Lists', url: 'https://leetcode.com/problems/merge-k-sorted-lists/' },
+      ],
+      vizId: 'viz-top-k-elements',
+    },
   },
   {
     id: 'tree-traversal',
