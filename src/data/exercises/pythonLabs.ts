@@ -5067,4 +5067,110 @@ plt.show()
 print(f"SSB={SSB:.3f}, SSW={SSW:.3f}, F={F:.4f}, P-value={p_value:.5f}")`,
     },
   ],
+
+  'simple-random-walk': [
+    {
+      id: 'ch11-srw-lab-1',
+      title: "Random Walk Paths and the Gambler's Ruin Boundary",
+      description: 'Simulate several simple random walk paths until each hits 0 or the target c, colouring paths by whether they ended in ruin or success, and compare the empirical success rate against Theorem 11.1.2.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(3)
+a, c, p = 20, 40, 0.48
+n_paths = 12
+
+def simulate_path(a, c, p, rng, max_steps=2000):
+    path = [a]
+    x = a
+    for _ in range(max_steps):
+        if x <= 0 or x >= c:
+            break
+        x += 1 if rng.uniform() < p else -1
+        path.append(x)
+    return path
+
+paths = [simulate_path(a, c, p, rng) for _ in range(n_paths)]
+successes = sum(1 for path in paths if path[-1] >= c)
+
+fig, ax = plt.subplots(figsize=(10, 5.5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+
+for path in paths:
+    color = '#34d399' if path[-1] >= c else '#f87171'
+    ax.plot(range(len(path)), path, color=color, lw=1.3, alpha=0.75)
+
+ax.axhline(0, color='#94a3b8', lw=1.5, ls='--')
+ax.axhline(c, color='#94a3b8', lw=1.5, ls='--')
+ax.set_xlabel('bet number n', color='#94a3b8')
+ax.set_ylabel('fortune X_n', color='#94a3b8')
+ax.set_title(f"{n_paths} Gambler's Ruin Paths (a={a}, c={c}, p={p}) -- {successes}/{n_paths} reached c", color='white')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+q = 1 - p
+ratio = q / p
+exact = (1 - ratio**a) / (1 - ratio**c)
+plt.tight_layout()
+plt.show()
+print(f"Empirical success rate: {successes}/{n_paths} = {successes/n_paths:.3f}")
+print(f"Exact P(reach c before 0) from Theorem 11.1.2: {exact:.3f}")`,
+    },
+  ],
+
+  'markov-chains': [
+    {
+      id: 'ch11-mc-lab-1',
+      title: 'Watching a Markov Chain Converge to Its Stationary Distribution',
+      description: 'Track the distribution v_n = v_0 A^n step by step for several different starting distributions, plotting each state\'s probability over time and overlaying the exact stationary distribution from Example 11.2.16.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+P = np.array([
+    [0.5,  0.25, 0.25],
+    [1/3,  1/3,  1/3],
+    [0,    0.25, 0.75],
+])
+pi_exact = np.array([2/11, 3/11, 6/11])
+
+starts = {
+    'start at state 1': np.array([1.0, 0.0, 0.0]),
+    'start at state 3': np.array([0.0, 0.0, 1.0]),
+    'start uniform':    np.array([1/3, 1/3, 1/3]),
+}
+
+n_steps = 15
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), facecolor='#0f172a', sharey=True)
+colors = ['#38bdf8', '#818cf8', '#fb923c']
+
+for ax, (label, v0) in zip(axes, starts.items()):
+    ax.set_facecolor('#1e293b')
+    history = [v0]
+    v = v0.copy()
+    for _ in range(n_steps):
+        v = v @ P
+        history.append(v)
+    history = np.array(history)
+    for state in range(3):
+        ax.plot(range(n_steps + 1), history[:, state], color=colors[state], lw=2, label=f'state {state+1}')
+        ax.axhline(pi_exact[state], color=colors[state], lw=1, ls=':', alpha=0.6)
+    ax.set_title(label, color='white', fontsize=10)
+    ax.set_xlabel('step n', color='#94a3b8')
+    ax.tick_params(colors='#94a3b8')
+    for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+axes[0].set_ylabel('P(X_n = state)', color='#94a3b8')
+axes[0].legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=8)
+plt.suptitle('Convergence to the Stationary Distribution (dotted = exact π)', color='white', fontsize=13)
+plt.tight_layout()
+plt.show()
+print("Stationary distribution (Example 11.2.16):", pi_exact)`,
+    },
+  ],
 };

@@ -15,6 +15,7 @@ import { Ch7ConceptPage } from './pages/Ch7ConceptPage';
 import { Ch8ConceptPage } from './pages/Ch8ConceptPage';
 import { Ch9ConceptPage } from './pages/Ch9ConceptPage';
 import { Ch10ConceptPage } from './pages/Ch10ConceptPage';
+import { Ch11ConceptPage } from './pages/Ch11ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -65,6 +66,9 @@ export const App: React.FC = () => {
 
               {/* Relationships Among Variables (Chapter 10) */}
               <Route path="/ch10/:id" element={<ProtectedRoute><Ch10ConceptPage /></ProtectedRoute>} />
+
+              {/* Advanced Topic — Stochastic Processes (Chapter 11) */}
+              <Route path="/ch11/:id" element={<ProtectedRoute><Ch11ConceptPage /></ProtectedRoute>} />
 
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />

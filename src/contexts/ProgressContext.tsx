@@ -67,6 +67,9 @@ export const TOPIC_SEQUENCE = [
   '/ch10/anova',
   '/ch10/logistic-regression',
 
+  '/ch11/simple-random-walk',
+  '/ch11/markov-chains',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',

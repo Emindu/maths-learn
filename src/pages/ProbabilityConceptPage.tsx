@@ -129,6 +129,12 @@ import {
   VizMultipleComparisons,
   VizLogisticRegression,
 } from '../visualizations/VizRelationshipsAmongVariables';
+import {
+  VizRandomWalkFortune,
+  VizGamblersRuinScale,
+  VizMarkovChainSteps,
+  VizStationaryBalance,
+} from '../visualizations/VizStochasticProcesses';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -258,6 +264,11 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch10-anova':                 VizANOVAGroups,
   'viz-ch10-multiple-comparisons':  VizMultipleComparisons,
   'viz-ch10-logistic':              VizLogisticRegression,
+  // Chapter 11 — Stochastic Processes
+  'viz-ch11-random-walk':           VizRandomWalkFortune,
+  'viz-ch11-gamblers-ruin':         VizGamblersRuinScale,
+  'viz-ch11-markov-steps':          VizMarkovChainSteps,
+  'viz-ch11-stationary-balance':    VizStationaryBalance,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,
