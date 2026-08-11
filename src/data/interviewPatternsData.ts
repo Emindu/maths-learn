@@ -8,6 +8,14 @@ export interface CodeTemplate {
   title: string;
   problem: string;
   code: string;
+  /**
+   * Present once `code` is a complete, compilable Java program (a public class
+   * with a main() that invokes the technique on sample input and prints the
+   * result) rather than a bare method. `mainClass` must match the public class
+   * name exactly — it's passed to the in-browser Java runtime (CheerpJ) as both
+   * the file name and the class to run.
+   */
+  runnable?: { mainClass: string };
 }
 
 export interface LeetCodeQuestion {
@@ -137,22 +145,35 @@ export const interviewPatterns: InterviewPattern[] = [
           title: 'Worked example — Longest Substring Without Repeating Characters',
           problem:
             'Longest Substring Without Repeating Characters (LeetCode 3): given a string s, find the length of the longest substring that contains no repeated characters. This is a direct instance of the "longest valid window" template above — the window is valid exactly while it contains no duplicate character — and it is the exact algorithm the dynamic-window visualization runs step by step.',
+          runnable: { mainClass: 'SlidingWindowDemo' },
           code:
-`int lengthOfLongestSubstring(String s) {
-    Set<Character> window = new HashSet<>();
-    int i = 0;
-    int maxLength = 0;
+`import java.util.HashSet;
+import java.util.Set;
 
-    for (int j = 0; j < s.length(); j++) {
-        char c = s.charAt(j);
-        while (window.contains(c)) {
-            window.remove(s.charAt(i));
-            i++;
+public class SlidingWindowDemo {
+    static int lengthOfLongestSubstring(String s) {
+        Set<Character> window = new HashSet<>();
+        int i = 0;
+        int maxLength = 0;
+
+        for (int j = 0; j < s.length(); j++) {
+            char c = s.charAt(j);
+            while (window.contains(c)) {
+                window.remove(s.charAt(i));
+                i++;
+            }
+            window.add(c);
+            maxLength = Math.max(maxLength, j - i + 1);
         }
-        window.add(c);
-        maxLength = Math.max(maxLength, j - i + 1);
+        return maxLength;
     }
-    return maxLength;
+
+    public static void main(String[] args) {
+        String s = "abcabcbb";
+        int result = lengthOfLongestSubstring(s);
+        System.out.println("Input: \\"" + s + "\\"");
+        System.out.println("Longest substring without repeating characters has length " + result);
+    }
 }`,
         },
       ],

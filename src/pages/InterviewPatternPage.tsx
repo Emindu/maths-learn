@@ -21,6 +21,7 @@ import { VizBitManipulation } from '../visualizations/VizBitManipulation';
 import { VizOverlappingIntervals } from '../visualizations/VizOverlappingIntervals';
 import { VizMonotonicStack } from '../visualizations/VizMonotonicStack';
 import { VizPrefixSum } from '../visualizations/VizPrefixSum';
+import { JavaCodeRunner } from '../components/JavaCodeRunner';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -75,7 +76,18 @@ const CodeBlock: React.FC<{ template: CodeTemplate }> = ({ template }) => {
   };
   return (
     <div style={{ marginBottom: 'var(--space-28)' }}>
-      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>{template.title}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text)' }}>{template.title}</div>
+        {template.runnable && (
+          <span style={{
+            fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+            color: '#22c55e', background: 'color-mix(in srgb, #22c55e 12%, transparent)',
+            border: '1px solid color-mix(in srgb, #22c55e 35%, transparent)', borderRadius: '4px', padding: '2px 7px',
+          }}>
+            ▶ Runnable
+          </span>
+        )}
+      </div>
 
       {template.problem && (
         <div style={{
@@ -133,6 +145,10 @@ const CodeBlock: React.FC<{ template: CodeTemplate }> = ({ template }) => {
           </pre>
         )}
       </Highlight>
+
+      {template.runnable && (
+        <JavaCodeRunner code={template.code} mainClass={template.runnable.mainClass} />
+      )}
     </div>
   );
 };
