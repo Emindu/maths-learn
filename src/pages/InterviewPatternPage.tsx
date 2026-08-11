@@ -45,9 +45,28 @@ const CodeBlock: React.FC<{ template: CodeTemplate }> = ({ template }) => {
     }
   };
   return (
-    <div style={{ marginBottom: 'var(--space-20)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>{template.title}</div>
+    <div style={{ marginBottom: 'var(--space-28)' }}>
+      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>{template.title}</div>
+
+      {template.problem && (
+        <div style={{
+          borderLeft: '3px solid var(--color-primary)',
+          background: 'var(--color-surface)',
+          borderRadius: '0 8px 8px 0',
+          padding: '10px 14px',
+          marginBottom: '10px',
+        }}>
+          <div style={{
+            fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
+            color: 'var(--color-primary)', marginBottom: '4px',
+          }}>
+            Problem
+          </div>
+          <div style={{ fontSize: '0.86rem', color: 'var(--color-text)', lineHeight: 1.6 }}>{template.problem}</div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
         <button
           onClick={copy}
           className="btn btn--outline btn--sm"

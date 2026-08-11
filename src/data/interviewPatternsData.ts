@@ -6,6 +6,7 @@
 
 export interface CodeTemplate {
   title: string;
+  problem: string;
   code: string;
 }
 
@@ -67,6 +68,8 @@ export const interviewPatterns: InterviewPattern[] = [
       codeTemplates: [
         {
           title: 'Dynamic window — shortest valid window',
+          problem:
+            'General shape: "find the shortest contiguous subarray/substring satisfying condition X." Concrete case — Minimum Window Substring (LeetCode 76): given strings s and t, find the smallest substring of s that contains every character of t (including duplicates). Expand j until the window covers t, then shrink i as far as possible while it still does, recording the smallest valid window seen.',
           code:
 `int shortestWindow(int[] nums) {
     int i = 0;
@@ -87,6 +90,8 @@ export const interviewPatterns: InterviewPattern[] = [
         },
         {
           title: 'Dynamic window — longest valid window',
+          problem:
+            'General shape: "find the longest contiguous subarray/substring satisfying condition X." Concrete case — Longest Repeating Character Replacement (LeetCode 424): given a string s and an integer k, you may change up to k characters in any substring to any other character; find the length of the longest substring you can turn into all-one-character. A window is valid while (window length − count of its most frequent character) ≤ k; shrink from the left whenever that breaks.',
           code:
 `int longestWindow(int[] nums) {
     int i = 0;
@@ -107,6 +112,8 @@ export const interviewPatterns: InterviewPattern[] = [
         },
         {
           title: 'Fixed window of size k',
+          problem:
+            'General shape: "evaluate every contiguous window of a fixed length k." Concrete case — Substrings of Size Three with Distinct Characters (LeetCode 1876): given a string s, count how many contiguous substrings of length 3 have all distinct characters. Slide a window of exactly 3 characters across s one step at a time and check each one — this is the demo shown in the visualization above.',
           code:
 `int fixedWindow(int[] nums, int k) {
     int i = 0;
@@ -128,6 +135,8 @@ export const interviewPatterns: InterviewPattern[] = [
         },
         {
           title: 'Worked example — Longest Substring Without Repeating Characters',
+          problem:
+            'Longest Substring Without Repeating Characters (LeetCode 3): given a string s, find the length of the longest substring that contains no repeated characters. This is a direct instance of the "longest valid window" template above — the window is valid exactly while it contains no duplicate character — and it is the exact algorithm the dynamic-window visualization runs step by step.',
           code:
 `int lengthOfLongestSubstring(String s) {
     Set<Character> window = new HashSet<>();
