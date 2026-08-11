@@ -6202,4 +6202,456 @@ print("for every pair of states, which by Theorem 11.2.6 guarantees pi is statio
       expectedHint: 'No mismatches should print — for every pair (i,j), πᵢP[i,j] should exactly equal πⱼP[j,i] to within floating-point precision, numerically confirming the reversibility argument used to prove Theorem 11.3.3.',
     },
   ],
+
+  'hmm-markov-chains': [
+    {
+      id: 'py-ch12-mc-1',
+      number: '1',
+      title: 'Probability of a Weather Sequence',
+      description: 'Implement the direct probability computation for a fully-observed Markov chain (Example 12.1.1\'s weather chain), then use it to reproduce the "sticky COLD" comparison from the Section 12.1 prediction box.',
+      starterCode:
+`import numpy as np
+
+states = ['HOT', 'WARM', 'COLD']
+idx = {s: i for i, s in enumerate(states)}
+pi = np.array([0.1, 0.2, 0.7])
+A = np.array([
+    [0.6, 0.3, 0.1],   # from HOT
+    [0.4, 0.5, 0.1],   # from WARM
+    [0.1, 0.1, 0.8],   # from COLD
+])
+
+def sequence_probability(seq, pi, A, idx):
+    # TODO: multiply pi[first state] by A[prev][cur] for each subsequent state
+    p = pi[idx[seq[0]]]
+    for prev, cur in zip(seq, seq[1:]):
+        p *= None   # TODO: A[idx[prev], idx[cur]]
+    return p
+
+seq1 = ['COLD', 'COLD', 'COLD', 'COLD']
+seq2 = ['HOT', 'WARM', 'COLD', 'HOT']
+
+p1 = sequence_probability(seq1, pi, A, idx)
+p2 = sequence_probability(seq2, pi, A, idx)
+print(f"P({seq1}) = {p1}")
+print(f"P({seq2}) = {p2}")
+print(f"ratio = {p1 / p2:.1f}x" if p2 else "p2 is zero")
+`,
+      solution:
+`import numpy as np
+
+states = ['HOT', 'WARM', 'COLD']
+idx = {s: i for i, s in enumerate(states)}
+pi = np.array([0.1, 0.2, 0.7])
+A = np.array([
+    [0.6, 0.3, 0.1],
+    [0.4, 0.5, 0.1],
+    [0.1, 0.1, 0.8],
+])
+
+def sequence_probability(seq, pi, A, idx):
+    p = pi[idx[seq[0]]]
+    for prev, cur in zip(seq, seq[1:]):
+        p *= A[idx[prev], idx[cur]]
+    return p
+
+seq1 = ['COLD', 'COLD', 'COLD', 'COLD']
+seq2 = ['HOT', 'WARM', 'COLD', 'HOT']
+
+p1 = sequence_probability(seq1, pi, A, idx)
+p2 = sequence_probability(seq2, pi, A, idx)
+print(f"P({seq1}) = {p1}")
+print(f"P({seq2}) = {p2}")
+print(f"ratio = {p1 / p2:.1f}x")
+print("\\nThe all-COLD run should come out roughly 100x+ more probable,")
+print("matching the 'sticky COLD state' discussion in Section 12.1.")
+`,
+      expectedHint: 'P(COLD COLD COLD COLD) should be about 0.358 and P(HOT WARM COLD HOT) about 0.00003 — a ratio in the thousands, confirming how strongly a_{COLD,COLD}=0.8 favours runs of the same weather.',
+    },
+  ],
+
+  'hidden-markov-model': [
+    {
+      id: 'py-ch12-hmm-1',
+      number: '1',
+      title: 'The Ice-Cream HMM and P(O,Q)',
+      description: 'Represent the ice-cream HMM (Example 12.2.1) with NumPy arrays, then compute the joint probability P(O,Q) for several candidate hidden paths and confirm which one is most probable among the candidates tried.',
+      starterCode:
+`import numpy as np
+
+states = ['COLD', 'HOT']
+idx = {s: i for i, s in enumerate(states)}
+pi = np.array([0.2, 0.8])
+A = np.array([
+    [0.5, 0.5],   # from COLD
+    [0.4, 0.6],   # from HOT
+])
+B = np.array([
+    [0.5, 0.4, 0.1],   # COLD: P(1), P(2), P(3)
+    [0.2, 0.4, 0.4],   # HOT:  P(1), P(2), P(3)
+])
+
+def joint_probability(obs, hidden, pi, A, B, idx):
+    q = [idx[h] for h in hidden]
+    # TODO: p = pi[q[0]] * B[q[0], obs[0]-1]
+    p = None
+    for t in range(1, len(obs)):
+        p *= None   # TODO: A[q[t-1], q[t]] * B[q[t], obs[t]-1]
+    return p
+
+obs = [3, 1, 3]
+candidates = [
+    ['HOT', 'HOT', 'COLD'],
+    ['COLD', 'COLD', 'COLD'],
+    ['HOT', 'HOT', 'HOT'],
+    ['COLD', 'HOT', 'HOT'],
+]
+for hidden in candidates:
+    p = joint_probability(obs, hidden, pi, A, B, idx)
+    print(f"P(O, {hidden}) = {p}")
+`,
+      solution:
+`import numpy as np
+
+states = ['COLD', 'HOT']
+idx = {s: i for i, s in enumerate(states)}
+pi = np.array([0.2, 0.8])
+A = np.array([
+    [0.5, 0.5],
+    [0.4, 0.6],
+])
+B = np.array([
+    [0.5, 0.4, 0.1],
+    [0.2, 0.4, 0.4],
+])
+
+def joint_probability(obs, hidden, pi, A, B, idx):
+    q = [idx[h] for h in hidden]
+    p = pi[q[0]] * B[q[0], obs[0] - 1]
+    for t in range(1, len(obs)):
+        p *= A[q[t - 1], q[t]] * B[q[t], obs[t] - 1]
+    return p
+
+obs = [3, 1, 3]
+candidates = [
+    ['HOT', 'HOT', 'COLD'],
+    ['COLD', 'COLD', 'COLD'],
+    ['HOT', 'HOT', 'HOT'],
+    ['COLD', 'HOT', 'HOT'],
+]
+best, best_p = None, -1
+for hidden in candidates:
+    p = joint_probability(obs, hidden, pi, A, B, idx)
+    print(f"P(O, {hidden}) = {p:.6f}")
+    if p > best_p:
+        best, best_p = hidden, p
+print(f"\\nMost probable among these candidates: {best} (P={best_p:.6f})")
+print("(Not necessarily the true best path overall -- Section 12.4's Viterbi")
+print("algorithm finds that exactly, without needing to try candidates by hand.)")
+`,
+      expectedHint: 'P(O, [HOT,HOT,COLD]) should come out to 0.001536, matching Example 12.3.2. None of these four hand-picked candidates need be the actual best path — that is exactly the gap Viterbi (Section 12.4) closes.',
+    },
+  ],
+
+  'forward-algorithm': [
+    {
+      id: 'py-ch12-fwd-1',
+      number: '1',
+      title: 'Implementing the Forward Algorithm',
+      description: 'Implement the full forward algorithm (initialization, recursion, termination) as a general function taking any pi, A, B, and observation sequence, then verify it reproduces Example 12.3.3\'s P(3,1,3|lambda) ~= 0.02856.',
+      starterCode:
+`import numpy as np
+
+pi = np.array([0.2, 0.8])          # [COLD, HOT]
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    # TODO: initialization -- alpha[0, j] = pi[j] * B[j, obs[0]-1]
+    alpha[0] = None   # TODO
+    for t in range(1, T):
+        for j in range(N):
+            # TODO: alpha[t, j] = sum_i alpha[t-1, i] * A[i, j] * B[j, obs[t]-1]
+            alpha[t, j] = None   # TODO
+    total = alpha[-1].sum()
+    return alpha, total
+
+obs = [3, 1, 3]
+alpha, total = forward(obs, pi, A, B)
+print("alpha =\\n", alpha)
+print(f"P(O|lambda) = {total:.6f}")
+print("Expected approximately 0.028562")
+`,
+      solution:
+`import numpy as np
+
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    total = alpha[-1].sum()
+    return alpha, total
+
+obs = [3, 1, 3]
+alpha, total = forward(obs, pi, A, B)
+print("alpha =\\n", alpha)
+print(f"P(O|lambda) = {total:.6f}")
+print("Expected approximately 0.028562")
+
+# Bonus: try a different observation sequence
+obs2 = [1, 2, 3]
+_, total2 = forward(obs2, pi, A, B)
+print(f"\\nP([1,2,3]|lambda) = {total2:.6f}  (should be about 0.027752)")
+`,
+      expectedHint: 'alpha should come out as [[0.02, 0.32], [0.069, 0.0404], [0.005066, 0.023496]] -- one row per time step t=1,2,3, with columns in state order [COLD, HOT] -- and P(O|lambda) should be about 0.028562, matching Example 12.3.3 exactly.',
+    },
+  ],
+
+  'viterbi-algorithm': [
+    {
+      id: 'py-ch12-vit-1',
+      number: '1',
+      title: 'Implementing the Viterbi Algorithm with Backpointers',
+      description: 'Implement Viterbi decoding, including the backpointer matrix and the final backtrace, and reproduce Example 12.4.2\'s best path HOT, COLD, HOT for O=3,1,3.',
+      starterCode:
+`import numpy as np
+
+states = ['COLD', 'HOT']
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def viterbi(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    delta = np.zeros((T, N))
+    psi = np.zeros((T, N), dtype=int)
+    delta[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            # TODO: scores = delta[t-1] * A[:, j]
+            scores = None   # TODO
+            psi[t, j] = np.argmax(scores)
+            delta[t, j] = np.max(scores) * B[j, obs[t] - 1]
+    # TODO: backtrace starting from argmax delta[-1]
+    path = [int(np.argmax(delta[-1]))]
+    for t in range(T - 1, 0, -1):
+        path.insert(0, None)   # TODO: psi[t, path[0]]
+    best_prob = np.max(delta[-1])
+    return delta, path, best_prob
+
+obs = [3, 1, 3]
+delta, path, best_prob = viterbi(obs, pi, A, B)
+print("delta =\\n", delta)
+print("best path:", [states[s] for s in path])
+print(f"best probability: {best_prob:.6f}")
+`,
+      solution:
+`import numpy as np
+
+states = ['COLD', 'HOT']
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def viterbi(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    delta = np.zeros((T, N))
+    psi = np.zeros((T, N), dtype=int)
+    delta[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            scores = delta[t - 1] * A[:, j]
+            psi[t, j] = np.argmax(scores)
+            delta[t, j] = np.max(scores) * B[j, obs[t] - 1]
+    path = [int(np.argmax(delta[-1]))]
+    for t in range(T - 1, 0, -1):
+        path.insert(0, int(psi[t, path[0]]))
+    best_prob = np.max(delta[-1])
+    return delta, path, best_prob
+
+obs = [3, 1, 3]
+delta, path, best_prob = viterbi(obs, pi, A, B)
+print("delta =\\n", delta)
+print("best path:", [states[s] for s in path])
+print(f"best probability: {best_prob:.6f}")
+print("\\nExpected best path: ['HOT', 'COLD', 'HOT'], probability approximately 0.0128")
+`,
+      expectedHint: 'The best path should print as [\'HOT\', \'COLD\', \'HOT\'] with best_prob approximately 0.0128, matching Example 12.4.2. If your path comes out reversed or wrong, check the backtrace loop inserts at position 0, walking backward from t=T-1 down to t=1.',
+    },
+  ],
+
+  'forward-backward-algorithm': [
+    {
+      id: 'py-ch12-fb-1',
+      number: '1',
+      title: 'Backward Probabilities and State-Occupancy Gamma',
+      description: 'Implement the backward algorithm and combine it with the forward algorithm to compute gamma_t(j), then verify that gamma sums to 1 at every time step and that the backward termination formula matches the forward total exactly.',
+      starterCode:
+`import numpy as np
+
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha
+
+def backward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    beta = np.zeros((T, N))
+    beta[-1] = 1.0
+    for t in range(T - 2, -1, -1):
+        for i in range(N):
+            # TODO: beta[t, i] = sum_j A[i, j] * B[j, obs[t+1]-1] * beta[t+1, j]
+            beta[t, i] = None   # TODO
+    return beta
+
+obs = [3, 1, 3]
+alpha = forward(obs, pi, A, B)
+beta = backward(obs, pi, A, B)
+total_fwd = alpha[-1].sum()
+total_bwd = np.sum(pi * B[:, obs[0] - 1] * beta[0])   # termination formula, Theorem 12.5
+
+gamma = alpha * beta / total_fwd
+print("gamma =\\n", gamma)
+print("row sums (should all be 1):", gamma.sum(axis=1))
+print(f"forward total = {total_fwd:.6f}, backward total = {total_bwd:.6f}")
+`,
+      solution:
+`import numpy as np
+
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha
+
+def backward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    beta = np.zeros((T, N))
+    beta[-1] = 1.0
+    for t in range(T - 2, -1, -1):
+        for i in range(N):
+            beta[t, i] = np.sum(A[i, :] * B[:, obs[t + 1] - 1] * beta[t + 1])
+    return beta
+
+obs = [3, 1, 3]
+alpha = forward(obs, pi, A, B)
+beta = backward(obs, pi, A, B)
+total_fwd = alpha[-1].sum()
+total_bwd = np.sum(pi * B[:, obs[0] - 1] * beta[0])
+
+gamma = alpha * beta / total_fwd
+print("gamma =\\n", gamma)
+print("row sums (should all be 1):", gamma.sum(axis=1))
+print(f"forward total = {total_fwd:.6f}, backward total = {total_bwd:.6f}")
+print("\\nBoth totals should match to ~1e-9 -- the forward and backward passes")
+print("compute the same P(O|lambda) by summing over the same paths in opposite directions.")
+`,
+      expectedHint: 'gamma should come out approximately [[0.063,0.937],[0.604,0.396],[0.177,0.823]] (columns COLD, HOT), each row summing to 1.0, and total_fwd should equal total_bwd to within floating-point error (both approximately 0.028562).',
+    },
+  ],
+
+  'hmm-summary': [
+    {
+      id: 'py-ch12-sum-1',
+      number: '1',
+      title: 'Forward Total vs. Viterbi Best Path Across Random Sequences',
+      description: 'Generate several random ice-cream observation sequences, and for each one compare the total likelihood (forward algorithm) with the single best path\'s probability (Viterbi algorithm), confirming the best-path probability is always at most the total likelihood -- exactly the relationship explored in Section 12.4\'s prediction box.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(7)
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha[-1].sum()
+
+def viterbi_prob(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    delta = np.zeros((T, N))
+    delta[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            delta[t, j] = np.max(delta[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return np.max(delta[-1])
+
+for trial in range(5):
+    obs = list(rng.integers(1, 4, size=5))   # 5 random days, each 1-3 ice creams
+    total = forward(obs, pi, A, B)
+    best = viterbi_prob(obs, pi, A, B)
+    # TODO: compute what fraction of the total likelihood the single best path accounts for
+    fraction = None   # TODO: best / total
+    print(f"O={obs}: total={total:.6f}, best_path={best:.6f}, fraction={fraction}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(7)
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha[-1].sum()
+
+def viterbi_prob(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    delta = np.zeros((T, N))
+    delta[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            delta[t, j] = np.max(delta[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return np.max(delta[-1])
+
+for trial in range(5):
+    obs = list(rng.integers(1, 4, size=5))
+    total = forward(obs, pi, A, B)
+    best = viterbi_prob(obs, pi, A, B)
+    fraction = best / total
+    print(f"O={obs}: total={total:.6f}, best_path={best:.6f}, fraction={fraction:.3f}")
+
+print("\\nEvery 'fraction' printed above should be <= 1.0 -- the single best path")
+print("can never account for more than the total probability mass across all paths,")
+print("since it is only one of the terms being summed to produce that total.")
+`,
+      expectedHint: 'Every fraction printed should be between 0 and 1 -- the Viterbi best-path probability is always at most the forward algorithm\'s total likelihood, since the total sums the best path\'s contribution together with every other path\'s.',
+    },
+  ],
 };

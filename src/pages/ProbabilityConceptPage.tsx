@@ -139,6 +139,13 @@ import {
   VizBrownianMotion,
   VizPoissonProcess,
 } from '../visualizations/VizStochasticProcesses';
+import {
+  VizWeatherMarkovChain,
+  VizIceCreamHMM,
+  VizForwardTrellis,
+  VizViterbiTrellis,
+  VizForwardBackward,
+} from '../visualizations/VizHiddenMarkovModels';
 import 'katex/dist/katex.min.css';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -277,6 +284,12 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch11-martingale-stopping':   VizMartingaleStopping,
   'viz-ch11-brownian-motion':       VizBrownianMotion,
   'viz-ch11-poisson-process':       VizPoissonProcess,
+  // Chapter 12 — Hidden Markov Models
+  'viz-ch12-weather-chain':         VizWeatherMarkovChain,
+  'viz-ch12-icecream-hmm':          VizIceCreamHMM,
+  'viz-ch12-forward-trellis':       VizForwardTrellis,
+  'viz-ch12-viterbi-trellis':       VizViterbiTrellis,
+  'viz-ch12-forward-backward':      VizForwardBackward,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,
