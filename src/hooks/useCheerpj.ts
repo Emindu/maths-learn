@@ -5,37 +5,45 @@ import { useEffect, useRef, useState } from 'react';
 // the free Community License (non-commercial use). This mirrors usePyodide.ts's
 // singleton-loader shape so the two runtimes behave consistently across the site.
 //
-// Two things confirmed wrong by a live-browser test and fixed here:
-//  1. CheerpJ's "/str/" virtual filesystem (used to inject source by string
-//     content) is flat — it rejects subdirectories ("Directories are not
-//     supported"). Source files must live directly under /str/, e.g.
-//     "/str/Main.java", not "/str/playground/Main.java".
-//  2. CheerpJ 4.x bundles a modern (Java 9+) modular JDK, where javac lives in
-//     the jdk.compiler module and is resolvable without an explicit tools.jar
-//     classpath entry (that convention is a pre-Java-9 relic). Since this
-//     couldn't be double-checked against current docs either, runMainWithFallback
-//     below tries the classpath-free case first and only falls back to legacy
-//     tools.jar-style paths if that specific failure mode shows up in the
-//     captured output — so a wrong guess self-corrects instead of just failing.
+// Unlike Pyodide, CheerpJ is not asked to compile source in the browser —
+// in-browser javac discovery turned out not to be reliably reachable via any
+// guessed classpath in real testing. Instead, scripts/compile-java-runnables.mjs
+// compiles every runnable snippet at build time with a real javac and ships
+// the .class files as static assets under public/java-runnable/<mainClass>/.
+// CheerpJ only ever has to do the thing it's actually built and documented
+// for: run pre-compiled bytecode via the "/app/" prefix, which maps to files
+// served from the site's own origin.
+//
+// The exact URL /app/ resolves against (relative to the currently loaded
+// document vs. the site origin + Vite's base path) couldn't be confirmed
+// against live docs when this was written, so runMainWithFallback tries a
+// couple of reasonable candidates and keeps whichever one actually finds
+// the class, rather than failing outright on a single wrong guess.
 
 declare global {
   interface Window {
     cheerpjInit: (config?: Record<string, unknown>) => Promise<void>;
     cheerpjRunMain: (mainClass: string, classpath: string, ...args: string[]) => Promise<number>;
-    cheerpOSAddStringFile: (path: string, content: string) => void;
   }
 }
 
 const CHEERPJ_LOADER_URL = 'https://cjrtnc.leaningtech.com/4.3/loader.js';
-const JDK_CLASSPATH_CANDIDATES = ['/', '/app/tools.jar', '/app/lib/tools.jar'];
 const RUN_TIMEOUT_MS = 30000;
 const CLASS_NOT_FOUND_MARKER = 'Could not find or load main class';
+
+function classpathCandidates(mainClass: string): string[] {
+  const base = import.meta.env.BASE_URL; // e.g. "/" in dev, "/maths-learn/" in prod
+  return [
+    `/app${base}java-runnable/${mainClass}/`,
+    `/app/java-runnable/${mainClass}/`,
+  ];
+}
 
 export interface CheerpjHookState {
   isLoading: boolean;
   isReady: boolean;
   error: string | null;
-  compileAndRun: (javaSource: string, mainClassName: string) => Promise<string>;
+  runCompiled: (mainClassName: string) => Promise<string>;
   output: string;
   running: boolean;
   clearOutput: () => void;
@@ -49,37 +57,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
     promise,
     new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
   ]);
-}
-
-/**
- * Runs a main class, trying each candidate classpath in turn until one
- * doesn't produce a "could not find or load main class" failure. Returns the
- * exit code, the captured output lines for that attempt, and which classpath
- * worked (useful for narrowing JDK_CLASSPATH_CANDIDATES down to one value
- * once a working one is confirmed).
- */
-async function runMainWithFallback(
-  mainClass: string,
-  candidates: string[],
-  args: string[],
-  captureLines: () => string[],
-  resetCapture: () => void
-): Promise<{ exitCode: number; workingClasspath: string | null }> {
-  let lastExitCode = -1;
-  for (const classpath of candidates) {
-    resetCapture();
-    const exitCode = await withTimeout(
-      window.cheerpjRunMain(mainClass, classpath, ...args),
-      RUN_TIMEOUT_MS,
-      `Timed out running ${mainClass}.`
-    );
-    lastExitCode = exitCode;
-    const notFound = captureLines().some((line) => line.includes(CLASS_NOT_FOUND_MARKER));
-    if (!notFound) {
-      return { exitCode, workingClasspath: classpath };
-    }
-  }
-  return { exitCode: lastExitCode, workingClasspath: null };
 }
 
 export const useCheerpj = (): CheerpjHookState => {
@@ -124,7 +101,7 @@ export const useCheerpj = (): CheerpjHookState => {
       });
   }, []);
 
-  const compileAndRun = async (javaSource: string, mainClassName: string): Promise<string> => {
+  const runCompiled = async (mainClassName: string): Promise<string> => {
     if (!cheerpjReady) {
       setError('Java runtime is not ready yet');
       return '';
@@ -142,37 +119,24 @@ export const useCheerpj = (): CheerpjHookState => {
     console.error = (...args: unknown[]) => { capturedLines.push(args.map(String).join(' ')); };
 
     try {
-      // /str/ (CheerpJ's string-content virtual mount) is flat — no subdirectories.
-      const sourcePath = `/str/${mainClassName}.java`;
-      const outDir = '/files/out';
-      window.cheerpOSAddStringFile(sourcePath, javaSource);
+      let workingResult: { exitCode: number; classpath: string } | null = null;
 
-      const resetCapture = () => { capturedLines.length = 0; };
-
-      const compileResult = await runMainWithFallback(
-        'com.sun.tools.javac.Main',
-        JDK_CLASSPATH_CANDIDATES,
-        [sourcePath, '-d', outDir],
-        () => capturedLines,
-        resetCapture
-      );
-
-      if (compileResult.workingClasspath === null) {
-        outputRef.current = capturedLines.join('\n') || 'Could not locate the Java compiler (javac) in the runtime.';
-        setOutput(outputRef.current);
-        return outputRef.current;
-      }
-      if (compileResult.exitCode !== 0) {
-        outputRef.current = capturedLines.join('\n') || 'Compilation failed.';
-        setOutput(outputRef.current);
-        return outputRef.current;
+      for (const classpath of classpathCandidates(mainClassName)) {
+        capturedLines.length = 0;
+        const exitCode = await withTimeout(
+          window.cheerpjRunMain(mainClassName, classpath),
+          RUN_TIMEOUT_MS,
+          `Timed out running ${mainClassName}.`
+        );
+        const notFound = capturedLines.some((line) => line.includes(CLASS_NOT_FOUND_MARKER));
+        if (!notFound) {
+          workingResult = { exitCode, classpath };
+          break;
+        }
       }
 
-      const runClasspathCandidates = JDK_CLASSPATH_CANDIDATES.map((cp) => (cp === '/' ? outDir : `${outDir}:${cp}`));
-      const runResult = await runMainWithFallback(mainClassName, runClasspathCandidates, [], () => capturedLines, resetCapture);
-
-      if (runResult.workingClasspath === null) {
-        outputRef.current = capturedLines.join('\n') || `Could not find or load ${mainClassName} after compiling it.`;
+      if (!workingResult) {
+        outputRef.current = capturedLines.join('\n') || `Could not find the compiled class ${mainClassName}.`;
         setOutput(outputRef.current);
         return outputRef.current;
       }
@@ -198,5 +162,5 @@ export const useCheerpj = (): CheerpjHookState => {
     setError(null);
   };
 
-  return { isLoading, isReady, error, compileAndRun, output, running, clearOutput };
+  return { isLoading, isReady, error, runCompiled, output, running, clearOutput };
 };

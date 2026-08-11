@@ -6,3 +6,6 @@ sources/
 
 # Generated static API (built by scripts/export-exercises.mjs)
 public/api/
+
+# Generated compiled Java bytecode (built by scripts/compile-java-runnables.mjs)
+public/java-runnable/
