@@ -15,6 +15,7 @@ import { VizBinarySearch } from '../visualizations/VizBinarySearch';
 import { VizTopKElements } from '../visualizations/VizTopKElements';
 import { VizTreeTraversal } from '../visualizations/VizTreeTraversal';
 import { VizGraphsMatrices } from '../visualizations/VizGraphsMatrices';
+import { VizBacktracking } from '../visualizations/VizBacktracking';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -31,6 +32,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-top-k-elements': VizTopKElements,
   'viz-tree-traversal': VizTreeTraversal,
   'viz-graphs-matrices': VizGraphsMatrices,
+  'viz-backtracking': VizBacktracking,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (

@@ -920,6 +920,128 @@ private boolean hasCycle(int course, List<List<Integer>> graph, int[] state) {
     order: 9,
     title: 'Backtracking',
     shortDesc: 'DFS that commits to a choice, recurses, then undoes it — pruning branches that can never work.',
+    content: {
+      whenToUse: [
+        'Combinatorial problems — combinations, permutations, subsets',
+        'Constraint satisfaction problems — Sudoku, N-Queens',
+        'Whenever you can prune a branch early using a constraint, instead of generating every possibility and filtering afterward',
+      ],
+      technique:
+        'Backtracking is DFS with one extra discipline: after you recurse into a choice, you undo it before trying the next one, so no leftover state ever leaks into a sibling branch. The loop is always the same three steps — choose a candidate, explore by recursing, then un-choose it — and it is exactly that "un-choose" step that makes the same path array or board safely reusable across the entire search instead of allocating a fresh copy at every node. The other half of backtracking is pruning: check a constraint before committing to a choice, and skip it immediately if it can never lead anywhere valid, instead of paying the cost of exploring — and later discarding — a doomed branch.',
+      codeTemplates: [
+        {
+          title: 'Generic backtracking template',
+          problem:
+            'General shape: build a partial solution one choice at a time. The moment a partial path is complete, record it; otherwise try every valid next candidate, recurse, and undo the choice before moving to the next one. That choose → explore → un-choose loop is what lets backtracking reuse a single mutable path/board across the whole search instead of copying it at every node.',
+          code:
+`void backtrack(List<Integer> candidates, List<Integer> path) {
+    if (isSolution(path)) {
+        processSolution(path);
+        return;
+    }
+
+    for (int candidate : candidates) {
+        if (isValid(candidate, path)) {
+            path.add(candidate);          // choose
+            backtrack(candidates, path);  // explore
+            path.remove(path.size() - 1); // un-choose
+        }
+    }
+}`,
+        },
+        {
+          title: 'Worked example — Subsets',
+          problem:
+            'Subsets (LeetCode 78): given an array of distinct integers, return every possible subset (the power set). Every node visited during the recursion is itself a valid subset — not just the leaves — so the result is recorded at the top of each call, before the loop even starts. Starting the inner loop at i + 1 stops an element from being reused and keeps every subset from being generated more than once.',
+          code:
+`List<List<Integer>> subsets(int[] nums) {
+    List<List<Integer>> result = new ArrayList<>();
+    backtrack(nums, 0, new ArrayList<>(), result);
+    return result;
+}
+
+private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> result) {
+    result.add(new ArrayList<>(path)); // every partial path is a valid subset
+
+    for (int i = start; i < nums.length; i++) {
+        path.add(nums[i]);
+        backtrack(nums, i + 1, path, result);
+        path.remove(path.size() - 1);
+    }
+}`,
+        },
+        {
+          title: 'Worked example — Permutations',
+          problem:
+            'Permutations (LeetCode 46): given an array of distinct integers, return every possible ordering. Unlike Subsets, order matters and every element must eventually appear, so a path only counts as a solution once its length equals nums.length; a used[] array is the constraint that stops the same element being picked twice within one permutation.',
+          code:
+`List<List<Integer>> permute(int[] nums) {
+    List<List<Integer>> result = new ArrayList<>();
+    backtrack(nums, new ArrayList<>(), new boolean[nums.length], result);
+    return result;
+}
+
+private void backtrack(int[] nums, List<Integer> path, boolean[] used, List<List<Integer>> result) {
+    if (path.size() == nums.length) {
+        result.add(new ArrayList<>(path));
+        return;
+    }
+
+    for (int i = 0; i < nums.length; i++) {
+        if (used[i]) continue;
+        used[i] = true;
+        path.add(nums[i]);
+        backtrack(nums, path, used, result);
+        path.remove(path.size() - 1);
+        used[i] = false;
+    }
+}`,
+        },
+        {
+          title: 'Worked example — N-Queens',
+          problem:
+            'N-Queens (LeetCode 51): place n queens on an n×n board so no two attack each other, and return every valid arrangement. isSafe is the pruning constraint: the instant a column choice shares a column or diagonal with any queen already placed in an earlier row, that entire branch is skipped instead of being explored down to a guaranteed dead end.',
+          code:
+`List<List<String>> solveNQueens(int n) {
+    List<List<String>> result = new ArrayList<>();
+    int[] queenCol = new int[n]; // queenCol[row] = column of the queen on that row
+    backtrack(0, n, queenCol, result);
+    return result;
+}
+
+private void backtrack(int row, int n, int[] queenCol, List<List<String>> result) {
+    if (row == n) {
+        result.add(buildBoard(queenCol, n));
+        return;
+    }
+
+    for (int col = 0; col < n; col++) {
+        if (isSafe(queenCol, row, col)) {
+            queenCol[row] = col;                     // choose
+            backtrack(row + 1, n, queenCol, result); // explore
+            // no explicit un-choose needed — the next iteration overwrites queenCol[row]
+        }
+    }
+}
+
+private boolean isSafe(int[] queenCol, int row, int col) {
+    for (int r = 0; r < row; r++) {
+        int c = queenCol[r];
+        if (c == col || Math.abs(c - col) == row - r) return false; // same column or diagonal
+    }
+    return true;
+}`,
+        },
+      ],
+      questions: [
+        { number: 78, title: 'Subsets', url: 'https://leetcode.com/problems/subsets/' },
+        { number: 46, title: 'Permutations', url: 'https://leetcode.com/problems/permutations/' },
+        { number: 39, title: 'Combination Sum', url: 'https://leetcode.com/problems/combination-sum/' },
+        { number: 37, title: 'Sudoku Solver', url: 'https://leetcode.com/problems/sudoku-solver/' },
+        { number: 51, title: 'N-Queens', url: 'https://leetcode.com/problems/n-queens/' },
+      ],
+      vizId: 'viz-backtracking',
+    },
   },
   {
     id: 'dynamic-programming',
