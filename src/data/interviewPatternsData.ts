@@ -170,6 +170,89 @@ export const interviewPatterns: InterviewPattern[] = [
     order: 2,
     title: 'Two Pointers',
     shortDesc: 'Scan from both ends of a sorted array or string inward instead of checking every pair.',
+    content: {
+      whenToUse: [
+        'Working with a linear data structure — an array, list, or string',
+        'You need to scan the start and end of the input toward each other',
+        'The input is sorted and you need to find a pair (or triple) satisfying some condition',
+        'Removing duplicates or filtering elements in place',
+      ],
+      technique:
+        'Instead of checking every pair with a nested loop, place one pointer i at the start and one pointer j at the end, then move them toward each other one clever step at a time based on what you see. Each pointer only ever moves inward, so the whole scan is O(n) instead of the O(n²) a double loop would cost. On a sorted array this also lets you decide which side to move by comparing against a target: move i right to increase a sum, move j left to decrease it.',
+      codeTemplates: [
+        {
+          title: 'Two pointers converging from both ends',
+          problem:
+            'General shape: "scan from both ends toward the middle, comparing or accumulating as you go." Concrete case — Valid Palindrome (LeetCode 125): given a string, determine whether it reads the same forwards and backwards once non-alphanumeric characters are ignored and case is folded.',
+          code:
+`boolean twoPointerTemplate(int[] arr) {
+    int i = 0;
+    int j = arr.length - 1;
+
+    while (i < j) {
+        // process/compare the elements at i and j
+
+        // adjust the pointers based on the problem's condition
+        i++;
+        // and/or j--;
+    }
+    return true;
+}`,
+        },
+        {
+          title: 'Worked example — Valid Palindrome',
+          problem:
+            'Valid Palindrome (LeetCode 125): given a string s, return true if it is a palindrome after converting all uppercase letters to lowercase and removing all non-alphanumeric characters. Skip non-alphanumeric characters from each side independently, then compare — if the pointers ever see a mismatch, it is not a palindrome.',
+          code:
+`boolean isPalindrome(String s) {
+    int i = 0;
+    int j = s.length() - 1;
+
+    while (i < j) {
+        while (i < j && !Character.isLetterOrDigit(s.charAt(i))) i++;
+        while (i < j && !Character.isLetterOrDigit(s.charAt(j))) j--;
+
+        if (Character.toLowerCase(s.charAt(i)) != Character.toLowerCase(s.charAt(j))) {
+            return false;
+        }
+        i++;
+        j--;
+    }
+    return true;
+}`,
+        },
+        {
+          title: 'Worked example — Container With Most Water',
+          problem:
+            'Container With Most Water (LeetCode 11): given n non-negative integers height[0..n-1], each representing a vertical line at that index, find two lines that together with the x-axis form a container holding the most water. Start with the widest possible container (i = 0, j = n - 1); the shorter of the two walls is always the bottleneck, so moving it — and only it — inward is the sole way a taller wall could ever produce more area.',
+          code:
+`int maxArea(int[] height) {
+    int i = 0;
+    int j = height.length - 1;
+    int best = 0;
+
+    while (i < j) {
+        int width = j - i;
+        int area = Math.min(height[i], height[j]) * width;
+        best = Math.max(best, area);
+
+        if (height[i] < height[j]) {
+            i++;
+        } else {
+            j--;
+        }
+    }
+    return best;
+}`,
+        },
+      ],
+      questions: [
+        { number: 125, title: 'Valid Palindrome', url: 'https://leetcode.com/problems/valid-palindrome/' },
+        { number: 15, title: '3Sum', url: 'https://leetcode.com/problems/3sum/' },
+        { number: 11, title: 'Container With Most Water', url: 'https://leetcode.com/problems/container-with-most-water/' },
+      ],
+      vizId: 'viz-two-pointers',
+    },
   },
   {
     id: 'fast-slow-pointers',

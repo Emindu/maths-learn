@@ -8,6 +8,7 @@ import {
   CodeTemplate,
 } from '../data/interviewPatternsData';
 import { VizSlidingWindowDynamic, VizSlidingWindowFixed } from '../visualizations/VizSlidingWindow';
+import { VizTwoPointers } from '../visualizations/VizTwoPointers';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -17,6 +18,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
       <VizSlidingWindowFixed />
     </>
   ),
+  'viz-two-pointers': VizTwoPointers,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
