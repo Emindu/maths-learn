@@ -5449,4 +5449,381 @@ print("both come from the SAME recursion s(b) = p*s(b+1) + q*s(b-1), solved with
 print("boundary conditions s(0)=0, s(c)=1, exactly as derived in Section 11.7.")`,
     },
   ],
+
+  'hmm-markov-chains': [
+    {
+      id: 'ch12-mc-lab-1',
+      title: 'Simulating the Weather Chain and Checking Long-Run Frequencies',
+      description: 'Simulate many independent runs of the weather Markov chain (Example 12.1.1) and compare the empirical fraction of time spent in each state against a direct probability calculation for a few sample sequences.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+rng = np.random.default_rng(3)
+states = ['HOT', 'WARM', 'COLD']
+pi = np.array([0.1, 0.2, 0.7])
+A = np.array([
+    [0.6, 0.3, 0.1],
+    [0.4, 0.5, 0.1],
+    [0.1, 0.1, 0.8],
+])
+
+def simulate(pi, A, n_days, rng):
+    seq = [rng.choice(3, p=pi)]
+    for _ in range(n_days - 1):
+        seq.append(rng.choice(3, p=A[seq[-1]]))
+    return seq
+
+n_runs, n_days = 4000, 30
+counts = np.zeros(3)
+for _ in range(n_runs):
+    seq = simulate(pi, A, n_days, rng)
+    for s in seq:
+        counts[s] += 1
+empirical = counts / counts.sum()
+
+fig, ax = plt.subplots(figsize=(8, 5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+x = np.arange(3)
+ax.bar(x - 0.18, empirical, width=0.36, color='#38bdf8', label='empirical fraction of days')
+ax.bar(x + 0.18, pi, width=0.36, color='#fb923c', label='initial distribution pi (for reference)')
+ax.set_xticks(x)
+ax.set_xticklabels(states, color='white')
+ax.set_ylabel('fraction of days', color='#94a3b8')
+ax.set_title(f'Weather Chain: Time Spent in Each State over {n_runs} runs of {n_days} days', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()
+print("Empirical long-run fractions:", dict(zip(states, empirical.round(3))))
+print("Notice COLD dominates -- both because pi favours it AND because a_COLD,COLD=0.8")
+print("makes it 'sticky', so once the chain lands there it tends to stay for a while.")`,
+    },
+  ],
+
+  'hidden-markov-model': [
+    {
+      id: 'ch12-hmm-lab-1',
+      title: 'Every Hidden Path for O=3,1,3 — Where the Total Likelihood Comes From',
+      description: 'Enumerate all 8 possible 3-day hidden weather sequences for the ice-cream HMM, compute P(O,Q) for each one, and plot them sorted by probability -- visualising exactly what the forward algorithm sums over in Section 12.3.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import itertools
+
+states = ['COLD', 'HOT']
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+obs = [3, 1, 3]
+
+def joint_probability(obs, hidden, pi, A, B):
+    p = pi[hidden[0]] * B[hidden[0], obs[0] - 1]
+    for t in range(1, len(obs)):
+        p *= A[hidden[t - 1], hidden[t]] * B[hidden[t], obs[t] - 1]
+    return p
+
+all_paths = list(itertools.product([0, 1], repeat=3))
+probs = [joint_probability(obs, path, pi, A, B) for path in all_paths]
+labels = [''.join(states[s][0] for s in path) for path in all_paths]
+
+order = np.argsort(probs)[::-1]
+probs_sorted = np.array(probs)[order]
+labels_sorted = np.array(labels)[order]
+total = sum(probs)
+
+fig, ax = plt.subplots(figsize=(9, 5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+colors = ['#34d399'] + ['#38bdf8'] * (len(probs) - 1)
+ax.bar(labels_sorted, probs_sorted, color=colors)
+ax.set_ylabel('P(O, Q)', color='#94a3b8')
+ax.set_title(f'All 8 Hidden Paths for O=3,1,3 (C=COLD, H=HOT) -- sum = {total:.6f}', color='white')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()
+print("Sorted probabilities:", dict(zip(labels_sorted, probs_sorted.round(6))))
+print(f"\\nSum over all 8 paths = {total:.6f} -- this IS P(O|lambda), computed the slow way.")
+print("Section 12.3's forward algorithm gets this exact number in 3x2 cells of work")
+print("instead of the 8 full-path evaluations enumerated here.")`,
+    },
+  ],
+
+  'forward-algorithm': [
+    {
+      id: 'ch12-fwd-lab-1',
+      title: 'The Forward Trellis, Visualised as a Heatmap',
+      description: 'Run the forward algorithm on a longer, more realistic ice-cream sequence and visualise the full alpha trellis as a heatmap, alongside a plot of the running total likelihood as more days are observed.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+states = ['COLD', 'HOT']
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha
+
+obs = [3, 3, 2, 1, 1, 1, 2, 3, 3, 2, 1, 2]
+alpha = forward(obs, pi, A, B)
+totals = alpha.sum(axis=1)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0f172a')
+for ax in (ax1, ax2): ax.set_facecolor('#1e293b')
+
+im = ax1.imshow(alpha.T, aspect='auto', cmap='viridis')
+ax1.set_yticks([0, 1]); ax1.set_yticklabels(states, color='white')
+ax1.set_xlabel('day t', color='#94a3b8')
+ax1.set_title('Forward Trellis alpha_t(state)', color='white')
+ax1.tick_params(colors='#94a3b8')
+fig.colorbar(im, ax=ax1, fraction=0.046)
+
+ax2.plot(range(1, len(obs) + 1), totals, marker='o', color='#38bdf8', lw=2)
+ax2.set_yscale('log')
+ax2.set_xlabel('day t (partial sequence length)', color='#94a3b8')
+ax2.set_ylabel('sum_j alpha_t(j)  (log scale)', color='#94a3b8')
+ax2.set_title('Running Total Likelihood as More Days Are Seen', color='white')
+ax2.tick_params(colors='#94a3b8')
+for sp in ax2.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()
+print(f"Ice creams eaten: {obs}")
+print(f"Final P(O|lambda) = {totals[-1]:.3e}")
+print("The total shrinks roughly geometrically with T, since it sums probability")
+print("mass over an exponentially growing number of hidden paths of shrinking size --")
+print("exactly why forward-algorithm implementations track log-probabilities in practice.")`,
+    },
+  ],
+
+  'viterbi-algorithm': [
+    {
+      id: 'ch12-vit-lab-1',
+      title: 'Decoding a Longer Ice-Cream Sequence and Plotting the Path',
+      description: 'Run Viterbi decoding on a longer sequence and plot the observed ice-cream counts alongside the decoded hidden weather sequence, so the relationship between "more ice cream" and "decoded as HOT" is visible directly.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+states = ['COLD', 'HOT']
+
+def viterbi(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    delta = np.zeros((T, N))
+    psi = np.zeros((T, N), dtype=int)
+    delta[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            scores = delta[t - 1] * A[:, j]
+            psi[t, j] = np.argmax(scores)
+            delta[t, j] = np.max(scores) * B[j, obs[t] - 1]
+    path = [int(np.argmax(delta[-1]))]
+    for t in range(len(obs) - 1, 0, -1):
+        path.insert(0, int(psi[t, path[0]]))
+    return path
+
+obs = [3, 3, 2, 1, 1, 1, 2, 3, 3, 2, 1, 2]
+path = viterbi(obs, pi, A, B)
+days = np.arange(1, len(obs) + 1)
+
+fig, ax1 = plt.subplots(figsize=(10, 5), facecolor='#0f172a')
+ax1.set_facecolor('#1e293b')
+ax1.bar(days, obs, color='#38bdf8', alpha=0.75, label='ice creams eaten')
+ax1.set_xlabel('day', color='#94a3b8')
+ax1.set_ylabel('ice creams eaten', color='#38bdf8')
+ax1.tick_params(colors='#94a3b8')
+for sp in ax1.spines.values(): sp.set_edgecolor('#334155')
+
+ax2 = ax1.twinx()
+decoded = [1 if states[s] == 'HOT' else 0 for s in path]
+ax2.step(days, decoded, where='mid', color='#fb923c', lw=2.5, label='decoded weather (1=HOT, 0=COLD)')
+ax2.set_ylim(-0.3, 1.3)
+ax2.set_yticks([0, 1]); ax2.set_yticklabels(['COLD', 'HOT'], color='#fb923c')
+ax2.tick_params(colors='#94a3b8')
+
+ax1.set_title('Viterbi-Decoded Weather vs. Ice Cream Counts', color='white')
+fig.legend(loc='upper right', bbox_to_anchor=(0.9, 0.88), facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+plt.tight_layout()
+plt.show()
+print(f"Observations: {obs}")
+print(f"Decoded path: {[states[s] for s in path]}")
+print("Days with 3 ice creams are almost always decoded HOT, and days with 1 are")
+print("almost always decoded COLD -- but the decoding is never purely a per-day rule,")
+print("since transitions a_ij also pull neighbouring days toward the same state.")`,
+    },
+  ],
+
+  'forward-backward-algorithm': [
+    {
+      id: 'ch12-fb-lab-1',
+      title: 'State Occupancy Over Time, and a Toy Baum-Welch Convergence Curve',
+      description: 'Plot gamma_t(HOT) across a longer observation sequence to see soft state-occupancy evolve day by day, then run a few iterations of Baum-Welch re-estimation from a poor initial guess and plot the observation likelihood increasing at every iteration.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+true_pi = np.array([0.2, 0.8])
+true_A = np.array([[0.5, 0.5], [0.4, 0.6]])
+true_B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha
+
+def backward(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    beta = np.zeros((T, N))
+    beta[-1] = 1.0
+    for t in range(T - 2, -1, -1):
+        for i in range(N):
+            beta[t, i] = np.sum(A[i, :] * B[:, obs[t + 1] - 1] * beta[t + 1])
+    return beta
+
+rng = np.random.default_rng(11)
+obs = list(rng.choice([1, 2, 3], size=40, p=[0.3, 0.35, 0.35]))
+
+alpha = forward(obs, true_pi, true_A, true_B)
+beta = backward(obs, true_pi, true_A, true_B)
+total = alpha[-1].sum()
+gamma = alpha * beta / total
+
+# Baum-Welch, starting from a deliberately vague initial guess
+pi_hat = np.array([0.5, 0.5])
+A_hat = np.array([[0.5, 0.5], [0.5, 0.5]])
+B_hat = np.array([[0.4, 0.3, 0.3], [0.3, 0.3, 0.4]])
+log_liks = []
+T, N, M = len(obs), 2, 3
+
+for it in range(15):
+    a = forward(obs, pi_hat, A_hat, B_hat)
+    b = backward(obs, pi_hat, A_hat, B_hat)
+    p_obs = a[-1].sum()
+    log_liks.append(np.log(p_obs))
+    g = a * b / p_obs
+    xi = np.zeros((T - 1, N, N))
+    for t in range(T - 1):
+        denom = p_obs
+        for i in range(N):
+            for j in range(N):
+                xi[t, i, j] = a[t, i] * A_hat[i, j] * B_hat[j, obs[t + 1] - 1] * b[t + 1, j] / denom
+    pi_hat = g[0].copy()
+    A_hat = xi.sum(axis=0) / g[:-1].sum(axis=0, keepdims=True).T
+    for k in range(M):
+        mask = np.array([1.0 if o == k + 1 else 0.0 for o in obs])
+        B_hat[:, k] = (g * mask[:, None]).sum(axis=0) / g.sum(axis=0)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0f172a')
+for ax in (ax1, ax2): ax.set_facecolor('#1e293b')
+
+ax1.plot(range(1, len(obs) + 1), gamma[:, 1], color='#fb923c', lw=2)
+ax1.set_ylim(0, 1)
+ax1.set_xlabel('day', color='#94a3b8')
+ax1.set_ylabel('gamma_t(HOT)', color='#94a3b8')
+ax1.set_title('Soft State Occupancy Over a Longer Sequence', color='white')
+ax1.tick_params(colors='#94a3b8')
+for sp in ax1.spines.values(): sp.set_edgecolor('#334155')
+
+ax2.plot(range(1, len(log_liks) + 1), log_liks, marker='o', color='#38bdf8', lw=2)
+ax2.set_xlabel('EM iteration', color='#94a3b8')
+ax2.set_ylabel('log P(O | lambda_hat)', color='#94a3b8')
+ax2.set_title('Baum-Welch: Log-Likelihood Never Decreases', color='white')
+ax2.tick_params(colors='#94a3b8')
+for sp in ax2.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()
+print("log-likelihood by iteration:", [round(x, 4) for x in log_liks])
+print("Each successive value should be >= the previous one (EM's defining guarantee),")
+print("even though the starting A_hat and B_hat were deliberately uninformative.")`,
+    },
+  ],
+
+  'hmm-summary': [
+    {
+      id: 'ch12-sum-lab-1',
+      title: 'Forward Total vs. Viterbi Best Path as Sequence Length Grows',
+      description: 'For randomly generated ice-cream sequences of increasing length, plot both the forward algorithm\'s total likelihood and the Viterbi algorithm\'s best-path probability on a log scale, showing the two curves separate as the number of competing hidden paths grows.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+pi = np.array([0.2, 0.8])
+A = np.array([[0.5, 0.5], [0.4, 0.6]])
+B = np.array([[0.5, 0.4, 0.1], [0.2, 0.4, 0.4]])
+
+def forward_total(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    alpha = np.zeros((T, N))
+    alpha[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            alpha[t, j] = np.sum(alpha[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return alpha[-1].sum()
+
+def viterbi_best(obs, pi, A, B):
+    T, N = len(obs), len(pi)
+    delta = np.zeros((T, N))
+    delta[0] = pi * B[:, obs[0] - 1]
+    for t in range(1, T):
+        for j in range(N):
+            delta[t, j] = np.max(delta[t - 1] * A[:, j]) * B[j, obs[t] - 1]
+    return np.max(delta[-1])
+
+rng = np.random.default_rng(4)
+lengths = list(range(2, 21))
+totals, bests = [], []
+full_obs = list(rng.integers(1, 4, size=max(lengths)))
+for T in lengths:
+    obs = full_obs[:T]
+    totals.append(forward_total(obs, pi, A, B))
+    bests.append(viterbi_best(obs, pi, A, B))
+
+fig, ax = plt.subplots(figsize=(9, 5.5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+ax.plot(lengths, totals, marker='o', color='#34d399', lw=2, label='forward total P(O|lambda)')
+ax.plot(lengths, bests, marker='s', color='#fb923c', lw=2, label='Viterbi best path probability')
+ax.set_yscale('log')
+ax.set_xlabel('sequence length T', color='#94a3b8')
+ax.set_ylabel('probability (log scale)', color='#94a3b8')
+ax.set_title('Likelihood (sum) vs. Best-Path Probability (max) as T Grows', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+plt.tight_layout()
+plt.show()
+print("fraction (best/total) by length:", [round(b / t, 3) for b, t in zip(bests, totals)])
+print("Both curves shrink as T grows (more days multiply in more small factors), but the")
+print("best single path accounts for a shrinking fraction of the total -- with more days,")
+print("there are more competing paths of comparable probability for the sum to include.")`,
+    },
+  ],
 };

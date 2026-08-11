@@ -16,6 +16,7 @@ import { Ch8ConceptPage } from './pages/Ch8ConceptPage';
 import { Ch9ConceptPage } from './pages/Ch9ConceptPage';
 import { Ch10ConceptPage } from './pages/Ch10ConceptPage';
 import { Ch11ConceptPage } from './pages/Ch11ConceptPage';
+import { Ch12ConceptPage } from './pages/Ch12ConceptPage';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -69,6 +70,9 @@ export const App: React.FC = () => {
 
               {/* Advanced Topic — Stochastic Processes (Chapter 11) */}
               <Route path="/ch11/:id" element={<ProtectedRoute><Ch11ConceptPage /></ProtectedRoute>} />
+
+              {/* Advanced Topic — Hidden Markov Models (Chapter 12) */}
+              <Route path="/ch12/:id" element={<ProtectedRoute><Ch12ConceptPage /></ProtectedRoute>} />
 
               {/* Legacy Dashboard Embedder (handles fallback html and subfolders) */}
               <Route path="/legacy/*" element={<ProtectedRoute><LegacyModuleLoader /></ProtectedRoute>} />

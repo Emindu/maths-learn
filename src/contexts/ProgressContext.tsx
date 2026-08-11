@@ -75,6 +75,13 @@ export const TOPIC_SEQUENCE = [
   '/ch11/poisson-processes',
   '/ch11/stochastic-processes-proofs',
 
+  '/ch12/hmm-markov-chains',
+  '/ch12/hidden-markov-model',
+  '/ch12/forward-algorithm',
+  '/ch12/viterbi-algorithm',
+  '/ch12/forward-backward-algorithm',
+  '/ch12/hmm-summary',
+
   '/distribution/bernoulli',
   '/distribution/beta',
   '/distribution/binomial',

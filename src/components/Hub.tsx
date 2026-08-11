@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck, Shuffle } from 'lucide-react';
+import { BarChart2, Compass, Link2, Dice5, Target, Layers, ArrowRight, BookOpen, Lock, CheckCircle, FlaskConical, Search, TrendingUp, GitMerge, Award, X, ClipboardCheck, Shuffle, EyeOff } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 
 interface Topic {
@@ -191,6 +191,17 @@ const CATEGORIES: Category[] = [
       { title: 'Brownian Motion', desc: 'The continuous-time limit of faster and faster random walks: exact Normal distributions at every instant, independent increments, and diffusion models for stock prices.', to: '/ch11/brownian-motion' },
       { title: 'Poisson Processes', desc: 'Events occurring at random times built from i.i.d. Exponential waiting times, and why the resulting event count is exactly Poisson distributed.', to: '/ch11/poisson-processes' },
       { title: 'Further Proofs', desc: 'Rigorous derivations: the random walk distribution and gambler\'s ruin via a recursive trick, Metropolis–Hastings reversibility, the Brownian motion limit theorem, and the Poisson process.', to: '/ch11/stochastic-processes-proofs' },
+    ],
+  },
+  {
+    id: 'ch12concepts', label: 'Hidden Markov Models', icon: EyeOff,
+    topics: [
+      { title: 'Markov Chains', desc: 'The fully-observed case, revisited: states, transitions, and an initial distribution, and how a bigram language model is secretly just a Markov chain over words.', to: '/ch12/hmm-markov-chains' },
+      { title: 'The Hidden Markov Model', desc: 'Augmenting a Markov chain with hidden states and observed emissions, the ice-cream-eating running example, and the three fundamental problems every HMM algorithm solves.', to: '/ch12/hidden-markov-model' },
+      { title: 'Likelihood: The Forward Algorithm', desc: 'Computing the total probability of an observation sequence in O(N²T) time by folding every hidden path into a single forward trellis, instead of enumerating them one by one.', to: '/ch12/forward-algorithm' },
+      { title: 'Decoding: The Viterbi Algorithm', desc: 'Finding the single most probable hidden state sequence with a max-based trellis and backpointers — the same recursion as the forward algorithm, with sum swapped for max.', to: '/ch12/viterbi-algorithm' },
+      { title: 'Training: The Forward-Backward Algorithm', desc: 'Learning the transition and emission matrices from unlabelled data via Expectation-Maximization: the backward probability, expected counts ξ and γ, and the Baum-Welch re-estimation formulas.', to: '/ch12/forward-backward-algorithm' },
+      { title: 'Summary and Historical Notes', desc: 'How likelihood, decoding, and learning share one trellis skeleton, and the tangled, multiply-discovered history of the Viterbi algorithm across four different fields.', to: '/ch12/hmm-summary' },
     ],
   },
   {
