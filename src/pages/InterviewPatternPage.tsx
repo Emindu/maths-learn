@@ -16,6 +16,7 @@ import { VizTopKElements } from '../visualizations/VizTopKElements';
 import { VizTreeTraversal } from '../visualizations/VizTreeTraversal';
 import { VizGraphsMatrices } from '../visualizations/VizGraphsMatrices';
 import { VizBacktracking } from '../visualizations/VizBacktracking';
+import { VizDynamicProgramming } from '../visualizations/VizDynamicProgramming';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -33,6 +34,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-tree-traversal': VizTreeTraversal,
   'viz-graphs-matrices': VizGraphsMatrices,
   'viz-backtracking': VizBacktracking,
+  'viz-dynamic-programming': VizDynamicProgramming,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (

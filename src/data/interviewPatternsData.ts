@@ -1048,6 +1048,97 @@ private boolean isSafe(int[] queenCol, int row, int col) {
     order: 10,
     title: 'Dynamic Programming',
     shortDesc: 'Cache overlapping subproblem results — top-down with memoization or bottom-up with a table.',
+    content: {
+      whenToUse: [
+        'The problem has overlapping subproblems and optimal substructure',
+        'Optimization problems — minimum/maximum distance, cost, or profit',
+        'Sequence problems — e.g. the longest increasing subsequence',
+        'Combinatorial "count the number of ways" problems',
+        'Reducing a naive exponential-time recursion down to polynomial time',
+      ],
+      technique:
+        'Dynamic programming applies whenever a problem\'s solution depends on the solutions to smaller versions of itself, and those smaller subproblems repeat. The fix is always the same idea: cache each subproblem\'s answer the first time you compute it, so later requests for it are instant instead of triggering the same recursion all over again. There are two ways to apply that cache. Top-down keeps the natural recursive structure and adds a memo (a hashmap or array) that returns immediately when a subproblem has already been solved. Bottom-up flips the direction entirely — start from the base cases and iterate forward, filling in a table (or, when each answer only depends on the last one or two entries, just a couple of rolling variables) until you reach the final answer. Bottom-up is usually preferred when it applies, since it avoids recursion overhead and often needs much less memory.',
+      codeTemplates: [
+        {
+          title: 'Top-down with memoization',
+          problem:
+            'General shape: keep the natural recursive definition, but cache every result the first time you compute it. Without a cache, a recurrence like Fibonacci costs O(2ⁿ) because the same subproblems get recomputed exponentially many times; a hashmap that remembers each answer brings that straight down to O(n) — you start with the full problem and let the recursion split it into subproblems exactly as you would write it on paper.',
+          code:
+`Map<Integer, Long> memo = new HashMap<>();
+
+long fibTopDown(int n) {
+    if (memo.containsKey(n)) return memo.get(n);
+    if (n <= 1) return n;
+
+    long result = fibTopDown(n - 1) + fibTopDown(n - 2);
+    memo.put(n, result);
+    return result;
+}`,
+        },
+        {
+          title: 'Bottom-up with O(1) space',
+          problem:
+            'General shape: start from the base cases and iterate forward instead of recursing down to them. Because this recurrence only ever needs the previous two values, a full array is not required — two rolling variables carry everything forward, cutting the space from O(n) down to O(1).',
+          code:
+`int fibBottomUp(int n) {
+    if (n <= 1) return n;
+    int prev2 = 0, prev1 = 1;
+
+    for (int i = 2; i <= n; i++) {
+        int curr = prev2 + prev1;
+        prev2 = prev1;
+        prev1 = curr;
+    }
+    return prev1;
+}`,
+        },
+        {
+          title: 'Worked example — Climbing Stairs',
+          problem:
+            'Climbing Stairs (LeetCode 70): you can climb 1 or 2 steps at a time; count the distinct ways to reach the top of an n-step staircase. The number of ways to reach step i is exactly the ways to reach step i-1 plus the ways to reach step i-2 — arrive via a final 1-step or a final 2-step move — which is the Fibonacci recurrence wearing a different hat.',
+          code:
+`int climbStairs(int n) {
+    if (n <= 2) return n;
+    int oneStepBack = 2, twoStepsBack = 1;
+
+    for (int i = 3; i <= n; i++) {
+        int curr = oneStepBack + twoStepsBack;
+        twoStepsBack = oneStepBack;
+        oneStepBack = curr;
+    }
+    return oneStepBack;
+}`,
+        },
+        {
+          title: 'Worked example — Coin Change',
+          problem:
+            'Coin Change (LeetCode 322): given coin denominations and a target amount, find the fewest coins that make that amount, or -1 if it is impossible. dp[a] holds the best answer for amount a; build it up from dp[0] = 0 by trying every coin as the "last coin used" — dp[a] = 1 + dp[a - coin], minimised over every coin. Unlike the Fibonacci-shaped examples, each entry here depends on trying every available choice, not just the last one or two.',
+          code:
+`int coinChange(int[] coins, int amount) {
+    int[] dp = new int[amount + 1];
+    Arrays.fill(dp, amount + 1); // amount + 1 acts as "infinity"
+    dp[0] = 0;
+
+    for (int a = 1; a <= amount; a++) {
+        for (int coin : coins) {
+            if (coin <= a) {
+                dp[a] = Math.min(dp[a], dp[a - coin] + 1);
+            }
+        }
+    }
+    return dp[amount] > amount ? -1 : dp[amount];
+}`,
+        },
+      ],
+      questions: [
+        { number: 70, title: 'Climbing Stairs', url: 'https://leetcode.com/problems/climbing-stairs/' },
+        { number: 322, title: 'Coin Change', url: 'https://leetcode.com/problems/coin-change/' },
+        { number: 1143, title: 'Longest Common Subsequence', url: 'https://leetcode.com/problems/longest-common-subsequence/' },
+        { number: 300, title: 'Longest Increasing Subsequence', url: 'https://leetcode.com/problems/longest-increasing-subsequence/' },
+        { number: 72, title: 'Edit Distance', url: 'https://leetcode.com/problems/edit-distance/' },
+      ],
+      vizId: 'viz-dynamic-programming',
+    },
   },
   {
     id: 'bit-manipulation',
