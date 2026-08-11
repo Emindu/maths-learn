@@ -4908,13 +4908,10 @@ plt.suptitle('Fitting and Checking a Simple Linear Regression', color='white', f
 plt.tight_layout()
 plt.show()`,
     },
-  ],
-
-  'correlation-multiple-regression': [
     {
       id: 'ch10-cmr-lab-1',
       title: 'Correlation Strength Gallery',
-      description: 'A grid of scatterplots for several values of the population correlation ρ, each annotated with the resulting sample correlation r — building visual intuition for what different r values actually look like.',
+      description: 'A grid of scatterplots for several values of the population correlation ρ, each annotated with the resulting sample correlation r — building visual intuition for what different r values actually look like (Theorem 10.3.5: R²=r²).',
       code:
 `import matplotlib
 matplotlib.use('Agg')
@@ -4946,11 +4943,77 @@ plt.show()`,
     },
   ],
 
+  'logistic-regression': [
+    {
+      id: 'ch10-logit-lab-1',
+      title: 'The Sigmoid Curve, Fitted vs. True, with Binned Success Rates',
+      description: 'Simulate binary data from a known logistic model, fit the coefficients by maximum likelihood, and overlay the fitted probability curve on the raw 0/1 data alongside binned empirical success rates — the full logistic-regression diagnostic picture from Section 10.5.',
+      code:
+`import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import minimize
+
+rng = np.random.default_rng(15)
+n = 400
+x = rng.uniform(0, 10, n)
+true_beta0, true_beta1 = -4.0, 0.9
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+p_true = sigmoid(true_beta0 + true_beta1 * x)
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+def neg_log_lik(params):
+    b0, b1 = params
+    p = np.clip(sigmoid(b0 + b1 * x), 1e-10, 1 - 1e-10)
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+result = minimize(neg_log_lik, x0=[0, 0], method='BFGS')
+fit_b0, fit_b1 = result.x
+
+# Binned empirical success rate, for a visual goodness-of-fit check
+n_bins = 10
+edges = np.linspace(0, 10, n_bins + 1)
+bin_centers, bin_rates = [], []
+for i in range(n_bins):
+    mask = (x >= edges[i]) & (x < edges[i + 1])
+    if mask.sum() > 0:
+        bin_centers.append((edges[i] + edges[i + 1]) / 2)
+        bin_rates.append(y[mask].mean())
+
+fig, ax = plt.subplots(figsize=(9, 5.5), facecolor='#0f172a')
+ax.set_facecolor('#1e293b')
+
+jitter = rng.uniform(-0.02, 0.02, n)
+ax.scatter(x, y + jitter, s=10, color='#94a3b8', alpha=0.4, label='raw data (jittered)')
+ax.scatter(bin_centers, bin_rates, s=60, color='#fb923c', zorder=5, label='binned success rate')
+
+xs = np.linspace(0, 10, 300)
+ax.plot(xs, sigmoid(true_beta0 + true_beta1 * xs), color='#94a3b8', lw=2, ls='--', label=f'true curve (β0={true_beta0}, β1={true_beta1})')
+ax.plot(xs, sigmoid(fit_b0 + fit_b1 * xs), color='#38bdf8', lw=2.5, label=f'fitted curve (β̂0={fit_b0:.2f}, β̂1={fit_b1:.2f})')
+
+ax.set_xlabel('x', color='#94a3b8')
+ax.set_ylabel('P(Y=1|X=x)', color='#94a3b8')
+ax.set_title('Logistic Regression: Fitted Sigmoid vs. Binned Empirical Rates', color='white')
+ax.legend(facecolor='#1e293b', labelcolor='white', edgecolor='#334155', fontsize=9, loc='upper left')
+ax.tick_params(colors='#94a3b8')
+for sp in ax.spines.values(): sp.set_edgecolor('#334155')
+
+plt.tight_layout()
+plt.show()
+print(f"True (beta0, beta1)      = ({true_beta0}, {true_beta1})")
+print(f"Fitted (beta0, beta1)    = ({fit_b0:.4f}, {fit_b1:.4f})")`,
+    },
+  ],
+
   'anova': [
     {
       id: 'ch10-anova-lab-1',
       title: 'ANOVA: Group Means, the F-Distribution, and the Observed F',
-      description: 'Plot the k=4 group distributions with their means, alongside the F(k-1, N-k) reference distribution with the observed F statistic marked — visualising Theorem 10.5.1 end to end.',
+      description: 'Plot the k=4 group distributions with their means, alongside the F(k-1, N-k) reference distribution with the observed F statistic marked — visualising the one-way ANOVA decomposition of Section 10.4 end to end.',
       code:
 `import matplotlib
 matplotlib.use('Agg')

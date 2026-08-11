@@ -127,6 +127,7 @@ import {
   VizCorrelationStrength,
   VizANOVAGroups,
   VizMultipleComparisons,
+  VizLogisticRegression,
 } from '../visualizations/VizRelationshipsAmongVariables';
 import 'katex/dist/katex.min.css';
 
@@ -256,6 +257,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-ch10-correlation':           VizCorrelationStrength,
   'viz-ch10-anova':                 VizANOVAGroups,
   'viz-ch10-multiple-comparisons':  VizMultipleComparisons,
+  'viz-ch10-logistic':              VizLogisticRegression,
   // Chapter 5 — Statistical Inference
   'viz-ch5-inference-motivation': VizInferenceMotivation,
   'viz-ch5-prob-inference':       VizProbInference,

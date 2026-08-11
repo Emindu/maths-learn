@@ -404,3 +404,63 @@ export const VizMultipleComparisons: React.FC = () => {
     </svg>
   );
 };
+
+// ── 8. Logistic Regression — the sigmoid link between predictor and P(Y=1) ───
+export const VizLogisticRegression: React.FC = () => {
+  const [beta0, setBeta0] = useState(-3);
+  const [beta1, setBeta1] = useState(1.2);
+
+  // A fixed synthetic binary dataset generated from a true model (beta0=-3, beta1=1.2).
+  const n = 30;
+  const points = Array.from({ length: n }, (_, i) => {
+    const x = (i / (n - 1)) * 8;
+    const trueLinPred = -3 + 1.2 * x;
+    const trueP = 1 / (1 + Math.exp(-trueLinPred));
+    const u = lcg(1000 + i)();
+    const y = u < trueP ? 1 : 0;
+    return { x, y };
+  });
+
+  const PAD = { l: 36, r: 16, t: 30, b: 34 };
+  const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+  const xMin = 0, xMax = 8;
+  const xS = (x: number) => PAD.l + ((x - xMin) / (xMax - xMin)) * pw;
+  const yS = (p: number) => PAD.t + ph - p * ph;
+
+  const sigmoid = (x: number) => 1 / (1 + Math.exp(-(beta0 + beta1 * x)));
+  const PTS = 100;
+  const curvePts = Array.from({ length: PTS }, (_, i) => {
+    const x = xMin + (i / (PTS - 1)) * (xMax - xMin);
+    return `${xS(x).toFixed(1)},${yS(sigmoid(x)).toFixed(1)}`;
+  }).join(' ');
+
+  return (
+    <div style={{ background: BG, borderRadius: 12, padding: 16, userSelect: 'none' }}>
+      <div style={{ color: TEXT, fontSize: 13, fontWeight: 600, marginBottom: 4, textAlign: 'center' }}>
+        P(Y=1|X=x) = 1 / (1 + exp(−(β₀+β₁x)))
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+        <rect width={W} height={H} fill={BG} />
+        <rect x={PAD.l} y={PAD.t} width={pw} height={ph} fill={SURFACE} rx={3} />
+        {[0, 0.5, 1].map(v => (
+          <g key={v}>
+            <line x1={PAD.l} y1={yS(v)} x2={PAD.l + pw} y2={yS(v)} stroke={BG} strokeWidth={1} />
+            <text x={PAD.l - 5} y={yS(v) + 4} fill={MUTED} fontSize={8} textAnchor="end">{v}</text>
+          </g>
+        ))}
+        {points.map((p, i) => (
+          <circle key={i} cx={xS(p.x)} cy={yS(p.y === 1 ? 0.97 : 0.03)} r={2.8} fill={p.y === 1 ? SUCCESS : DANGER} opacity={0.8} />
+        ))}
+        <polyline points={curvePts} fill="none" stroke={PRIMARY} strokeWidth={2.5} />
+        <text x={W / 2} y={18} fill={TEXT} fontSize={11} textAnchor="middle" fontWeight="700">
+          Fitted Probability Curve vs. Binary Outcomes (y=0/1)
+        </text>
+        <text x={PAD.l + pw / 2} y={H - 4} fill={MUTED} fontSize={9} textAnchor="middle">predictor x</text>
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginTop: 6 }}>
+        <SliderRow label="β₀ (intercept)" value={beta0} min={-8} max={2} step={0.2} onChange={setBeta0} display={beta0.toFixed(1)} color={ACCENT} />
+        <SliderRow label="β₁ (slope)" value={beta1} min={-2} max={3} step={0.1} onChange={setBeta1} display={beta1.toFixed(1)} color={PRIMARY} />
+      </div>
+    </div>
+  );
+};

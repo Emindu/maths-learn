@@ -5002,14 +5002,11 @@ print("exactly the kind of point a residual plot exists to catch (Section 9.1 / 
 `,
       expectedHint: 'Index 3 should have a standardized residual well outside (−3,3), flagging it as a clear outlier — all other points should fall inside that band, since they were generated exactly from the assumed linear model.',
     },
-  ],
-
-  'correlation-multiple-regression': [
     {
       id: 'py-ch10-cmr-1',
-      number: '1',
+      number: '3',
       title: 'Correlation, R², and the Slope Test Agree',
-      description: 'Verify numerically that r² = R² for a simple regression, and that the correlation t-test (Theorem 10.4.1) gives the same T statistic as the slope t-test (Theorem 10.3.2).',
+      description: 'Verify numerically that r² = R² for a simple regression, and that the correlation t-test gives the same T statistic as the slope t-test (Theorem 10.3.5).',
       starterCode:
 `import numpy as np
 
@@ -5074,13 +5071,13 @@ T_beta = beta1_hat / (S / np.sqrt(Sxx))
 print(f"T_r    = {T_r:.6f}")
 print(f"T_beta = {T_beta:.6f}")
 print("\\nr^2 and R^2 match, and T_r equals T_beta -- testing ho:rho=0")
-print("and testing H0:beta1=0 are algebraically the same test (Theorem 10.4.1).")
+print("and testing H0:beta1=0 are algebraically the same test.")
 `,
       expectedHint: 'r² and R² should match to many decimal places, and T_r and T_beta should also match almost exactly — small floating-point differences aside, they are the same statistic derived two ways.',
     },
     {
       id: 'py-ch10-cmr-2',
-      number: '2',
+      number: '4',
       title: 'Multicollinearity: Watching Standard Errors Explode',
       description: 'Fit a multiple regression with two nearly-identical predictors and observe how the coefficient standard errors inflate compared to a version with independent predictors, using the closed-form (XᵀX)⁻¹ formula.',
       starterCode:
@@ -5149,12 +5146,168 @@ print("blows up the variance of the individual coefficient estimates.")
     },
   ],
 
+  'logistic-regression': [
+    {
+      id: 'py-ch10-logit-1',
+      number: '1',
+      title: 'Fitting a Logistic Regression by Maximum Likelihood',
+      description: 'Generate binary data from a known logistic model (10.5.2), then recover the coefficients by maximizing the Bernoulli log-likelihood directly with gradient ascent — no library shortcuts — and compare against scipy/statsmodels-style fitted values.',
+      starterCode:
+`import numpy as np
+
+rng = np.random.default_rng(11)
+n = 500
+x = rng.uniform(-4, 4, n)
+true_beta0, true_beta1 = -1.0, 0.8
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+p_true = sigmoid(true_beta0 + true_beta1 * x)
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+def neg_log_likelihood(beta0, beta1):
+    p = sigmoid(beta0 + beta1 * x)
+    p = np.clip(p, 1e-10, 1 - 1e-10)
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+# TODO: gradient ascent on the log-likelihood (gradient descent on negative log-likelihood)
+beta0, beta1 = 0.0, 0.0
+lr = 0.01
+for step in range(2000):
+    p = sigmoid(beta0 + beta1 * x)
+    # TODO: gradient of negative log-likelihood wrt beta0, beta1
+    grad_beta0 = None   # TODO: np.sum(p - y)
+    grad_beta1 = None   # TODO: np.sum((p - y) * x)
+    if grad_beta0 is not None:
+        beta0 -= lr * grad_beta0 / n
+        beta1 -= lr * grad_beta1 / n
+
+print(f"True:      beta0={true_beta0}, beta1={true_beta1}")
+print(f"Estimated: beta0={beta0:.3f}, beta1={beta1:.3f}")
+print(f"Final negative log-likelihood: {neg_log_likelihood(beta0, beta1):.3f}")
+`,
+      solution:
+`import numpy as np
+
+rng = np.random.default_rng(11)
+n = 500
+x = rng.uniform(-4, 4, n)
+true_beta0, true_beta1 = -1.0, 0.8
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+p_true = sigmoid(true_beta0 + true_beta1 * x)
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+def neg_log_likelihood(beta0, beta1):
+    p = sigmoid(beta0 + beta1 * x)
+    p = np.clip(p, 1e-10, 1 - 1e-10)
+    return -np.sum(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+beta0, beta1 = 0.0, 0.0
+lr = 0.01
+for step in range(2000):
+    p = sigmoid(beta0 + beta1 * x)
+    grad_beta0 = np.sum(p - y)
+    grad_beta1 = np.sum((p - y) * x)
+    beta0 -= lr * grad_beta0 / n
+    beta1 -= lr * grad_beta1 / n
+
+print(f"True:      beta0={true_beta0}, beta1={true_beta1}")
+print(f"Estimated: beta0={beta0:.3f}, beta1={beta1:.3f}")
+print(f"Final negative log-likelihood: {neg_log_likelihood(beta0, beta1):.3f}")
+print("\\nWith n=500 the MLE should land close to the true (beta0, beta1) --")
+print("this is exactly the numerical optimization statistical software performs")
+print("under the hood, since (10.5.2) has no closed-form MLE.")
+`,
+      expectedHint: 'After 2000 gradient steps, (β̂₀, β̂₁) should land reasonably close to the true (−1.0, 0.8) — logistic regression has no closed-form MLE, so this loop is doing (a simplified version of) exactly what statsmodels or scikit-learn do internally.',
+    },
+    {
+      id: 'py-ch10-logit-2',
+      number: '2',
+      title: 'A Chi-Squared Goodness of Fit Check for a Logistic Model',
+      description: 'Bucket a quantitative predictor into groups, compare observed vs model-predicted success counts in each group, and compute a chi-squared goodness of fit statistic — the same style of check used on the ingot data in Example 10.5.1.',
+      starterCode:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(21)
+n = 2000
+x = rng.uniform(0, 10, n)
+beta0, beta1 = -3.0, 0.7
+p_true = 1 / (1 + np.exp(-(beta0 + beta1 * x)))
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+# Pretend (beta0, beta1) below are already-fitted MLEs (close to the true values)
+fitted_beta0, fitted_beta1 = -2.9, 0.68
+
+n_bins = 8
+edges = np.linspace(x.min(), x.max(), n_bins + 1)
+X2 = 0.0
+for i in range(n_bins):
+    mask = (x >= edges[i]) & (x < edges[i + 1])
+    n_i = mask.sum()
+    if n_i == 0:
+        continue
+    observed_successes = y[mask].sum()
+    # TODO: expected successes = sum of fitted P(Y=1|x) for points in this bin
+    p_fitted = 1 / (1 + np.exp(-(fitted_beta0 + fitted_beta1 * x[mask])))
+    expected_successes = None   # TODO: p_fitted.sum()
+    if expected_successes is not None and 0 < expected_successes < n_i:
+        X2 += (observed_successes - expected_successes) ** 2 / (expected_successes * (1 - expected_successes / n_i))
+
+df = n_bins - 2   # 2 fitted parameters
+p_value = 1 - stats.chi2.cdf(X2, df=df) if X2 else None
+print(f"X^2 = {X2:.4f}" if X2 else "X^2: TODO")
+print(f"P-value = {p_value:.4f}" if p_value is not None else "P-value: TODO")
+`,
+      solution:
+`import numpy as np
+from scipy import stats
+
+rng = np.random.default_rng(21)
+n = 2000
+x = rng.uniform(0, 10, n)
+beta0, beta1 = -3.0, 0.7
+p_true = 1 / (1 + np.exp(-(beta0 + beta1 * x)))
+y = (rng.uniform(0, 1, n) < p_true).astype(float)
+
+fitted_beta0, fitted_beta1 = -2.9, 0.68
+
+n_bins = 8
+edges = np.linspace(x.min(), x.max(), n_bins + 1)
+X2 = 0.0
+for i in range(n_bins):
+    mask = (x >= edges[i]) & (x < edges[i + 1])
+    n_i = mask.sum()
+    if n_i == 0:
+        continue
+    observed_successes = y[mask].sum()
+    p_fitted = 1 / (1 + np.exp(-(fitted_beta0 + fitted_beta1 * x[mask])))
+    expected_successes = p_fitted.sum()
+    if 0 < expected_successes < n_i:
+        X2 += (observed_successes - expected_successes) ** 2 / (expected_successes * (1 - expected_successes / n_i))
+
+df = n_bins - 2
+p_value = 1 - stats.chi2.cdf(X2, df=df)
+print(f"X^2 = {X2:.4f}")
+print(f"P-value = {p_value:.4f}")
+print("\\nBecause the fitted coefficients are close to the true generating model,")
+print("this P-value should typically be unremarkable (no strong evidence of lack of fit) --")
+print("mirroring the P=0.633 goodness-of-fit result for the ingot data in Example 10.5.1.")
+`,
+      expectedHint: 'Since the fitted coefficients are close to the true model used to generate the data, the resulting P-value should typically not be small — no evidence the logistic model fits poorly, the same conclusion reached for the real ingot data in Example 10.5.1.',
+    },
+  ],
+
   'anova': [
     {
       id: 'py-ch10-anova-1',
       number: '1',
       title: 'One-Way ANOVA from Scratch',
-      description: 'Compute SSB, SSW, the F statistic, and its P-value for three groups directly from the formulas of Section 10.5, then verify against scipy.stats.f_oneway.',
+      description: 'Compute the between- and within-groups sums of squares, the F statistic, and its P-value for three groups directly from the one-way ANOVA formulas of Section 10.4, then verify against scipy.stats.f_oneway.',
       starterCode:
 `import numpy as np
 from scipy import stats
@@ -5215,7 +5368,7 @@ print(f"SSB={SSB:.3f}, SSW={SSW:.3f}, F={F:.4f}, p={p_value:.4f}")
 F_scipy, p_scipy = stats.f_oneway(*groups)
 print(f"scipy: F={F_scipy:.4f}, p={p_scipy:.4f}")
 print("\\nBy-hand F and p should match scipy.stats.f_oneway almost exactly --")
-print("both implement Theorem 10.5.1's decomposition (10.5.1) directly.")
+print("both implement the same one-way ANOVA decomposition directly.")
 `,
       expectedHint: 'Your hand-computed F and p should agree with scipy.stats.f_oneway to several decimal places — both are exactly the same F-test. With true means 10, 12, 11 and modest within-group noise, expect F to be modestly large and the P-value to often (though not always, depending on the random seed) fall below 0.05.',
     },
@@ -5292,9 +5445,9 @@ print(f"Naive false-positive rate:      {naive_false_positive / N_SIM:.3f}")
 print(f"Bonferroni false-positive rate: {bonf_false_positive / N_SIM:.3f}")
 print("\\nThe naive rate should land well above 0.05 (often 0.3-0.4 with m=10 comparisons),")
 print("while the Bonferroni-corrected rate should land close to the target 0.05 --")
-print("exactly the family-wise error control promised by Theorem 10.5.2.")
+print("exactly the family-wise error control the Bonferroni correction promises.")
 `,
-      expectedHint: 'With k=5 groups (m=10 comparisons) and H₀ true for all of them, the naive false-positive rate should land well above 0.05 — often around 0.3–0.4 — while the Bonferroni-corrected rate should be much closer to the target 0.05, illustrating Theorem 10.5.2 empirically.',
+      expectedHint: 'With k=5 groups (m=10 comparisons) and H₀ true for all of them, the naive false-positive rate should land well above 0.05 — often around 0.3–0.4 — while the Bonferroni-corrected rate should be much closer to the target 0.05.',
     },
   ],
 };

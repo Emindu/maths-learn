@@ -64,8 +64,8 @@ export const TOPIC_SEQUENCE = [
   '/ch10/related-variables',
   '/ch10/categorical-relationships',
   '/ch10/simple-linear-regression',
-  '/ch10/correlation-multiple-regression',
   '/ch10/anova',
+  '/ch10/logistic-regression',
 
   '/distribution/bernoulli',
   '/distribution/beta',
