@@ -10,6 +10,7 @@ import {
 import { VizSlidingWindowDynamic, VizSlidingWindowFixed } from '../visualizations/VizSlidingWindow';
 import { VizTwoPointers } from '../visualizations/VizTwoPointers';
 import { VizFastSlowPointers } from '../visualizations/VizFastSlowPointers';
+import { VizLinkedListReversal } from '../visualizations/VizLinkedListReversal';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -21,6 +22,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   ),
   'viz-two-pointers': VizTwoPointers,
   'viz-fast-slow-pointers': VizFastSlowPointers,
+  'viz-linked-list-reversal': VizLinkedListReversal,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (

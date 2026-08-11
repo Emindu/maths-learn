@@ -344,6 +344,99 @@ export const interviewPatterns: InterviewPattern[] = [
     order: 4,
     title: 'In-Place Linked List Reversal',
     shortDesc: 'Rewire next pointers as you walk the list to reverse it in one pass with no extra space.',
+    content: {
+      whenToUse: [
+        'Reversing a linked list in one pass with O(1) extra space',
+        'Reversing only a specific portion of a linked list',
+        'Reversing nodes in fixed-size groups of k',
+      ],
+      technique:
+        'Walk the list with two pointers, prev and curr, both starting from before the head. At each node, save curr.next before you overwrite it (or you will lose the rest of the list), then rewire curr.next to point back at prev instead of forward. Then slide both pointers one step along: prev becomes curr, and curr becomes the node you saved. When curr runs off the end, prev is sitting on the new head. Because you only ever touch three pointers per step, the whole list reverses in a single O(n) pass with no extra array or recursion stack — and the same rewiring move composes: run it on a bounded range for a partial reversal, or repeatedly on fixed-size chunks for a k-group reversal.',
+      codeTemplates: [
+        {
+          title: 'In-place reversal of a linked list',
+          problem:
+            'Reverse Linked List (LeetCode 206): given the head of a singly linked list, reverse it and return the new head. Track prev and curr as you walk forward, and just before advancing, rewire curr.next back to point at prev. Once curr becomes null, prev is the new head.',
+          code:
+`ListNode reverseList(ListNode head) {
+    ListNode prev = null;
+    ListNode curr = head;
+
+    while (curr != null) {
+        ListNode next = curr.next;
+        curr.next = prev;
+        prev = curr;
+        curr = next;
+    }
+    return prev; // new head of the reversed list
+}`,
+        },
+        {
+          title: 'Worked example — Reverse Nodes in k-Group',
+          problem:
+            'Reverse Nodes in k-Group (LeetCode 25): given the head of a list, reverse the nodes k at a time and return the new head; if the number of remaining nodes is not a multiple of k, leave that final group as-is. This recursive version reverses the next group first, then applies the exact same prev/curr rewiring loop to the current k nodes, using the already-reversed remainder as the starting value of prev.',
+          code:
+`ListNode reverseKGroup(ListNode head, int k) {
+    ListNode node = head;
+    for (int i = 0; i < k; i++) {
+        if (node == null) return head; // fewer than k nodes left — leave as-is
+        node = node.next;
+    }
+
+    ListNode prev = reverseKGroup(node, k); // reverse the remaining groups first
+    ListNode curr = head;
+    for (int i = 0; i < k; i++) {
+        ListNode next = curr.next;
+        curr.next = prev;
+        prev = curr;
+        curr = next;
+    }
+    return prev;
+}`,
+        },
+        {
+          title: 'Worked example — Reorder List',
+          problem:
+            'Reorder List (LeetCode 143): given a list L0 → L1 → … → Ln, reorder it in place to L0 → Ln → L1 → Ln-1 → L2 → …. Three patterns compose to solve it: find the middle with fast & slow pointers, reverse the second half in place with this pattern\'s technique, then merge the two halves by alternating nodes from each.',
+          code:
+`void reorderList(ListNode head) {
+    // 1. find the middle
+    ListNode slow = head, fast = head;
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+
+    // 2. reverse the second half in place
+    ListNode prev = null, curr = slow.next;
+    slow.next = null;
+    while (curr != null) {
+        ListNode next = curr.next;
+        curr.next = prev;
+        prev = curr;
+        curr = next;
+    }
+
+    // 3. merge the two halves alternately
+    ListNode first = head, second = prev;
+    while (second != null) {
+        ListNode tmp1 = first.next;
+        ListNode tmp2 = second.next;
+        first.next = second;
+        second.next = tmp1;
+        first = tmp1;
+        second = tmp2;
+    }
+}`,
+        },
+      ],
+      questions: [
+        { number: 206, title: 'Reverse Linked List', url: 'https://leetcode.com/problems/reverse-linked-list/' },
+        { number: 143, title: 'Reorder List', url: 'https://leetcode.com/problems/reorder-list/' },
+        { number: 25, title: 'Reverse Nodes in k-Group', url: 'https://leetcode.com/problems/reverse-nodes-in-k-group/' },
+      ],
+      vizId: 'viz-linked-list-reversal',
+    },
   },
   {
     id: 'binary-search',
