@@ -1423,6 +1423,102 @@ long fibTopDown(int n) {
     order: 14,
     title: 'Prefix Sum',
     shortDesc: 'Precompute cumulative sums once so any range-sum query answers in O(1) instead of O(n).',
+    content: {
+      whenToUse: [
+        'Cumulative sums are needed from index 0 up to any element',
+        'Querying subarray sums repeatedly, across many different ranges',
+        'A running total or count can be reused across the rest of a scan instead of recomputed',
+      ],
+      technique:
+        'Summing one subarray directly costs O(n). Summing Q separate subarrays the same way costs O(n·Q) — and almost all of that work is repeated, since overlapping ranges keep re-adding the same elements. A prefix sum array fixes this in one pass: prefix[i] holds the sum of everything from the start up to index i, built with prefix[i] = prefix[i-1] + arr[i]. Once that exists, the sum of any range (i, j] is just prefix[j] - prefix[i-1] — one subtraction, O(1), no matter how wide the range is. The same idea generalises past addition: a running product answers "everything except this index" queries, and a running count keyed by a hashmap turns "how many subarrays sum to exactly k" from a nested loop into a single pass.',
+      codeTemplates: [
+        {
+          title: 'Build a prefix sum array, then answer ranges in O(1)',
+          problem:
+            'General shape: precompute prefix[i] = sum of arr[0..i] once in O(n), then answer any range-sum query with a single subtraction: sum(i, j) = prefix[j] - prefix[i-1]. Summing Q separate subarrays directly costs O(n·Q); precomputing brings the total down to O(n + Q).',
+          code:
+`int[] buildPrefixSum(int[] arr) {
+    int[] prefix = new int[arr.length];
+    prefix[0] = arr[0];
+    for (int i = 1; i < arr.length; i++) {
+        prefix[i] = prefix[i - 1] + arr[i];
+    }
+    return prefix;
+}
+
+int rangeSum(int[] prefix, int i, int j) {
+    return i == 0 ? prefix[j] : prefix[j] - prefix[i - 1];
+}`,
+        },
+        {
+          title: 'Worked example — Range Sum Query - Immutable',
+          problem:
+            'Range Sum Query - Immutable (LeetCode 303): given an array that never changes, answer many sumRange(left, right) queries efficiently. Precompute the prefix sums once in the constructor, so every query afterwards is a single O(1) subtraction instead of re-summing the range from scratch.',
+          code:
+`class NumArray {
+    private int[] prefix;
+
+    public NumArray(int[] nums) {
+        prefix = new int[nums.length];
+        prefix[0] = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            prefix[i] = prefix[i - 1] + nums[i];
+        }
+    }
+
+    public int sumRange(int left, int right) {
+        return left == 0 ? prefix[right] : prefix[right] - prefix[left - 1];
+    }
+}`,
+        },
+        {
+          title: 'Worked example — Subarray Sum Equals K',
+          problem:
+            'Subarray Sum Equals K (LeetCode 560): count how many contiguous subarrays sum to exactly k. A subarray (i, j] sums to k exactly when prefix[j] - prefix[i] = k, so at every position check how many earlier prefix sums equal (current sum - k), using a hashmap instead of testing every possible starting point.',
+          code:
+`int subarraySum(int[] nums, int k) {
+    Map<Integer, Integer> prefixCount = new HashMap<>();
+    prefixCount.put(0, 1); // an empty prefix (sum 0) has occurred once
+
+    int sum = 0, count = 0;
+    for (int num : nums) {
+        sum += num;
+        count += prefixCount.getOrDefault(sum - k, 0);
+        prefixCount.merge(sum, 1, Integer::sum);
+    }
+    return count;
+}`,
+        },
+        {
+          title: 'Worked example — Product of Array Except Self',
+          problem:
+            'Product of Array Except Self (LeetCode 238): return an array where each element is the product of every other number, without using division. The same prefix idea applied to multiplication: build a running product from the left in one pass, then fold in a running product from the right in a second pass, so each position ends up multiplied by everything except itself.',
+          code:
+`int[] productExceptSelf(int[] nums) {
+    int n = nums.length;
+    int[] result = new int[n];
+
+    result[0] = 1;
+    for (int i = 1; i < n; i++) {
+        result[i] = result[i - 1] * nums[i - 1]; // prefix product to the left of i
+    }
+
+    int suffixProduct = 1;
+    for (int i = n - 1; i >= 0; i--) {
+        result[i] *= suffixProduct; // fold in the suffix product to the right of i
+        suffixProduct *= nums[i];
+    }
+    return result;
+}`,
+        },
+      ],
+      questions: [
+        { number: 303, title: 'Range Sum Query - Immutable', url: 'https://leetcode.com/problems/range-sum-query-immutable/' },
+        { number: 560, title: 'Subarray Sum Equals K', url: 'https://leetcode.com/problems/subarray-sum-equals-k/' },
+        { number: 238, title: 'Product of Array Except Self', url: 'https://leetcode.com/problems/product-of-array-except-self/' },
+      ],
+      vizId: 'viz-prefix-sum',
+    },
   },
 ];
 

@@ -20,6 +20,7 @@ import { VizDynamicProgramming } from '../visualizations/VizDynamicProgramming';
 import { VizBitManipulation } from '../visualizations/VizBitManipulation';
 import { VizOverlappingIntervals } from '../visualizations/VizOverlappingIntervals';
 import { VizMonotonicStack } from '../visualizations/VizMonotonicStack';
+import { VizPrefixSum } from '../visualizations/VizPrefixSum';
 import { useTheme } from '../components/Layout';
 
 const VIZ_REGISTRY: Record<string, React.ComponentType> = {
@@ -41,6 +42,7 @@ const VIZ_REGISTRY: Record<string, React.ComponentType> = {
   'viz-bit-manipulation': VizBitManipulation,
   'viz-overlapping-intervals': VizOverlappingIntervals,
   'viz-monotonic-stack': VizMonotonicStack,
+  'viz-prefix-sum': VizPrefixSum,
 };
 
 const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
